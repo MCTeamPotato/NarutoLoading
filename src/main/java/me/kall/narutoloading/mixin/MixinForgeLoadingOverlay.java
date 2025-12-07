@@ -1,11 +1,10 @@
 package me.kall.narutoloading.mixin;
 
-import me.kall.narutoloading.NarutoVideoPlayer;
+import me.kall.narutoloading.NarutoRenderer;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.LoadingOverlay;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraftforge.client.loading.ForgeLoadingOverlay;
 import net.minecraftforge.fml.earlydisplay.DisplayWindow;
@@ -38,13 +37,6 @@ public class MixinForgeLoadingOverlay extends LoadingOverlay {
      */
     @Overwrite
     public void render(final @NotNull GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
-        ResourceLocation texture = NarutoVideoPlayer.getCurrentFrameTexture();
-        if (texture != null) {
-            int w = graphics.guiWidth();
-            int h = graphics.guiHeight();;
-            graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
-        }
-
         float fadeOutTimer = this.fadeOutStart > -1L ? (float)(Util.getMillis() - this.fadeOutStart) / 1000.0F : -1.0F;
 
         if (fadeOutTimer >= 2.0F) {
@@ -65,6 +57,10 @@ public class MixinForgeLoadingOverlay extends LoadingOverlay {
             if (this.minecraft.screen != null) {
                 this.minecraft.screen.init(this.minecraft, this.minecraft.getWindow().getGuiScaledWidth(), this.minecraft.getWindow().getGuiScaledHeight());
             }
+        }
+
+        if (this.minecraft.getOverlay() instanceof ForgeLoadingOverlay) {
+            NarutoRenderer.renderFrame(graphics);
         }
     }
 }
