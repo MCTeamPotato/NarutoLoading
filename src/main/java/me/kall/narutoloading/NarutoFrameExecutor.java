@@ -54,7 +54,7 @@ public class NarutoFrameExecutor {
 
                     frameQueue.put(nativeImage);
 
-                    while (frameQueue.size() > 100) {
+                    while (frameQueue.size() > 110) {
                         Thread.sleep(1);
                     }
                 }
