@@ -10,4 +10,6 @@ public final class NarutoLoading {
     public static final String FFMPEG_PATH = "D:\\ffmpeg\\bin\\ffmpeg.exe";
 
     public static final String VIDEO_PATH = FMLLoader.getGamePath().resolve("config").resolve("naruto.mp4").toAbsolutePath().toString();
+
+    public static final int FPS = 30;
 }

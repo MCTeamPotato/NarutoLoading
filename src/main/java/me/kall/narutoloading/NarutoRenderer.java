@@ -10,7 +10,6 @@ import org.lwjgl.glfw.GLFW;
 public class NarutoRenderer {
     private static DynamicTexture dynamicTexture;
     private static ResourceLocation textureLocation;
-    private static final int FPS = 30;
     private static long lastFrame = 0;
 
     public static void setup() {
@@ -24,7 +23,7 @@ public class NarutoRenderer {
     public static ResourceLocation nextFrame() {
         if (dynamicTexture == null) setup();
         long now = System.currentTimeMillis();
-        if (now - lastFrame >= 1000 / FPS) {
+        if (now - lastFrame >= 1000 / NarutoLoading.FPS) {
             lastFrame = now;
             NativeImage frame = NarutoFrameExecutor.frameQueue.poll();
             if (frame != null) {
