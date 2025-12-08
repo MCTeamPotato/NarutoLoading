@@ -14,6 +14,7 @@ public class NarutoFrameExecutor {
     public static ExecutorService executor;
     public static boolean canceled;
 
+    @SuppressWarnings("BusyWait")
     public static void setup() {
         canceled = false;
         executor = Executors.newSingleThreadExecutor(task -> {
@@ -57,8 +58,7 @@ public class NarutoFrameExecutor {
                         Thread.sleep(1);
                     }
                 }
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
+            } catch (Exception ignored) {
             } finally {
                 if (process != null) process.destroyForcibly();
             }

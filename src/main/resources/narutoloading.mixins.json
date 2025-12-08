@@ -10,10 +10,12 @@
     "defaultRequire": 1
   },
   "client": [
+    "MixinAbstractSelectionList",
+    "MixinCreateWorldScreen",
     "MixinForgeLoadingOverlay",
     "MixinMinecraft",
+    "MixinScreen",
+    "MixinScrollPanel",
     "MixinTitleScreen"
-  ],
-  "mixins": [
   ]
 }

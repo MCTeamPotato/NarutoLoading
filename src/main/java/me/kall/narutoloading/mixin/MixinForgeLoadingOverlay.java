@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 @Mixin(value = ForgeLoadingOverlay.class, remap = false)
-public class MixinForgeLoadingOverlay extends LoadingOverlay {
+public abstract class MixinForgeLoadingOverlay extends LoadingOverlay {
     @Shadow private long fadeOutStart;
     @Shadow @Final private ReloadInstance reload;
     @Shadow @Final private ProgressMeter progress;
@@ -59,8 +59,6 @@ public class MixinForgeLoadingOverlay extends LoadingOverlay {
             }
         }
 
-        if (this.minecraft.getOverlay() instanceof ForgeLoadingOverlay) {
-            NarutoRenderer.renderFrame(graphics);
-        }
+        NarutoRenderer.renderFrame(graphics);
     }
 }

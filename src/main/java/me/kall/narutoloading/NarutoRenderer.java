@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.lwjgl.glfw.GLFW;
 
 public class NarutoRenderer {
     private static DynamicTexture dynamicTexture;
@@ -17,6 +18,7 @@ public class NarutoRenderer {
         dynamicTexture = new DynamicTexture(854, 480, false);
         if (textureLocation == null) textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", dynamicTexture);
         NarutoFrameExecutor.setup();
+        System.out.println("NarutoRenderer sets up successfully.");
     }
 
     public static ResourceLocation nextFrame() {
@@ -39,6 +41,18 @@ public class NarutoRenderer {
     }
 
     public static void renderFrame(GuiGraphics graphics) {
+        if (Minecraft.getInstance().level != null) {
+            shutdown();
+            return;
+        }
+        if (!Minecraft.getInstance().isRunning()) {
+            shutdown();
+            return;
+        }
+        if (GLFW.glfwGetKey(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_F12) == GLFW.GLFW_PRESS) {
+            shutdown();
+            setup();
+        }
         ResourceLocation texture = nextFrame();
         if (texture != null) {
             int w = graphics.guiWidth();
@@ -55,5 +69,6 @@ public class NarutoRenderer {
         }
         textureLocation = null;
         lastFrame = 0;
+        System.out.println("NarutoRenderer shuts down successfully.");
     }
 }

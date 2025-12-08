@@ -66,8 +66,7 @@ public class NarutoAudioExecutor {
                         AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(source));
                     }
                 }
-            } catch (Exception exception) {
-                System.out.println(exception.getMessage());
+            } catch (Exception ignored) {
             } finally {
                 if (process != null) process.destroyForcibly();
             }
