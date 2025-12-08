@@ -25,7 +25,7 @@ public abstract class MixinScrollPanel {
     @Shadow @Final private int bgColorTo;
 
     @Inject(method = "drawBackground", at = @At("HEAD"), cancellable = true)
-    private void render(GuiGraphics guiGraphics, Tesselator tess, float partialTick, @NotNull CallbackInfo ci) {
+    private void dirtScreenByeBye(GuiGraphics guiGraphics, Tesselator tess, float partialTick, @NotNull CallbackInfo ci) {
         ci.cancel();
 
         if (this.client.level != null) {

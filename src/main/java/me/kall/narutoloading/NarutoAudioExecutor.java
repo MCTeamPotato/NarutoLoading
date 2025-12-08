@@ -16,6 +16,7 @@ public class NarutoAudioExecutor {
     public static long device, context;
     public static int source;
     public static ExecutorService executor;
+    private static Process process;
 
     public static void setup() {
         canceled = false;
@@ -36,8 +37,6 @@ public class NarutoAudioExecutor {
             return thread;
         });
         executor.submit(() -> {
-            Process process = null;
-
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(NarutoLoading.FFMPEG_PATH, "-i", NarutoLoading.VIDEO_PATH, "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-");
                 process = processBuilder.start();
@@ -56,20 +55,13 @@ public class NarutoAudioExecutor {
 
                     AL10.alSourceQueueBuffers(source, alGenBuffers);
 
-                    int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-                    if (state != AL10.AL_PLAYING) {
-                        AL10.alSourcePlay(source);
-                    }
+                    if (AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) AL10.alSourcePlay(source);
+
 
                     int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
-                    while (processed-- > 0) {
-                        AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(source));
-                    }
+                    while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(source));
                 }
-            } catch (Exception ignored) {
-            } finally {
-                if (process != null) process.destroyForcibly();
-            }
+            } catch (Exception ignored) {}
         });
     }
 
@@ -77,6 +69,10 @@ public class NarutoAudioExecutor {
         canceled = true;
 
         if (executor != null && !executor.isShutdown()) {
+            if (process != null) {
+                process.destroyForcibly();
+                process = null;
+            }
             executor.shutdownNow();
             executor = null;
         }

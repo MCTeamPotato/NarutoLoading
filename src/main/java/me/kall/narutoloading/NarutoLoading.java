@@ -12,4 +12,6 @@ public final class NarutoLoading {
     public static final String VIDEO_PATH = FMLLoader.getGamePath().resolve("config").resolve("naruto.mp4").toAbsolutePath().toString();
 
     public static final int FPS = 30;
+
+    public static final int VIDEO_SECONDS = 225;
 }

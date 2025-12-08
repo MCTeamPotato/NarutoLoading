@@ -13,6 +13,7 @@ public class NarutoFrameExecutor {
     public static final BlockingQueue<NativeImage> frameQueue = new LinkedBlockingQueue<>(120);
     public static ExecutorService executor;
     public static boolean canceled;
+    private static Process process;
 
     @SuppressWarnings("BusyWait")
     public static void setup() {
@@ -23,8 +24,6 @@ public class NarutoFrameExecutor {
             return thread;
         });
         executor.submit(() -> {
-            Process process = null;
-
             ProcessBuilder processBuilder = new ProcessBuilder(
                     NarutoLoading.FFMPEG_PATH, "-i", NarutoLoading.VIDEO_PATH,
                     "-vf", "format=rgb24,scale=854:480",
@@ -58,10 +57,7 @@ public class NarutoFrameExecutor {
                         Thread.sleep(1);
                     }
                 }
-            } catch (Exception ignored) {
-            } finally {
-                if (process != null) process.destroyForcibly();
-            }
+            } catch (Exception ignored) {}
         });
         NarutoAudioExecutor.setup();
     }
@@ -81,6 +77,10 @@ public class NarutoFrameExecutor {
     public static void shutdown() {
         canceled = true;
         if (executor != null && !executor.isShutdown()) {
+            if (process != null) {
+                process.destroyForcibly();
+                process = null;
+            }
             executor.shutdownNow();
             executor = null;
         }

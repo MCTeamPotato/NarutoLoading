@@ -12,12 +12,16 @@ public class NarutoRenderer {
     private static ResourceLocation textureLocation;
     private static long lastFrame = 0;
 
+    private static boolean isFirstFrame = true;
+
+    private static long firstMoment = 0L;
+    private static long currentMoment = 0L;
+
     public static void setup() {
         if (dynamicTexture != null) return;
         dynamicTexture = new DynamicTexture(854, 480, false);
         if (textureLocation == null) textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", dynamicTexture);
         NarutoFrameExecutor.setup();
-        System.out.println("NarutoRenderer sets up successfully.");
     }
 
     public static ResourceLocation nextFrame() {
@@ -40,11 +44,7 @@ public class NarutoRenderer {
     }
 
     public static void renderFrame(GuiGraphics graphics) {
-        if (Minecraft.getInstance().level != null) {
-            shutdown();
-            return;
-        }
-        if (!Minecraft.getInstance().isRunning()) {
+        if (Minecraft.getInstance().level != null || !Minecraft.getInstance().isRunning()) {
             shutdown();
             return;
         }
@@ -57,7 +57,18 @@ public class NarutoRenderer {
             int w = graphics.guiWidth();
             int h = graphics.guiHeight();
             graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
+
+            if (isFirstFrame) {
+                isFirstFrame = false;
+                firstMoment = System.currentTimeMillis();
+            }
+
+            currentMoment = System.currentTimeMillis();
         }
+    }
+
+    public static long elapsed() {
+        return currentMoment - firstMoment;
     }
 
     public static void shutdown() {
@@ -68,6 +79,8 @@ public class NarutoRenderer {
         }
         textureLocation = null;
         lastFrame = 0;
-        System.out.println("NarutoRenderer shuts down successfully.");
+        isFirstFrame = true;
+        firstMoment = 0L;
+        currentMoment = 0L;
     }
 }

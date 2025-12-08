@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinScreen {
     @SuppressWarnings("UnstableApiUsage")
     @Inject(method = "renderDirtBackground", at = @At("HEAD"), cancellable = true)
-    private void renderBg(GuiGraphics guiGraphics, CallbackInfo ci) {
+    private void dirtScreenByeBye(GuiGraphics guiGraphics, CallbackInfo ci) {
         Screen screen = (Screen) (Object) this;
         NarutoRenderer.renderFrame(guiGraphics);
         MinecraftForge.EVENT_BUS.post(new ScreenEvent.BackgroundRendered(screen, guiGraphics));
