@@ -63,7 +63,9 @@ public final class NarutoAudioExecutor {
                     int processed = AL10.alGetSourcei(this.source, AL10.AL_BUFFERS_PROCESSED);
                     while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception exception) {
+                System.out.println(exception.getMessage());
+            }
         });
     }
 

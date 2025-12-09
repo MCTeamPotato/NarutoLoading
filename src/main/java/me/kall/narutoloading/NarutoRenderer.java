@@ -18,21 +18,25 @@ public class NarutoRenderer {
 
     private void setup() {
         if (this.dynamicTexture != null) return;
-        this.dynamicTexture = new DynamicTexture(854, 480, false);
+        this.dynamicTexture = new DynamicTexture(NarutoLoading.width(), NarutoLoading.height(), false);
         if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", dynamicTexture);
         NarutoLoading.VIDEO.setup();
+        NarutoLoading.AUDIO.setup();
     }
 
     private @Nullable ResourceLocation nextFrame() {
         if (this.dynamicTexture == null) setup();
         long now = System.currentTimeMillis();
-        if (now - this.last >= 1000 / NarutoLoading.FPS) {
+        if (now - this.last >= 1000 / NarutoLoading.fps()) {
             this.last = now;
             NativeImage frame = NarutoLoading.VIDEO.fetchImage(this.elapsed / 1000L);
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
                 frame.close();
+            } else {
+                this.shutdown();
+                this.setup();
             }
         }
 
@@ -41,7 +45,7 @@ public class NarutoRenderer {
 
     public void renderFrame(GuiGraphics graphics) {
         if (this.canRender()){
-            this.checkReload();
+            this.keyReload();
             ResourceLocation texture = this.nextFrame();
             if (texture != null) {
                 int w = graphics.guiWidth();
@@ -64,18 +68,18 @@ public class NarutoRenderer {
          return true;
     }
 
-    private void checkReload() {
+    private void keyReload() {
         long window = Minecraft.getInstance().getWindow().getWindow();
-        boolean isKeyReload = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F12) == GLFW.GLFW_PRESS;
-        boolean isEndReload = NarutoLoading.VIDEO.frameQueue != null && NarutoLoading.VIDEO.frameQueue.isEmpty();
+        int keyStatus = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F12);
 
-        if (isKeyReload || isEndReload) {
+        if (keyStatus == GLFW.GLFW_PRESS) {
             this.shutdown();
             this.setup();
         }
     }
 
     private void shutdown() {
+        NarutoLoading.AUDIO.shutdown();
         NarutoLoading.VIDEO.shutdown();
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();
