@@ -5,86 +5,86 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public class NarutoRenderer {
-    private static DynamicTexture dynamicTexture;
-    private static ResourceLocation textureLocation;
-    private static long lastFrame = 0;
+    private @Nullable DynamicTexture dynamicTexture;
+    private @Nullable ResourceLocation textureLocation;
+    private long last = 0;
 
-    private static boolean isFirstFrame = true;
+    private long start = -1L;
+    private long elapsed = 0L;
 
-    private static long firstMoment = 0L;
-    private static long currentMoment = 0L;
-
-    public static void setup() {
-        if (dynamicTexture != null) return;
-        dynamicTexture = new DynamicTexture(854, 480, false);
-        if (textureLocation == null) textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", dynamicTexture);
-        NarutoFrameExecutor.setup();
+    public void setup() {
+        if (this.dynamicTexture != null) return;
+        this.dynamicTexture = new DynamicTexture(854, 480, false);
+        if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", dynamicTexture);
+        NarutoLoading.VIDEO.setup();
     }
 
-    public static ResourceLocation nextFrame() {
-        if (dynamicTexture == null) setup();
+    public @Nullable ResourceLocation nextFrame() {
+        if (this.dynamicTexture == null) setup();
         long now = System.currentTimeMillis();
-        if (now - lastFrame >= 1000 / NarutoLoading.FPS) {
-            lastFrame = now;
-            Frame nextFrame = NarutoFrameExecutor.frameQueue.poll();
-            NativeImage frame = null;
-            if (nextFrame != null) {
-                frame = nextFrame.image();
-            }
+        if (now - this.last >= 1000 / NarutoLoading.FPS) {
+            this.last = now;
+            NativeImage frame = NarutoLoading.VIDEO.fetchImage(this.elapsed / 1000L);
             if (frame != null) {
-                dynamicTexture.setPixels(frame);
-                dynamicTexture.upload();
+                this.dynamicTexture.setPixels(frame);
+                this.dynamicTexture.upload();
                 frame.close();
-            } else {
-                shutdown();
-                setup();
             }
         }
 
-        return textureLocation;
+        return this.textureLocation;
     }
 
-    public static void renderFrame(GuiGraphics graphics) {
-        if (Minecraft.getInstance().level != null || !Minecraft.getInstance().isRunning()) {
-            shutdown();
-            return;
-        }
-        if (GLFW.glfwGetKey(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_F12) == GLFW.GLFW_PRESS) {
-            shutdown();
-            setup();
-        }
-        ResourceLocation texture = nextFrame();
-        if (texture != null) {
-            int w = graphics.guiWidth();
-            int h = graphics.guiHeight();
-            graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
+    public void renderFrame(GuiGraphics graphics) {
+        if (this.canRender()){
+            this.checkReload();
+            ResourceLocation texture = this.nextFrame();
+            if (texture != null) {
+                int w = graphics.guiWidth();
+                int h = graphics.guiHeight();
 
-            if (isFirstFrame) {
-                isFirstFrame = false;
-                firstMoment = System.currentTimeMillis();
+                if (this.start == -1L) this.start = System.currentTimeMillis();
+                this.elapsed = System.currentTimeMillis() - this.start;
+
+                graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
             }
-
-            currentMoment = System.currentTimeMillis();
         }
     }
 
-    public static long elapsed() {
-        return currentMoment - firstMoment;
+    private boolean canRender() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level != null || !minecraft.isRunning()) {
+            this.shutdown();
+            return false;
+        }
+         return true;
     }
 
-    public static void shutdown() {
-        NarutoFrameExecutor.shutdown();
-        if (dynamicTexture != null) {
-            dynamicTexture.close();
-            dynamicTexture = null;
+    private void checkReload() {
+        long window = Minecraft.getInstance().getWindow().getWindow();
+        boolean isKeyReload = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F12) == GLFW.GLFW_PRESS;
+        boolean isEndReload = NarutoLoading.VIDEO.frameQueue != null && NarutoLoading.VIDEO.frameQueue.isEmpty();
+
+        if (isKeyReload || isEndReload) {
+            this.shutdown();
+            this.setup();
         }
-        textureLocation = null;
-        lastFrame = 0;
-        isFirstFrame = true;
-        firstMoment = 0L;
-        currentMoment = 0L;
+    }
+
+    public void shutdown() {
+        NarutoLoading.VIDEO.shutdown();
+        if (this.dynamicTexture != null) {
+            this.dynamicTexture.close();
+            this.dynamicTexture = null;
+        }
+        this.textureLocation = null;
+        this.last = 0;
+
+        this.start = -1L;
+        this.elapsed = 0L;
     }
 }

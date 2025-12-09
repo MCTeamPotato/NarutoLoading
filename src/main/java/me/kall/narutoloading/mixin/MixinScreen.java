@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin;
 
-import me.kall.narutoloading.NarutoRenderer;
+import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -16,7 +16,7 @@ public abstract class MixinScreen {
     @Inject(method = "renderDirtBackground", at = @At("HEAD"), cancellable = true)
     private void dirtScreenByeBye(GuiGraphics guiGraphics, CallbackInfo ci) {
         Screen screen = (Screen) (Object) this;
-        NarutoRenderer.renderFrame(guiGraphics);
+        NarutoLoading.RENDERER.renderFrame(guiGraphics);
         MinecraftForge.EVENT_BUS.post(new ScreenEvent.BackgroundRendered(screen, guiGraphics));
         ci.cancel();
     }

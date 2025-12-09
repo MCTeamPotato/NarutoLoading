@@ -1,5 +1,7 @@
 package me.kall.narutoloading;
 
+import me.kall.narutoloading.executor.NarutoAudioExecutor;
+import me.kall.narutoloading.executor.NarutoVideoExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLLoader;
 
@@ -13,5 +15,8 @@ public final class NarutoLoading {
 
     public static final int FPS = 30;
 
-    public static final int VIDEO_SECONDS = 225;
+    public static final NarutoAudioExecutor AUDIO = new NarutoAudioExecutor();
+    public static final NarutoVideoExecutor VIDEO = new NarutoVideoExecutor();
+
+    public static final NarutoRenderer RENDERER = new NarutoRenderer();
 }

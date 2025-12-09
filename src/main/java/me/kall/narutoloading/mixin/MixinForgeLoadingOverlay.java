@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin;
 
-import me.kall.narutoloading.NarutoRenderer;
+import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -59,6 +59,6 @@ public abstract class MixinForgeLoadingOverlay extends LoadingOverlay {
             }
         }
 
-        NarutoRenderer.renderFrame(graphics);
+        NarutoLoading.RENDERER.renderFrame(graphics);
     }
 }

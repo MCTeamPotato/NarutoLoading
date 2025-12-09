@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin;
 
-import me.kall.narutoloading.NarutoRenderer;
+import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -20,7 +20,7 @@ public abstract class MixinTitleScreen {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;enableBlend()V", remap = false, shift = At.Shift.AFTER))
     private void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if (Minecraft.getInstance().screen instanceof TitleScreen) {
-            NarutoRenderer.renderFrame(graphics);
+            NarutoLoading.RENDERER.renderFrame(graphics);
         }
     }
 }
