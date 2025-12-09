@@ -16,14 +16,14 @@ public class NarutoRenderer {
     private long start = -1L;
     private long elapsed = 0L;
 
-    public void setup() {
+    private void setup() {
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(854, 480, false);
         if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", dynamicTexture);
         NarutoLoading.VIDEO.setup();
     }
 
-    public @Nullable ResourceLocation nextFrame() {
+    private @Nullable ResourceLocation nextFrame() {
         if (this.dynamicTexture == null) setup();
         long now = System.currentTimeMillis();
         if (now - this.last >= 1000 / NarutoLoading.FPS) {
@@ -75,7 +75,7 @@ public class NarutoRenderer {
         }
     }
 
-    public void shutdown() {
+    private void shutdown() {
         NarutoLoading.VIDEO.shutdown();
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();

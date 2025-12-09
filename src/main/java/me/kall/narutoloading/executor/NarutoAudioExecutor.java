@@ -14,10 +14,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class NarutoAudioExecutor {
-    public boolean canceled;
-    public long device, context;
-    public int source;
-    public @Nullable ExecutorService executor;
+    private boolean canceled;
+    private long device, context;
+    private int source;
+    private @Nullable ExecutorService executor;
     private @Nullable Process process;
 
     public void setup() {

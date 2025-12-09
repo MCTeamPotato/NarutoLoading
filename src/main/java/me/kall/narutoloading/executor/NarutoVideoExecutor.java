@@ -14,8 +14,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public final class NarutoVideoExecutor {
     public @Nullable LinkedBlockingQueue<LongObjectPair<NativeImage>> frameQueue;
-    public @Nullable ExecutorService executor;
-    public boolean canceled;
+
+    private @Nullable ExecutorService executor;
+    private boolean canceled;
     private @Nullable Process process;
     private long frameCounts;
 
@@ -68,7 +69,10 @@ public final class NarutoVideoExecutor {
         LongObjectPair<NativeImage> frame = this.frameQueue.poll();
         if (frame == null) return null;
 
-        while (frame != null && frame.firstLong() / NarutoLoading.FPS < elapsedSeconds) frame = this.frameQueue.poll();
+        while (frame != null && frame.firstLong() / NarutoLoading.FPS < elapsedSeconds) {
+            frame = this.frameQueue.poll();
+        }
+
         return frame == null ? null : frame.right();
     }
 

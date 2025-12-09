@@ -13,7 +13,7 @@
     "MixinAbstractSelectionList",
     "MixinCreateWorldScreen",
     "MixinForgeLoadingOverlay",
-    "MixinMinecraft",
+    "MixinLoadingOverlay",
     "MixinScreen",
     "MixinScrollPanel",
     "MixinTitleScreen"

@@ -59,6 +59,8 @@ public abstract class MixinForgeLoadingOverlay extends LoadingOverlay {
             }
         }
 
-        NarutoLoading.RENDERER.renderFrame(graphics);
+        if (this.minecraft.getOverlay() instanceof ForgeLoadingOverlay) {
+            NarutoLoading.RENDERER.renderFrame(graphics);
+        }
     }
 }
