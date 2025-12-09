@@ -15,7 +15,6 @@ public class NarutoFrameExecutor {
     public static boolean canceled;
     private static Process process;
 
-    @SuppressWarnings("BusyWait")
     public static void setup() {
         canceled = false;
         executor = Executors.newSingleThreadExecutor(task -> {
@@ -52,10 +51,6 @@ public class NarutoFrameExecutor {
                     NativeImage nativeImage = getNativeImage(buffer);
 
                     frameQueue.put(nativeImage);
-
-                    while (frameQueue.size() > 110) {
-                        Thread.sleep(1);
-                    }
                 }
             } catch (Exception ignored) {}
         });
