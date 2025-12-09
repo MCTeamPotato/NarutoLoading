@@ -10,10 +10,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class NarutoFrameExecutor {
-    public static final BlockingQueue<NativeImage> frameQueue = new LinkedBlockingQueue<>(120);
+    public static final BlockingQueue<Frame> frameQueue = new LinkedBlockingQueue<>(120);
     public static ExecutorService executor;
     public static boolean canceled;
     private static Process process;
+    private static long frameCount;
 
     public static void setup() {
         canceled = false;
@@ -49,8 +50,9 @@ public class NarutoFrameExecutor {
                     }
 
                     NativeImage nativeImage = buildImage(buffer);
+                    frameCount++;
 
-                    frameQueue.put(nativeImage);
+                    frameQueue.put(new Frame(nativeImage, frameCount));
                 }
             } catch (Exception ignored) {}
         });

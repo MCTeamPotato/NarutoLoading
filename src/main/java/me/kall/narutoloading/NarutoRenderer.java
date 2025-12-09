@@ -29,7 +29,11 @@ public class NarutoRenderer {
         long now = System.currentTimeMillis();
         if (now - lastFrame >= 1000 / NarutoLoading.FPS) {
             lastFrame = now;
-            NativeImage frame = NarutoFrameExecutor.frameQueue.poll();
+            Frame nextFrame = NarutoFrameExecutor.frameQueue.poll();
+            NativeImage frame = null;
+            if (nextFrame != null) {
+                frame = nextFrame.image();
+            }
             if (frame != null) {
                 dynamicTexture.setPixels(frame);
                 dynamicTexture.upload();
