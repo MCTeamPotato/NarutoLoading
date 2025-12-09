@@ -48,7 +48,7 @@ public class NarutoFrameExecutor {
                         read += r;
                     }
 
-                    NativeImage nativeImage = getNativeImage(buffer);
+                    NativeImage nativeImage = buildImage(buffer);
 
                     frameQueue.put(nativeImage);
                 }
@@ -57,7 +57,7 @@ public class NarutoFrameExecutor {
         NarutoAudioExecutor.setup();
     }
 
-    public static @NotNull NativeImage getNativeImage(byte @NotNull [] buffer) {
+    public static @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
         NativeImage image = new NativeImage(854, 480, false);
         for (int i = 0; i < buffer.length; i += 3) {
             int b = buffer[i] & 0xFF;
