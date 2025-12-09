@@ -20,7 +20,7 @@ public final class NarutoVideoExecutor {
     private @Nullable Process process;
     private long frameCounts;
 
-    public void setup() {
+    public void setup(String sec) {
         this.canceled = false;
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoFrameExecutor");
@@ -30,7 +30,9 @@ public final class NarutoVideoExecutor {
         this.frameQueue = new LinkedBlockingQueue<>(360);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    NarutoLoading.FFMPEG_PATH, "-i", NarutoLoading.VIDEO_PATH,
+                    NarutoLoading.FFMPEG_PATH,
+                    "-ss", sec,
+                    "-i", NarutoLoading.VIDEO_PATH,
                     "-vf", "format=rgb24,scale=" + NarutoLoading.widthString() + ":" + NarutoLoading.heightString(),
                     "-pix_fmt", "rgb24",
                     "-f", "image2pipe",
@@ -58,14 +60,19 @@ public final class NarutoVideoExecutor {
                     this.frameCounts++;
                     this.frameQueue.put(new LongObjectImmutablePair<>(this.frameCounts, image));
                 }
-            } catch (Exception exception) {
-                System.out.println(exception.getMessage());
+            } catch (InterruptedException ignored) {} catch (Exception exception) {
+                NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor", exception);
             }
         });
+        NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully");
+    }
+
+    public void setup() {
+        setup("0");
     }
 
     public @Nullable NativeImage fetchImage(long elapsedSeconds) {
-        if (this.frameQueue == null) return null;
+        if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
         LongObjectPair<NativeImage> frame = this.frameQueue.poll();
         if (frame == null) return null;
 
@@ -88,7 +95,7 @@ public final class NarutoVideoExecutor {
         return image;
     }
 
-    public void shutdown() {
+    public void shutdown(long frameElapsed) {
         if (this.canceled) return;
         this.canceled = true;
         if (this.executor != null && !this.executor.isShutdown()) {
@@ -104,6 +111,11 @@ public final class NarutoVideoExecutor {
             this.frameQueue = null;
         }
 
-        this.frameCounts = 0L;
+        this.frameCounts = frameElapsed;
+        NarutoLoading.LOGGER.info("NarutoVideoExecutor shuts down successfully");
+    }
+
+    public void shutdown() {
+        this.shutdown(0L);
     }
 }

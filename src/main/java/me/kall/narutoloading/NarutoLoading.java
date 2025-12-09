@@ -5,6 +5,8 @@ import me.kall.narutoloading.executor.NarutoVideoExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +19,8 @@ import java.util.regex.Pattern;
 @Mod(NarutoLoading.MOD_ID)
 public final class NarutoLoading {
     public static final String MOD_ID = "narutoloading";
+
+    public static final Logger LOGGER = LogManager.getLogger(NarutoLoading.class);
 
     public static final String FFMPEG_PATH = "D:\\ffmpeg\\bin\\ffmpeg.exe";
     public static final String FFPROBE_PATH = "D:\\ffmpeg\\bin\\ffprobe.exe";

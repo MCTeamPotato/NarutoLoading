@@ -64,9 +64,10 @@ public final class NarutoAudioExecutor {
                     while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
                 }
             } catch (Exception exception) {
-                System.out.println(exception.getMessage());
+                NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
             }
         });
+        NarutoLoading.LOGGER.info("NarutoAudioExecutor sets up successfully");
     }
 
     public void shutdown() {
@@ -101,5 +102,6 @@ public final class NarutoAudioExecutor {
             ALC10.alcCloseDevice(this.device);
             this.device = 0;
         }
+        NarutoLoading.LOGGER.info("NarutoAudioExecutor shuts down successfully");
     }
 }
