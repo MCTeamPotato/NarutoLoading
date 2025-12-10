@@ -1,16 +1,14 @@
 package me.kall.narutoloading;
 
-import me.kall.duplicationless.config.JsonConfig;
+import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.executor.NarutoVideoExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -26,20 +24,6 @@ public final class NarutoLoading {
 
     public static final Logger LOGGER = LogManager.getLogger(NarutoLoading.class);
 
-    private static final JsonConfig CONFIG = JsonConfig.create(NarutoLoading.MOD_ID, "1")
-            .put("ffmpegExePath", "D:\\ffmpeg\\bin\\ffmpeg.exe")
-            .put("ffprobeExePath", "D:\\ffmpeg\\bin\\ffprobe.exe")
-            .put("videoFileName", "naruto.mp4")
-            .put("ReloadKey", GLFW.GLFW_KEY_F12)
-            .initialize();
-
-    public static final String FFMPEG_PATH = CONFIG.getString("ffmpegExePath");
-    public static final String FFPROBE_PATH = CONFIG.getString("ffprobeExePath");
-
-    public static final String VIDEO_PATH = FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("videoFileName")).toAbsolutePath().toString();
-
-    public static final int RELOAD = CONFIG.getInt("ReloadKey");
-    
     private static final int FPS = getVideoFrameRate();
 
     public static final NarutoAudioExecutor AUDIO = new NarutoAudioExecutor();
@@ -99,7 +83,7 @@ public final class NarutoLoading {
 
     private static @Nullable String run() {
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(FFPROBE_PATH, "-v", "quiet", "-print_format", "json", "-show_streams", VIDEO_PATH);
+            ProcessBuilder processBuilder = new ProcessBuilder(NarutoConfig.FFPROBE_PATH, "-v", "quiet", "-print_format", "json", "-show_streams", NarutoConfig.video());
 
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();

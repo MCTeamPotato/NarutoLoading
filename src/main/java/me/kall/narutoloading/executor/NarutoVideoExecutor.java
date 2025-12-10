@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import it.unimi.dsi.fastutil.longs.LongObjectImmutablePair;
 import it.unimi.dsi.fastutil.longs.LongObjectPair;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.config.NarutoConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,15 +31,14 @@ public final class NarutoVideoExecutor {
         this.frameQueue = new LinkedBlockingQueue<>(60);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    NarutoLoading.FFMPEG_PATH,
+                    NarutoConfig.FFMPEG_PATH,
                     "-ss", sec,
-                    "-i", NarutoLoading.VIDEO_PATH,
+                    "-i", NarutoConfig.video(),
                     "-vf", "format=rgb24,scale=" + NarutoLoading.widthString() + ":" + NarutoLoading.heightString(),
                     "-pix_fmt", "rgb24",
                     "-f", "image2pipe",
                     "-vcodec", "rawvideo",
-                    "-loglevel", "error",
-                    "-"
+                    "-loglevel", "error", "-"
             );
 
             try {
@@ -61,7 +61,7 @@ public final class NarutoVideoExecutor {
                     this.frameQueue.put(new LongObjectImmutablePair<>(this.frameCounts, image));
                 }
             } catch (Exception exception) {
-                NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor. If you're reloading, hopefully this is ignorable.", exception);
+                NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
             }
         });
         NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully");
@@ -76,7 +76,7 @@ public final class NarutoVideoExecutor {
         LongObjectPair<NativeImage> frame = this.frameQueue.poll();
         if (frame == null) return null;
 
-        while (frame != null && (double) frame.firstLong() / (double) NarutoLoading.fps() < elapsedSeconds) {
+        while (frame != null && ((double) frame.firstLong()) / ((double) NarutoLoading.fps()) < elapsedSeconds) {
             frame = this.frameQueue.poll();
         }
 
