@@ -145,7 +145,7 @@ public class NarutoRenderer {
             return;
         }
         long window = Minecraft.getInstance().getWindow().getWindow();
-        int keyStatus = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F12);
+        int keyStatus = GLFW.glfwGetKey(window, NarutoLoading.RELOAD);
 
         if (keyStatus == GLFW.GLFW_PRESS) {
             this.reloadCooldown = 200;
