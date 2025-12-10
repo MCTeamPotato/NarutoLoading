@@ -22,8 +22,16 @@ public class NarutoRenderer {
     private int lastWidth = -1;
     private int lastHeight = -1;
 
+    private byte lastActive = -1;
+
+    private static final byte ACTIVE = 1;
+    private static final byte INACTIVE = 0;
+    private static final byte NONE = -1;
+
     private int reloadCooldown = 0;
     private int resizeCooldown = 0;
+
+    private boolean reloaded = false;
 
     private void setup() {
         if (this.dynamicTexture != null) return;
@@ -63,7 +71,28 @@ public class NarutoRenderer {
                 graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
 
                 this.checkSize();
+                this.checkWindow();
                 this.keyReload();
+            }
+        }
+    }
+
+    private void checkWindow() {
+        if (this.reloaded) {
+            byte isActive = NarutoLoading.isWindowActive() ? ACTIVE : INACTIVE;
+            if (this.lastActive == NONE) {
+                this.lastActive = isActive;
+                return;
+            }
+
+            if (this.lastActive != isActive) {
+                this.lastActive = isActive;
+                if (isActive == ACTIVE) {
+                    String sec = String.valueOf((double) this.elapsed / 1000D);
+                    NarutoLoading.LOGGER.info("Window become active. Restart NarutoAudioExecutor from {} seconds", sec);
+                    NarutoLoading.AUDIO.shutdown();
+                    NarutoLoading.AUDIO.setup(sec);
+                }
             }
         }
     }
@@ -90,7 +119,7 @@ public class NarutoRenderer {
     }
 
     private void resize() {
-        String sec = String.valueOf(Math.toIntExact(this.elapsed / 1000L));
+        String sec = String.valueOf((double) this.elapsed / 1000D);
         NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", sec);
         NarutoLoading.VIDEO.shutdown(this.frameCount);
         NarutoLoading.VIDEO.setup(sec);
@@ -122,6 +151,7 @@ public class NarutoRenderer {
             this.reloadCooldown = 200;
             this.shutdown();
             this.setup();
+            this.reloaded = true;
         }
     }
 

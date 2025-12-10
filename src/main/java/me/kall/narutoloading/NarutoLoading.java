@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,22 +36,24 @@ public final class NarutoLoading {
 
     public static final NarutoRenderer RENDERER = new NarutoRenderer();
 
-    private static final Supplier<Integer> WIDTH = () -> Minecraft.getInstance().getWindow().getScreenWidth();
-    private static final Supplier<Integer> HEIGHT = () -> Minecraft.getInstance().getWindow().getScreenHeight();
+    private static final IntSupplier WIDTH = () -> Minecraft.getInstance().getWindow().getScreenWidth();
+    private static final IntSupplier HEIGHT = () -> Minecraft.getInstance().getWindow().getScreenHeight();
 
-    private static final Supplier<String> WIDTH_STRING = () -> String.valueOf(WIDTH.get());
-    private static final Supplier<String> HEIGHT_STRING = () -> String.valueOf(HEIGHT.get());
+    private static final Supplier<String> WIDTH_STRING = () -> String.valueOf(WIDTH.getAsInt());
+    private static final Supplier<String> HEIGHT_STRING = () -> String.valueOf(HEIGHT.getAsInt());
+
+    private static final BooleanSupplier WINDOW = () -> Minecraft.getInstance().isWindowActive();
 
     public static int fps() {
         return FPS;
     }
 
     public static int width() {
-        return WIDTH.get();
+        return WIDTH.getAsInt();
     }
 
     public static int height() {
-        return HEIGHT.get();
+        return HEIGHT.getAsInt();
     }
 
     public static @NotNull String widthString() {
@@ -58,6 +62,10 @@ public final class NarutoLoading {
 
     public static @NotNull String heightString() {
         return HEIGHT_STRING.get();
+    }
+
+    public static boolean isWindowActive() {
+        return WINDOW.getAsBoolean();
     }
 
     private static int getVideoFrameRate() {

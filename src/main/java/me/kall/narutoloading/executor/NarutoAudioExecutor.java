@@ -21,6 +21,10 @@ public final class NarutoAudioExecutor {
     private @Nullable Process process;
 
     public void setup() {
+        setup("0");
+    }
+
+    public void setup(String sec) {
         this.canceled = false;
 
         this.device = ALC10.alcOpenDevice((ByteBuffer) null);
@@ -40,7 +44,12 @@ public final class NarutoAudioExecutor {
         });
         this.executor.submit(() -> {
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder(NarutoLoading.FFMPEG_PATH, "-i", NarutoLoading.VIDEO_PATH, "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-");
+                ProcessBuilder processBuilder = new ProcessBuilder(
+                        NarutoLoading.FFMPEG_PATH,
+                        "-ss", sec,
+                        "-i", NarutoLoading.VIDEO_PATH,
+                        "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"
+                );
                 this.process = processBuilder.start();
                 InputStream inputStream = this.process.getInputStream();
 
@@ -58,7 +67,6 @@ public final class NarutoAudioExecutor {
                     AL10.alSourceQueueBuffers(this.source, alGenBuffers);
 
                     if (AL10.alGetSourcei(this.source, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) AL10.alSourcePlay(this.source);
-
 
                     int processed = AL10.alGetSourcei(this.source, AL10.AL_BUFFERS_PROCESSED);
                     while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
@@ -102,6 +110,7 @@ public final class NarutoAudioExecutor {
             ALC10.alcCloseDevice(this.device);
             this.device = 0;
         }
+
         NarutoLoading.LOGGER.info("NarutoAudioExecutor shuts down successfully");
     }
 }
