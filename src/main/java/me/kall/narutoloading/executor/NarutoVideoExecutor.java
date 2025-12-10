@@ -71,12 +71,12 @@ public final class NarutoVideoExecutor {
         setup("0");
     }
 
-    public @Nullable NativeImage fetchImage(long elapsedSeconds) {
+    public @Nullable NativeImage fetchImage(double elapsedSeconds) {
         if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
         LongObjectPair<NativeImage> frame = this.frameQueue.poll();
         if (frame == null) return null;
 
-        while (frame != null && frame.firstLong() / NarutoLoading.fps() < elapsedSeconds) {
+        while (frame != null && (double) frame.firstLong() / (double) NarutoLoading.fps() < elapsedSeconds) {
             frame = this.frameQueue.poll();
         }
 

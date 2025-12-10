@@ -44,7 +44,7 @@ public class NarutoRenderer {
         long now = System.currentTimeMillis();
         if (now - this.last >= 1000 / NarutoLoading.fps()) {
             this.last = now;
-            NativeImage frame = NarutoLoading.VIDEO.fetchImage(this.elapsed / 1000L);
+            NativeImage frame = NarutoLoading.VIDEO.fetchImage((double) this.elapsed / 1000D);
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
