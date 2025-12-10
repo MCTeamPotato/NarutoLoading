@@ -98,7 +98,7 @@ public final class NarutoVideoExecutor {
     public void shutdown(long frameElapsed) {
         if (this.canceled) return;
         this.canceled = true;
-        if (this.executor != null && !this.executor.isShutdown()) {
+        if (this.executor != null) {
             if (this.process != null) {
                 this.process.destroyForcibly();
                 this.process = null;
