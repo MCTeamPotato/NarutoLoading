@@ -31,8 +31,6 @@ public class NarutoRenderer {
     private int reloadCooldown = 0;
     private int resizeCooldown = 0;
 
-    private boolean reloaded = false;
-
     private void setup() {
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(NarutoLoading.width(), NarutoLoading.height(), false);
@@ -78,21 +76,22 @@ public class NarutoRenderer {
     }
 
     private void checkWindow() {
-        if (this.reloaded) {
-            byte isActive = NarutoLoading.isWindowActive() ? ACTIVE : INACTIVE;
-            if (this.lastActive == NONE) {
-                this.lastActive = isActive;
-                return;
-            }
+        byte isActive = NarutoLoading.isWindowActive() ? ACTIVE : INACTIVE;
+        if (this.lastActive == NONE) {
+            this.lastActive = isActive;
+            return;
+        }
 
-            if (this.lastActive != isActive) {
-                this.lastActive = isActive;
-                if (isActive == ACTIVE) {
-                    String sec = String.valueOf((double) this.elapsed / 1000D);
-                    NarutoLoading.LOGGER.info("Window become active. Restart NarutoAudioExecutor from {} seconds", sec);
-                    NarutoLoading.AUDIO.shutdown();
-                    NarutoLoading.AUDIO.setup(sec);
-                }
+        if (this.lastActive != isActive) {
+            this.lastActive = isActive;
+            if (isActive == ACTIVE) {
+                String sec = String.valueOf((double) this.elapsed / 1000D);
+                NarutoLoading.LOGGER.info("Window become active. Restart NarutoAudioExecutor from {} seconds", sec);
+                NarutoLoading.AUDIO.shutdown();
+                NarutoLoading.AUDIO.setup(sec);
+            } else {
+                NarutoLoading.LOGGER.info("Window become inactive. Shutdown NarutoAudioExecutor.");
+                NarutoLoading.AUDIO.shutdown();
             }
         }
     }
@@ -151,7 +150,6 @@ public class NarutoRenderer {
             this.reloadCooldown = 200;
             this.shutdown();
             this.setup();
-            this.reloaded = true;
         }
     }
 
