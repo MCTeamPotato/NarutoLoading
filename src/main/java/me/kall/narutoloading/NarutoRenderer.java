@@ -12,22 +12,25 @@ import org.lwjgl.glfw.GLFW;
 public class NarutoRenderer {
     private @Nullable DynamicTexture dynamicTexture;
     private @Nullable ResourceLocation textureLocation;
-    private long last = 0;
 
+    private long last = 0;
     private long start = -1L;
     private long elapsed = 0L;
 
-    private long frameElapsed = 0L;
+    private long frameCount = 0L;
 
     private int lastWidth = -1;
     private int lastHeight = -1;
+
+    private int reloadCooldown = 0;
+    private int resizeCooldown = 0;
 
     private void setup() {
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(NarutoLoading.width(), NarutoLoading.height(), false);
         if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
-        NarutoLoading.VIDEO.setup();
         NarutoLoading.AUDIO.setup();
+        NarutoLoading.VIDEO.setup();
     }
 
     private @Nullable ResourceLocation nextFrame() {
@@ -47,8 +50,6 @@ public class NarutoRenderer {
     }
 
     public void renderFrame(GuiGraphics graphics) {
-        this.checkSize();
-        this.keyReload();
         if (this.canRender()){
             ResourceLocation texture = this.nextFrame();
             if (texture != null) {
@@ -57,28 +58,41 @@ public class NarutoRenderer {
 
                 if (this.start == -1L) this.start = System.currentTimeMillis();
                 this.elapsed = System.currentTimeMillis() - this.start;
+                this.frameCount++;
 
                 graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
-                this.frameElapsed++;
+
+                this.checkSize();
+                this.keyReload();
             }
         }
     }
 
-    public void checkSize() {
+    private void checkSize() {
+        if (this.resizeCooldown != 0) {
+            this.resizeCooldown--;
+            return;
+        }
         int width = NarutoLoading.width();
         int height = NarutoLoading.height();
-        if (lastWidth != width || lastHeight != height) {
+        if (this.lastWidth == -1 && this.lastHeight == -1) {
+            this.lastWidth = width;
+            this.lastHeight = height;
+            return;
+        }
+        if (this.lastWidth != width || this.lastHeight != height) {
             NarutoLoading.LOGGER.info("Window size changed from [{}, {}] to [{}, {}]", lastWidth, lastHeight, width, height);
-            lastWidth = width;
-            lastHeight = height;
+            this.resizeCooldown = 200;
+            this.lastWidth = width;
+            this.lastHeight = height;
             this.resize();
         }
     }
 
-    public void resize() {
+    private void resize() {
         String sec = String.valueOf(Math.toIntExact(this.elapsed / 1000L));
         NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", sec);
-        NarutoLoading.VIDEO.shutdown(this.frameElapsed);
+        NarutoLoading.VIDEO.shutdown(this.frameCount);
         NarutoLoading.VIDEO.setup(sec);
         if (this.dynamicTexture != null) this.dynamicTexture.close();
         this.dynamicTexture = new DynamicTexture(NarutoLoading.width(), NarutoLoading.height(), false);
@@ -96,10 +110,15 @@ public class NarutoRenderer {
     }
 
     private void keyReload() {
+        if (this.reloadCooldown != 0) {
+            this.reloadCooldown--;
+            return;
+        }
         long window = Minecraft.getInstance().getWindow().getWindow();
         int keyStatus = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F12);
 
         if (keyStatus == GLFW.GLFW_PRESS) {
+            this.reloadCooldown = 200;
             this.shutdown();
             this.setup();
         }
@@ -118,6 +137,6 @@ public class NarutoRenderer {
         this.start = -1L;
         this.elapsed = 0L;
 
-        this.frameElapsed = 0L;
+        this.frameCount = 0L;
     }
 }

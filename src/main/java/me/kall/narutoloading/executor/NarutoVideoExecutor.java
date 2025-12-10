@@ -27,7 +27,7 @@ public final class NarutoVideoExecutor {
             thread.setDaemon(true);
             return thread;
         });
-        this.frameQueue = new LinkedBlockingQueue<>(360);
+        this.frameQueue = new LinkedBlockingQueue<>(60);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
                     NarutoLoading.FFMPEG_PATH,
@@ -60,7 +60,7 @@ public final class NarutoVideoExecutor {
                     this.frameCounts++;
                     this.frameQueue.put(new LongObjectImmutablePair<>(this.frameCounts, image));
                 }
-            } catch (InterruptedException ignored) {} catch (Exception exception) {
+            } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor", exception);
             }
         });
@@ -108,6 +108,9 @@ public final class NarutoVideoExecutor {
         }
 
         if (this.frameQueue != null) {
+            for (LongObjectPair<NativeImage> frame : this.frameQueue) {
+                frame.right().close();
+            }
             this.frameQueue = null;
         }
 
