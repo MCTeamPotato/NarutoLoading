@@ -70,12 +70,12 @@ public class NarutoRenderer {
             graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
 
             this.checkSize();
-            this.checkWindow();
+            this.checkActive();
             this.keyReload();
         }
     }
 
-    private void checkWindow() {
+    private void checkActive() {
         byte isActive = NarutoLoading.isWindowActive() ? ACTIVE : INACTIVE;
         if (this.lastActive == NONE) {
             this.lastActive = isActive;
@@ -161,6 +161,7 @@ public class NarutoRenderer {
             this.dynamicTexture.close();
             this.dynamicTexture = null;
         }
+
         this.textureLocation = null;
         this.last = 0;
 
