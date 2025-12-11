@@ -15,7 +15,7 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - The default maxWidthForExecution & maxHeightForExecution config value is 1280 and 720. If they're too high, your video may lag or freeze. If they're too low, your video may be blurry. **Please tweak it according to the performance of your PC.**
 - [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) is required.
 ### Why is it the dumbest?
-- I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like FancyMenu or DrippyLoadingScreen, our Mixin may crash your game. ~~Not really real, I considered the compatibility with Modern UI mod when writing gui elements hiding feature.~~
+- I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like FancyMenu or DrippyLoadingScreen, our Mixin may crash your game. ~~Not really real, I considered the compatibility with Modern UI mod when writing gui elements hiding feature. And sure you can report the compatibility issues you encounter when using this mod to me and I will resolve them~~
 - I just violently create thread executors to parse the video and audio in FFmpeg, using ProcessBuilder and reading the video frame by frame and pixel by pixel to build NativeImage just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately)
 - In conclusion, if your PC is a potato, use this mod at your risk.
 ### What's its effect
@@ -38,7 +38,7 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 - maxWidthForExecution 和 maxHeightForExecution 默认是 1280×720，太高会导致解码卡顿进而视频停滞，太低画质会变差，**请务必根据自己电脑的性能表现调整**。
 - 需要 [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) 作为前置。
 ### 为啥说蠢？
-- 作者完全没有也不想考虑兼容性，因此如果你装了 FancyMenu / DrippyLoadingScreen 之类的自定义加载页面模组，有可能会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 Modern UI 的兼容性~~
+- 作者完全没有也不想考虑兼容性，因此如果你装了 FancyMenu / DrippyLoadingScreen 之类的自定义加载页面模组，有可能会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 Modern UI 的兼容。你当然也可以向我报告你遇到的兼容性问题，我会修复它们的。~~
 - 作者直接暴力开线程用 FFmpeg 解析视频和音频，写个 ProcessBuilder 就摁造，逐像素读取并构建 NativeImage 只为在 MC 看火影十周年的登录 CG（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了）。
 - 总之，土豆机请小心使用本模组。
 ### 演示视频
