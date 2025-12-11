@@ -12,11 +12,11 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - If you leave the audioFileName config property empty, we will try to use the video's sound.
 - You can press F12 to reload the video and audio during your game. The numeric value of our reloadKey config property is the very F12. If you want to tweak it to another key like R, write 82 there. (See the keys.txt in this repo for complete reference of key mappings)
 - The audio this mod plays is not controlled by MC's SoundEngine, so if you want to change its volume, please tweak the speaker of your PC or the audioVolume in our config.
-- The default maxWidthForExecution & maxHeightForExecution config value is 1280 and 720. If they're too high, your video may lag or freeze. If they're too low, your video may be blurry. Please tweak it according to the performance of your PC.
+- The default maxWidthForExecution & maxHeightForExecution config value is 1280 and 720. If they're too high, your video may lag or freeze. If they're too low, your video may be blurry. **Please tweak it according to the performance of your PC.**
 - [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) is required.
 ### Why is it the dumbest?
 - I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like FancyMenu or DrippyLoadingScreen, our Mixin may crash your game. ~~Not really real, I considered the compatibility with Modern UI mod when writing gui elements hiding feature.~~
-- I just violently creates thread executors to parse the video and audio in FFmpeg, using ProcessBuilder and reading the video frame by frame and pixel by pixel to build NativeImage just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning,I even didn't really decide to release this mod publicly and just wanted to use it privately)
+- I just violently creates thread executors to parse the video and audio in FFmpeg, using ProcessBuilder and reading the video frame by frame and pixel by pixel to build NativeImage just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately)
 - In conclusion, if your PC is a potato, use this mod at your risk.
 ### What's it's effect
 #### [Naruto Tenth Anniversary Login CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
