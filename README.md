@@ -19,3 +19,9 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 - 作者直接暴力开线程用 FFmpeg 解析视频和音频，写个 ProcessBuilder 就摁造，逐像素读取并构建 NativeImage 只为在 MC 看火影十周年的登录 CG（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了）。
 - 你可以想象每次你改 MC 的分辨率或者切出切回 MC 的窗口，都会让本模组的各种进程几乎完全重启吗？
 - 总之，土豆机请小心使用本模组。
+### 演示视频
+#### 火影忍者十周年登录动画
+<video controls src="naruto.mp4" title="NarutoLoading"></video>
+
+#### Bad Apple 视频
+<video controls src="badapple.mp4" title="BadAppleLoading"></video>
