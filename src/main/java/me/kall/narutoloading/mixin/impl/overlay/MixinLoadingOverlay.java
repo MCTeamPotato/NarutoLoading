@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.impl.overlay;
 
-import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.NarutoLoadingClient;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -56,7 +56,7 @@ public abstract class MixinLoadingOverlay {
         }
 
         if (this.minecraft.getOverlay() instanceof LoadingOverlay) {
-            NarutoLoading.RENDERER.renderFrame(guiGraphics);
+            NarutoLoadingClient.RENDERER.renderFrame(guiGraphics);
         }
     }
 }

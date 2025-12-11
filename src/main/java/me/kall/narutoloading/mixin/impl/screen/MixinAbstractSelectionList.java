@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.impl.screen;
 
-import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.NarutoLoadingClient;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,6 +23,6 @@ public class MixinAbstractSelectionList {
 
     @Inject(method = "renderBackground", at = @At("HEAD"))
     private void renderBg(GuiGraphics guiGraphics, CallbackInfo ci) {
-        NarutoLoading.RENDERER.renderFrame(guiGraphics);
+        NarutoLoadingClient.RENDERER.renderFrame(guiGraphics);
     }
 }

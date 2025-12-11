@@ -18,7 +18,7 @@ modId="duplicationless"
 mandatory=true
 versionRange="[1.0.5,)"
 ordering="NONE"
-side="BOTH"
+side="CLIENT"
 
 [[mixins]]
 config = "narutoloading.mixins.json"

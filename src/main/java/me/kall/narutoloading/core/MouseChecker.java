@@ -1,6 +1,7 @@
 package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.NarutoLoadingClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.network.chat.Component;
@@ -30,7 +31,7 @@ public final class MouseChecker {
 
     @SubscribeEvent
     public static void clientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START && NarutoLoading.RENDERER.isRunning()) {
+        if (event.phase == TickEvent.Phase.START && NarutoLoadingClient.RENDERER.isRunning()) {
             MouseHandler mouseHandler = Minecraft.getInstance().mouseHandler;
 
             double x = mouseHandler.xpos();

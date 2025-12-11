@@ -1,6 +1,7 @@
 package me.kall.narutoloading.executor;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.NarutoLoadingClient;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -35,7 +36,7 @@ public final class NarutoAudioExecutor {
         AL.createCapabilities(ALC.getCapabilities());
 
         this.source = AL10.alGenSources();
-        AL10.alSourcef(this.source, AL10.AL_GAIN, 1.0f);
+        AL10.alSourcef(this.source, AL10.AL_GAIN, NarutoLoadingClient.NarutoConfig.VOLUME);
 
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoAudioExecutor");
@@ -45,9 +46,9 @@ public final class NarutoAudioExecutor {
         this.executor.submit(() -> {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(
-                        NarutoLoading.NarutoConfig.FFMPEG_PATH,
+                        NarutoLoadingClient.NarutoConfig.FFMPEG_PATH,
                         "-ss", sec,
-                        "-i", NarutoLoading.NarutoConfig.audio(),
+                        "-i", NarutoLoadingClient.NarutoConfig.audio(),
                         "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"
                 );
                 this.process = processBuilder.start();

@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.impl.screen;
 
 import com.mojang.blaze3d.vertex.Tesselator;
-import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.NarutoLoadingClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.gui.widget.ScrollPanel;
@@ -31,7 +31,7 @@ public abstract class MixinScrollPanel {
         if (this.client.level != null) {
             this.drawGradientRect(guiGraphics, this.left, this.top, this.right, this.bottom, bgColorFrom, bgColorTo);
         } else {
-            NarutoLoading.RENDERER.renderFrame(guiGraphics);
+            NarutoLoadingClient.RENDERER.renderFrame(guiGraphics);
         }
     }
 }
