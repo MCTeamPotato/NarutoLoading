@@ -32,7 +32,7 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 3. 把你要播放的视频和音频放进 config 文件夹，然后再把 narutoloading.json 里的 videoFileName 和 audioFileName 改成视频和音频的文件名。
 4. 大功告成，启动游戏吧！
 ### 注意事项
-- 音频若留空则会使用视频里的声音。
+- 音频的配置项若留空则会使用视频里的声音。
 - 游戏里按 F12 可以重载，config 里 reloadKey 那个值就是 F12。如果想改成别的比如 R 键，就把值改成 82（本仓库的 keys.txt 文件里有完整对应表）。
 - 音频不归 MC 的 SoundEngine 管的，你要调音量的话得调自己电脑扬声器的音量或者改 config 里的 audioVolume。
 - maxWidthForExecution 和 maxHeightForExecution 默认是 1280×720，太高会导致解码卡顿进而视频停滞，太低画质会变差，**请务必根据自己电脑的性能表现调整**。
