@@ -21,7 +21,7 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 - 总之，土豆机请小心使用本模组。
 ### 演示视频
 #### 火影忍者十周年登录动画
-<video controls src="naruto.mp4" title="NarutoLoading"></video>
+见 https://github.com/MCTeamPotato/NarutoLoading/raw/refs/heads/1201/naruto.mp4
 
 #### Bad Apple 视频
-<video controls src="badapple.mp4" title="BadAppleLoading"></video>
+见 https://github.com/MCTeamPotato/NarutoLoading/raw/refs/heads/1201/badapple.mp4
