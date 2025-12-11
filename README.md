@@ -15,7 +15,7 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 - maxWidthForExecution 和 maxHeightForExecution 默认是 1280×720，太高会导致解码卡顿进而视频停滞，太低画质会变差，**请务必根据自己电脑配置调整**。
 - 需要 [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) 作为前置。
 ### 为啥说蠢？
-- 作者完全没有也不想考虑兼容性，因此如果你装了 FancyMenu / DrippyLoadingScreen 之类的自定义加载页面模组，大概率会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 Moder UI 的兼容性~~
+- 作者完全没有也不想考虑兼容性，因此如果你装了 FancyMenu / DrippyLoadingScreen 之类的自定义加载页面模组，有可能会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 Modern UI 的兼容性~~
 - 作者直接暴力开线程用 FFmpeg 解析视频和音频，写个 ProcessBuilder 就摁造，逐像素读取并构建 NativeImage 只为在 MC 看火影十周年的登录 CG（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了）。
 - 你可以想象每次你改 MC 的分辨率或者切出切回 MC 的窗口，都会让本模组的各种进程几乎完全重启吗？
 - 总之，土豆机请小心使用本模组。
