@@ -1,6 +1,8 @@
-package me.kall.narutoloading;
+package me.kall.narutoloading.render;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import me.kall.narutoloading.Constants;
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.config.NarutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -32,18 +34,21 @@ public class NarutoRenderer {
     private int reloadCooldown = 0;
     private int resizeCooldown = 0;
 
+    private boolean isRunning = false;
+
     private void setup() {
         if (this.dynamicTexture != null) return;
-        this.dynamicTexture = new DynamicTexture(NarutoLoading.width(), NarutoLoading.height(), false);
+        this.dynamicTexture = new DynamicTexture(Constants.width(), Constants.height(), false);
         if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
         NarutoLoading.AUDIO.setup();
         NarutoLoading.VIDEO.setup();
+        this.isRunning = true;
     }
 
     private ResourceLocation nextFrame() {
         if (this.dynamicTexture == null) setup();
         long now = System.currentTimeMillis();
-        if (now - this.last >= 1000 / NarutoLoading.fps()) {
+        if (now - this.last >= 1000 / Constants.fps()) {
             this.last = now;
             NativeImage frame = NarutoLoading.VIDEO.fetchImage((double) this.elapsed / 1000D);
             if (frame != null) {
@@ -75,8 +80,12 @@ public class NarutoRenderer {
         }
     }
 
+    public boolean isRunning() {
+        return this.isRunning;
+    }
+
     private void checkActive() {
-        byte isActive = NarutoLoading.isWindowActive() ? ACTIVE : INACTIVE;
+        byte isActive = Constants.isWindowActive() ? ACTIVE : INACTIVE;
         if (this.lastActive == NONE) {
             this.lastActive = isActive;
             return;
@@ -101,8 +110,8 @@ public class NarutoRenderer {
             this.resizeCooldown--;
             return;
         }
-        int width = NarutoLoading.width();
-        int height = NarutoLoading.height();
+        int width = Constants.width();
+        int height = Constants.height();
         if (this.lastWidth == -1 && this.lastHeight == -1) {
             this.lastWidth = width;
             this.lastHeight = height;
@@ -123,14 +132,14 @@ public class NarutoRenderer {
         NarutoLoading.VIDEO.shutdown(this.frameCount);
         NarutoLoading.VIDEO.setup(sec);
         if (this.dynamicTexture != null) this.dynamicTexture.close();
-        this.dynamicTexture = new DynamicTexture(NarutoLoading.width(), NarutoLoading.height(), false);
+        this.dynamicTexture = new DynamicTexture(Constants.width(), Constants.height(), false);
         this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
     }
 
     private boolean canRender() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen instanceof GenericDirtMessageScreen) return true;
-        if (NarutoLoading.width() == 0 && NarutoLoading.height() == 0) return false;
+        if (Constants.width() == 0 && Constants.height() == 0) return false;
         if (minecraft.level != null || !minecraft.isRunning()) {
             this.shutdown();
             return false;
@@ -169,5 +178,7 @@ public class NarutoRenderer {
         this.elapsed = 0L;
 
         this.frameCount = 0L;
+
+        this.isRunning = false;
     }
 }

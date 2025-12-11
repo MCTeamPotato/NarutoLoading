@@ -3,6 +3,7 @@ package me.kall.narutoloading.executor;
 import com.mojang.blaze3d.platform.NativeImage;
 import it.unimi.dsi.fastutil.longs.LongObjectImmutablePair;
 import it.unimi.dsi.fastutil.longs.LongObjectPair;
+import me.kall.narutoloading.Constants;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.config.NarutoConfig;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,7 @@ public final class NarutoVideoExecutor {
                     NarutoConfig.FFMPEG_PATH,
                     "-ss", sec,
                     "-i", NarutoConfig.video(),
-                    "-vf", "format=rgb24,scale=" + NarutoLoading.widthString() + ":" + NarutoLoading.heightString(),
+                    "-vf", "format=rgb24,scale=" + Constants.widthString() + ":" + Constants.heightString(),
                     "-pix_fmt", "rgb24",
                     "-f", "image2pipe",
                     "-vcodec", "rawvideo",
@@ -45,7 +46,7 @@ public final class NarutoVideoExecutor {
                 this.process = processBuilder.start();
                 InputStream inputStream = this.process.getInputStream();
 
-                byte[] buffer = new byte[NarutoLoading.width() * NarutoLoading.height() * 3];
+                byte[] buffer = new byte[Constants.width() * Constants.height() * 3];
                 int frameSize = buffer.length;
 
                 while (!this.canceled) {
@@ -76,7 +77,7 @@ public final class NarutoVideoExecutor {
         LongObjectPair<NativeImage> frame = this.frameQueue.poll();
         if (frame == null) return null;
 
-        while (frame != null && ((double) frame.firstLong()) / ((double) NarutoLoading.fps()) < elapsedSeconds) {
+        while (frame != null && ((double) frame.firstLong()) / ((double) Constants.fps()) < elapsedSeconds) {
             frame = this.frameQueue.poll();
         }
 
@@ -84,13 +85,13 @@ public final class NarutoVideoExecutor {
     }
 
     public @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
-        NativeImage image = new NativeImage(NarutoLoading.width(), NarutoLoading.height(), false);
+        NativeImage image = new NativeImage(Constants.width(), Constants.height(), false);
         for (int i = 0; i < buffer.length; i += 3) {
             int b = buffer[i] & 0xFF;
             int g = buffer[i + 1] & 0xFF;
             int r = buffer[i + 2] & 0xFF;
             int argb = 0xFF000000 | (r << 16) | (g << 8) | b;
-            image.setPixelRGBA(i / 3 % NarutoLoading.width(), i / 3 / NarutoLoading.width(), argb);
+            image.setPixelRGBA(i / 3 % Constants.width(), i / 3 / Constants.width(), argb);
         }
         return image;
     }

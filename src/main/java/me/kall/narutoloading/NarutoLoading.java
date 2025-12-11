@@ -1,22 +1,11 @@
 package me.kall.narutoloading;
 
-import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.executor.NarutoVideoExecutor;
-import net.minecraft.client.Minecraft;
+import me.kall.narutoloading.render.NarutoRenderer;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.function.BooleanSupplier;
-import java.util.function.IntSupplier;
-import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Mod(NarutoLoading.MOD_ID)
 public final class NarutoLoading {
@@ -24,78 +13,8 @@ public final class NarutoLoading {
 
     public static final Logger LOGGER = LogManager.getLogger(NarutoLoading.class);
 
-    private static final int FPS = getVideoFrameRate();
-
     public static final NarutoAudioExecutor AUDIO = new NarutoAudioExecutor();
     public static final NarutoVideoExecutor VIDEO = new NarutoVideoExecutor();
 
     public static final NarutoRenderer RENDERER = new NarutoRenderer();
-
-    private static final IntSupplier WIDTH = () -> Minecraft.getInstance().getWindow().getScreenWidth();
-    private static final IntSupplier HEIGHT = () -> Minecraft.getInstance().getWindow().getScreenHeight();
-
-    private static final Supplier<String> WIDTH_STRING = () -> String.valueOf(WIDTH.getAsInt());
-    private static final Supplier<String> HEIGHT_STRING = () -> String.valueOf(HEIGHT.getAsInt());
-
-    private static final BooleanSupplier WINDOW = () -> Minecraft.getInstance().isWindowActive();
-
-    public static int fps() {
-        return FPS;
-    }
-
-    public static int width() {
-        return WIDTH.getAsInt();
-    }
-
-    public static int height() {
-        return HEIGHT.getAsInt();
-    }
-
-    public static @NotNull String widthString() {
-        return WIDTH_STRING.get();
-    }
-
-    public static @NotNull String heightString() {
-        return HEIGHT_STRING.get();
-    }
-
-    public static boolean isWindowActive() {
-        return WINDOW.getAsBoolean();
-    }
-
-    private static int getVideoFrameRate() {
-        String json = run();
-
-        if (json != null) {
-            Pattern p = Pattern.compile("\"avg_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
-            Matcher m = p.matcher(json);
-
-            if (m.find()) {
-                double num = Double.parseDouble(m.group(1));
-                double den = Double.parseDouble(m.group(2));
-                if (den != 0) {
-                    return (int) (num / den);
-                }
-            }
-        }
-        throw new RuntimeException("Failed to read video frame rate");
-    }
-
-    private static @Nullable String run() {
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder(NarutoConfig.FFPROBE_PATH, "-v", "quiet", "-print_format", "json", "-show_streams", NarutoConfig.video());
-
-            processBuilder.redirectErrorStream(true);
-            Process process = processBuilder.start();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) stringBuilder.append(line).append('\n');
-            process.waitFor();
-            return stringBuilder.toString();
-        } catch (Exception exception) {
-            return null;
-        }
-    }
 }

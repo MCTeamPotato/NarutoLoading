@@ -1,4 +1,4 @@
-package me.kall.narutoloading.mixin;
+package me.kall.narutoloading.mixin.core.overlay;
 
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.Util;

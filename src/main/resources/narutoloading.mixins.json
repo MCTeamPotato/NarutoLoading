@@ -10,12 +10,15 @@
     "defaultRequire": 1
   },
   "client": [
-    "MixinAbstractSelectionList",
-    "MixinCreateWorldScreen",
-    "MixinForgeLoadingOverlay",
-    "MixinLoadingOverlay",
-    "MixinScreen",
-    "MixinScrollPanel",
-    "MixinTitleScreen"
+    "clear.GuiGraphicsMixin",
+    "clear.MixinFont",
+    "clear.MixinStringRenderOutput",
+    "core.overlay.MixinForgeLoadingOverlay",
+    "core.overlay.MixinLoadingOverlay",
+    "core.screen.MixinAbstractSelectionList",
+    "core.screen.MixinCreateWorldScreen",
+    "core.screen.MixinScreen",
+    "core.screen.MixinScrollPanel",
+    "core.screen.MixinTitleScreen"
   ]
 }

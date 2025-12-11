@@ -1,7 +1,9 @@
-package me.kall.narutoloading.mixin;
+package me.kall.narutoloading.mixin.core.screen;
 
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -11,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Screen.class)
-public abstract class MixinScreen {
+public abstract class MixinScreen extends AbstractContainerEventHandler implements Renderable {
     @SuppressWarnings("UnstableApiUsage")
     @Inject(method = "renderDirtBackground", at = @At("HEAD"), cancellable = true)
     private void dirtScreenByeBye(GuiGraphics guiGraphics, CallbackInfo ci) {
