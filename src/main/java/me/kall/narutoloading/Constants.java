@@ -18,12 +18,12 @@ public class Constants {
     private static final IntSupplier WIDTH = () -> {
         int width = Minecraft.getInstance().getWindow().getScreenWidth();
         if (width == 0) return 854;
-        return width;
+        return Math.min(width, NarutoConfig.MAX_WIDTH);
     };
     private static final IntSupplier HEIGHT = () -> {
         int height = Minecraft.getInstance().getWindow().getScreenHeight();
         if (height == 0) return 480;
-        return height;
+        return Math.min(height, NarutoConfig.MAX_HEIGHT);
     };
 
     private static final Supplier<String> WIDTH_STRING = () -> String.valueOf(WIDTH.getAsInt());
