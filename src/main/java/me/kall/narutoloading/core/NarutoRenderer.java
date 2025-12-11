@@ -1,9 +1,7 @@
-package me.kall.narutoloading.render;
+package me.kall.narutoloading.core;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import me.kall.narutoloading.Constants;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.config.NarutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
@@ -12,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-public class NarutoRenderer {
+public final class NarutoRenderer {
     private @Nullable DynamicTexture dynamicTexture;
     private @Nullable ResourceLocation textureLocation;
 
@@ -38,7 +36,7 @@ public class NarutoRenderer {
 
     private void setup() {
         if (this.dynamicTexture != null) return;
-        this.dynamicTexture = new DynamicTexture(Constants.width(), Constants.height(), false);
+        this.dynamicTexture = new DynamicTexture(NarutoLoading.Constants.width(), NarutoLoading.Constants.height(), false);
         if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
         NarutoLoading.AUDIO.setup();
         NarutoLoading.VIDEO.setup();
@@ -48,7 +46,7 @@ public class NarutoRenderer {
     private ResourceLocation nextFrame() {
         if (this.dynamicTexture == null) setup();
         long now = System.currentTimeMillis();
-        if (now - this.last >= 1000 / Constants.fps()) {
+        if (now - this.last >= 1000 / NarutoLoading.Constants.fps()) {
             this.last = now;
             NativeImage frame = NarutoLoading.VIDEO.fetchImage((double) this.elapsed / 1000D);
             if (frame != null) {
@@ -59,6 +57,10 @@ public class NarutoRenderer {
         }
 
         return this.textureLocation;
+    }
+
+    public @Nullable ResourceLocation texture() {
+        return textureLocation;
     }
 
     public void renderFrame(GuiGraphics graphics) {
@@ -85,7 +87,7 @@ public class NarutoRenderer {
     }
 
     private void checkActive() {
-        byte isActive = Constants.isWindowActive() ? ACTIVE : INACTIVE;
+        byte isActive = NarutoLoading.Constants.isWindowActive() ? ACTIVE : INACTIVE;
         if (this.lastActive == NONE) {
             this.lastActive = isActive;
             return;
@@ -110,8 +112,8 @@ public class NarutoRenderer {
             this.resizeCooldown--;
             return;
         }
-        int width = Constants.width();
-        int height = Constants.height();
+        int width = NarutoLoading.Constants.width();
+        int height = NarutoLoading.Constants.height();
         if (this.lastWidth == -1 && this.lastHeight == -1) {
             this.lastWidth = width;
             this.lastHeight = height;
@@ -132,14 +134,14 @@ public class NarutoRenderer {
         NarutoLoading.VIDEO.shutdown(this.frameCount);
         NarutoLoading.VIDEO.setup(sec);
         if (this.dynamicTexture != null) this.dynamicTexture.close();
-        this.dynamicTexture = new DynamicTexture(Constants.width(), Constants.height(), false);
+        this.dynamicTexture = new DynamicTexture(NarutoLoading.Constants.width(), NarutoLoading.Constants.height(), false);
         this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
     }
 
     private boolean canRender() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen instanceof GenericDirtMessageScreen) return true;
-        if (Constants.width() == 0 && Constants.height() == 0) return false;
+        if (NarutoLoading.Constants.width() == 0 && NarutoLoading.Constants.height() == 0) return false;
         if (minecraft.level != null || !minecraft.isRunning()) {
             this.shutdown();
             return false;
@@ -153,7 +155,7 @@ public class NarutoRenderer {
             return;
         }
         long window = Minecraft.getInstance().getWindow().getWindow();
-        int keyStatus = GLFW.glfwGetKey(window, NarutoConfig.RELOAD);
+        int keyStatus = GLFW.glfwGetKey(window, NarutoLoading.NarutoConfig.RELOAD);
 
         if (keyStatus == GLFW.GLFW_PRESS) {
             this.reloadCooldown = 200;

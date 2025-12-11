@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.clear;
 
-import me.kall.narutoloading.render.MouseChecker;
+import me.kall.narutoloading.core.MouseChecker;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -24,26 +24,26 @@ public abstract class MixinFont {
 
     @ModifyVariable(method = "drawInBatch8xOutline", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private FormattedCharSequence clearDrawInBatch8xOutline(FormattedCharSequence formattedCharSequence) {
-        return MouseChecker.emptyString() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+        return MouseChecker.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
     }
 
     @ModifyVariable(method = "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private FormattedCharSequence clearDrawInBatch(FormattedCharSequence formattedCharSequence) {
-        return MouseChecker.emptyString() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+        return MouseChecker.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
     }
 
     @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private String clearDrawInBatch(String string) {
-        return MouseChecker.emptyString() ? MouseChecker.EMPTY_STRING : string;
+        return MouseChecker.transparency() ? MouseChecker.EMPTY_STRING : string;
     }
 
     @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private String clearDrawInBatch2(String string) {
-        return MouseChecker.emptyString() ? MouseChecker.EMPTY_STRING : string;
+        return MouseChecker.transparency() ? MouseChecker.EMPTY_STRING : string;
     }
 
     @ModifyVariable(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private Component clearDrawInBatch(Component component) {
-        return MouseChecker.emptyString() ? MouseChecker.EMPTY : component;
+        return MouseChecker.transparency() ? MouseChecker.EMPTY : component;
     }
 }

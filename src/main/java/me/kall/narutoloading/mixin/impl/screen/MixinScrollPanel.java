@@ -1,4 +1,4 @@
-package me.kall.narutoloading.mixin.core.screen;
+package me.kall.narutoloading.mixin.impl.screen;
 
 import com.mojang.blaze3d.vertex.Tesselator;
 import me.kall.narutoloading.NarutoLoading;

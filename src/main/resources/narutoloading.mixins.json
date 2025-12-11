@@ -13,12 +13,12 @@
     "clear.GuiGraphicsMixin",
     "clear.MixinFont",
     "clear.MixinStringRenderOutput",
-    "core.overlay.MixinForgeLoadingOverlay",
-    "core.overlay.MixinLoadingOverlay",
-    "core.screen.MixinAbstractSelectionList",
-    "core.screen.MixinCreateWorldScreen",
-    "core.screen.MixinScreen",
-    "core.screen.MixinScrollPanel",
-    "core.screen.MixinTitleScreen"
+    "impl.overlay.MixinForgeLoadingOverlay",
+    "impl.overlay.MixinLoadingOverlay",
+    "impl.screen.MixinAbstractSelectionList",
+    "impl.screen.MixinCreateWorldScreen",
+    "impl.screen.MixinScreen",
+    "impl.screen.MixinScrollPanel",
+    "impl.screen.MixinTitleScreen"
   ]
 }

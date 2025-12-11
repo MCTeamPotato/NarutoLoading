@@ -1,4 +1,4 @@
-package me.kall.narutoloading.render;
+package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.client.Minecraft;
@@ -10,7 +10,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class MouseChecker {
+public final class MouseChecker {
     private static double lastMouseX = Double.NaN;
     private static double lastMouseY = Double.NaN;
 
@@ -21,7 +21,7 @@ public class MouseChecker {
         return stopTickCount >= 20 * 5;
     }
 
-    public static boolean emptyString() {
+    public static boolean transparency() {
         return fadeAlpha == 0.0F;
     }
 
