@@ -10,7 +10,7 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 4. 大功告成，启动游戏吧！
 ### 注意事项
 - 音频若留空则会使用视频里的声音，或者你自己改成你 mp3 的文件名。
-- 游戏里按 F12 可以重载， reloadKey 那个值就是 F12。如果想改成别的比如 R 键，就把值改成 82（keys.txt 里有完整对应表）。
+- 游戏里按 F12 可以重载， reloadKey 那个值就是 F12。如果想改成别的比如 R 键，就把值改成 82（本仓库的 keys.txt 文件里有完整对应表）。
 - 音频不归 MC 的 SoundEngine 管的，你要调音量的话得调自己电脑扬声器的音量或者改 config 里的 audioVolume。
 - maxWidthForExecution 和 maxHeightForExecution 默认是 1280×720，太高会导致解码卡顿进而视频停滞，太低画质会变差，**请务必根据自己电脑配置调整**。
 - 需要 [Duplicationless](https://ww.curseforge.com/minecraft/mc-mods/duplicationless) 作为前置。
