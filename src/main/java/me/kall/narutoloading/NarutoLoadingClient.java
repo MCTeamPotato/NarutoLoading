@@ -35,7 +35,7 @@ public class NarutoLoadingClient {
                 .put("audioVolume", 1.0)
                 .initialize();
 
-        public static final int RELOAD = CONFIG.getInt("ReloadKey");
+        public static final int RELOAD = CONFIG.getInt("reloadKey");
 
         private static final String VIDEO_PATH = FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("videoFileName")).toAbsolutePath().toString();
         private static final String AUDIO_PATH = FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("audioFileName")).toAbsolutePath().toString();
