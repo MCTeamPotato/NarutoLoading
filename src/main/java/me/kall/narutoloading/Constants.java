@@ -15,16 +15,8 @@ import java.util.regex.Pattern;
 
 public class Constants {
     private static final int FPS = getVideoFrameRate();
-    private static final IntSupplier WIDTH = () -> {
-        int width = Minecraft.getInstance().getWindow().getScreenWidth();
-        if (width == 0) return 854;
-        return Math.min(width, NarutoConfig.MAX_WIDTH);
-    };
-    private static final IntSupplier HEIGHT = () -> {
-        int height = Minecraft.getInstance().getWindow().getScreenHeight();
-        if (height == 0) return 480;
-        return Math.min(height, NarutoConfig.MAX_HEIGHT);
-    };
+    private static final IntSupplier WIDTH = () -> Math.min(Minecraft.getInstance().getWindow().getScreenWidth(), NarutoConfig.MAX_WIDTH);
+    private static final IntSupplier HEIGHT = () -> Math.min(Minecraft.getInstance().getWindow().getScreenHeight(), NarutoConfig.MAX_HEIGHT);
 
     private static final Supplier<String> WIDTH_STRING = () -> String.valueOf(WIDTH.getAsInt());
     private static final Supplier<String> HEIGHT_STRING = () -> String.valueOf(HEIGHT.getAsInt());
