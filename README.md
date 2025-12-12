@@ -16,10 +16,9 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) is required.
 ### Why is it the dumbest?
 - I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like FancyMenu or DrippyLoadingScreen, our Mixin may crash your game. ~~Not really real, I considered the compatibility with Modern UI mod when writing gui elements hiding feature. And sure you can report the compatibility issues you encounter when using this mod to me and I will resolve them~~
-- I just violently create thread executors to parse the video and audio in FFmpeg, using ProcessBuilder and reading the video frame by frame and pixel by pixel in one single thread to build NativeImage just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately)
+- I just violently create thread executors to parse the video and audio in FFmpeg, using ProcessBuilder and reading the video frame by frame and pixel by pixel in one single thread to build NativeImage just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately as it's undoubtedly too silly)
 ### Videos for reference
 #### [Naruto Tenth Anniversary Login CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
-
 #### [Bad Apple](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
 ___
 ## ZH
@@ -39,8 +38,7 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 - 需要 [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) 作为前置。
 ### 为啥说蠢？
 - 作者完全没有也不想考虑兼容性，因此如果你装了 FancyMenu / DrippyLoadingScreen 之类的自定义加载页面模组，有可能会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 Modern UI 的兼容。你当然也可以向我报告你遇到的兼容性问题，我会修复它们的。~~
-- 作者直接暴力开线程用 FFmpeg 解析视频和音频，写个 ProcessBuilder 就摁造，在单个线程里逐像素读取并构建 NativeImage 只为在 MC 看火影十周年的登录 CG（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了）。
+- 作者直接暴力开线程用 FFmpeg 解析视频和音频，写个 ProcessBuilder 就摁造，在单个线程里逐像素读取并构建 NativeImage 只为在 MC 看火影十周年的登录 CG（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了，毕竟这实现实在是太神秘了）。
 ### 演示视频
 #### [火影忍者十周年登录 CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
-
 #### [Bad Apple 视频](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
