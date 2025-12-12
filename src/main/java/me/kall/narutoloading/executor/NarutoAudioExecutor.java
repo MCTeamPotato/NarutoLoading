@@ -104,7 +104,7 @@ public final class NarutoAudioExecutor {
 
         if (this.context != 0) {
             ALC10.alcDestroyContext(this.context);
-            context = 0;
+            this.context = 0;
         }
 
         if (this.device != 0) {
