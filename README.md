@@ -16,12 +16,12 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) is required.
 ### Why is it the dumbest?
 - I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like FancyMenu or DrippyLoadingScreen, our Mixin may crash your game. ~~Not really real, I considered the compatibility with Modern UI mod when writing gui elements hiding feature. And sure you can report the compatibility issues you encounter when using this mod to me and I will resolve them~~
-- I just violently create thread executors to parse the video and audio in FFmpeg, using ProcessBuilder and reading the video frame by frame and pixel by pixel to build NativeImage just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately)
-- In conclusion, if your PC is a potato, use this mod at your risk.
+- I just violently create thread executors to parse the video and audio in FFmpeg, using ProcessBuilder and reading the video frame by frame and pixel by pixel in one single thread to build NativeImage just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately)
 ### Videos for reference
 #### [Naruto Tenth Anniversary Login CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
 
 #### [Bad Apple](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
+___
 ## ZH
 _Minecraft 最愚蠢的视频 & 音频播放器。_
 ### 干啥的？
