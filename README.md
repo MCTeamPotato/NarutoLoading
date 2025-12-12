@@ -2,22 +2,22 @@
 ## EN
 _The **dumbest** video & audio player mod for Minecraft._
 ### What does it do?
-Play video and audio during loading overlays and screens and replace the vanilla panorama and dirt background. Also stop rendering all the gui elements after your mouse keeps unmoved for a while.
+Play video and audio during loading overlays and screens and replace the vanilla panorama and dirt background. Also stop rendering all the gui elements after your mouse remains idle for a while.
 ### How to use it?
 1. Download `FFmpeg`: https://github.com/BtbN/FFmpeg-Builds/releases
-2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their corresponding paths.
+2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system.
 3. Put the video and audio that you want to play into config directory, and then tweak the `videoFileName` and `audioFileName` in `narutoloading.json` to their file names.
 4. Launch your game and enjoy it!
 ### Notes
 - If you leave the `audioFileName` config property empty, we will try to use the video's sound.
-- You can press `F12` to reload the video and audio during your game. The numeric value of our `reloadKey` config property is the very F12. If you want to tweak it to another key like `R`, write `82` there. (See the `keys.txt` in this repo for complete reference of key mappings)
+- You can press `F12` to reload the video and audio during your game. By default, the reloadKey is set to F12. To change it to another key like R, set the value to 82. (See the `keys.txt` in this repo for complete reference of key mappings)
 - The audio volume can be controlled by MC's `Video Settings` -> `Music & Sounds` -> `Master Volume` (**NOT THE `Music` !!!**).
 - [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) is required.
 ### Why is it the dumbest?
 - I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like `FancyMenu` or `DrippyLoadingScreen`, our Mixin may crash your game. ~~Not really real, I considered the compatibility with `Modern UI` mod when writing gui elements hiding feature. And of course you can report any compatibility issues you encounter, and I'll try to resolve them~~~~
 - I just violently create thread executors to parse the video and audio in `FFmpeg`, using `ProcessBuilder` and reading the video frame by frame and pixel by pixel in one single thread to build `NativeImage` just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately as it's undoubtedly too silly) (Well though that's violent, its performance should perhaps probably maybe not a big deal as long as your PC is not a potato.)
 ### Credits
-- Deepseek (**MY LIFESAVER**) for fixing the lag of parsing video frames in high resolution and providing the idea of synchronizing our NarutoAudioExecutor with the OpenAL context in MC's SoundEngine to resolve various sound issues.
+- Deepseek (**MY LIFESAVER**) for fixing the lag of parsing video frames in high resolution and suggesting the synchronization of our NarutoAudioExecutor with the OpenAL context in MC's SoundEngine to resolve various sound issues.
 - ChatGPT, Grok & Gemini for providing various "creative" solutions that definitely never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
 ### TODO
 - Include [Jaffree](https://github.com/kokorin/Jaffree) and use it to parse audio & video so you don't need to download FFmpeg by yourself.
