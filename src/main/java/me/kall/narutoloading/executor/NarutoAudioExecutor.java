@@ -15,9 +15,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class NarutoAudioExecutor {
-    private boolean canceled;
+    private volatile boolean canceled;
     private long device, context;
-    private int source;
+    public int source;
     private @Nullable ExecutorService executor;
     private @Nullable Process process;
 
@@ -83,11 +83,12 @@ public final class NarutoAudioExecutor {
         if (this.canceled) return;
         this.canceled = true;
 
+        if (this.process != null) {
+            this.process.destroyForcibly();
+            this.process = null;
+        }
+
         if (this.executor != null) {
-            if (this.process != null) {
-                this.process.destroyForcibly();
-                this.process = null;
-            }
             this.executor.shutdownNow();
             this.executor = null;
         }

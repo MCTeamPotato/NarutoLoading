@@ -20,7 +20,7 @@ public final class NarutoVideoExecutor {
     public @Nullable LinkedBlockingQueue<LongObjectPair<NativeImage>> frameQueue;
 
     private @Nullable ExecutorService executor;
-    private boolean canceled;
+    private volatile boolean canceled;
     private @Nullable Process process;
     private long frameCounts;
 
@@ -103,11 +103,13 @@ public final class NarutoVideoExecutor {
     public void shutdown(long frameElapsed) {
         if (this.canceled) return;
         this.canceled = true;
+
+        if (this.process != null) {
+            this.process.destroyForcibly();
+            this.process = null;
+        }
+
         if (this.executor != null) {
-            if (this.process != null) {
-                this.process.destroyForcibly();
-                this.process = null;
-            }
             this.executor.shutdownNow();
             this.executor = null;
         }
