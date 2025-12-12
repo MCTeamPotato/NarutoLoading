@@ -26,7 +26,7 @@ ___
 ## ZH
 _Minecraft **最愚蠢的**视频 & 音频播放器。_
 ### 干啥的？
-在加载界面里放视频，放音频，取代全景图和泥土界面，以及一段时间鼠标不动后停止渲染除视频之外的所有 GUI 元素。
+在加载界面和各种屏幕背景里放视频，放音频，取代全景图和泥土界面，并让一段时间鼠标不动后除视频之外的所有 GUI 元素停止渲染。
 ### 怎么用？
 1. 下个 `FFmpeg`：https://github.com/BtbN/FFmpeg-Builds/releases 。
 2. 安装完之后把 `config/narutoloading.json` 里的 `ffmpegExePath` 和 `ffprobeExePath` 改成你电脑里的对应路径。
