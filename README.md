@@ -18,7 +18,7 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - I just violently create thread executors to parse the video and audio in `FFmpeg`, using `ProcessBuilder` and reading the video frame by frame and pixel by pixel in one single thread to build `NativeImage` just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately as it's undoubtedly too silly) (Well though that's violent, its performance should perhaps probably maybe not a big deal as long as your PC is not a potato.)
 ### Credits
 - Deepseek (**MY LIFESAVER**) for fixing the lag of parsing video frames in high resolution.
-- ChatGPT, Grok & Gemini for providing various "creative" solutions that never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
+- ChatGPT, Grok & Gemini for providing various "creative" solutions that definitely never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
 ### Videos for reference
 #### [Naruto Tenth Anniversary Login CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
 #### [Bad Apple](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
@@ -42,7 +42,7 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 - 作者直接暴力开线程用 `FFmpeg` 解析视频和音频，写个 `ProcessBuilder `就摁造，在单个线程里逐像素读取并构建 `NativeImage` 只为在 MC 看火影十周年的登录 CG（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了，毕竟这实现实在是太神秘了）（不过虽然暴力，性能上面应该大概可能也许不是什么大问题——除非你是土豆机）。
 ### 鸣谢
 - DeepSeek （**我的救星**）：感谢它修复了高分辨率下的视频解析卡顿。
-- ChatGPT、Grok、Gemini：感谢它们成天左右脑互搏似地提供问题修复方案，虽然一次都没有修复成功只会让视频卡住或者游戏崩溃，到最后全是由作者自己想思路自己解决但还是谢谢它们添乱路上提供的情绪价值。
+- ChatGPT、Grok、Gemini：感谢它们成天左右脑互搏似地提供问题修复方案，虽然真就一次都没有修复成功只会让视频卡住或者游戏崩溃，到最后全是由作者自己想思路自己解决但还是谢谢它们添乱路上提供的情绪价值。
 ### 演示视频
 #### [火影忍者十周年登录 CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
 #### [Bad Apple 视频](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
