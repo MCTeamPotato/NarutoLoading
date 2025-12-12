@@ -20,6 +20,7 @@
     "impl.screen.MixinScreen",
     "impl.screen.MixinScrollPanel",
     "impl.screen.MixinTitleScreen",
+    "impl.sound.MixinOptions",
     "impl.sound.MixinSoundEngine"
   ]
 }
