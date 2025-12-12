@@ -18,7 +18,7 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - I just violently create thread executors to parse the video and audio in `FFmpeg`, using `ProcessBuilder` and reading the video frame by frame and pixel by pixel in one single thread to build `NativeImage` just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately as it's undoubtedly too silly) (Well though that's violent, its performance should perhaps probably maybe not a big deal as long as your PC is not a potato.)
 ### Credits
 - Deepseek (**MY LIFESAVER**) for fixing the lag of parsing video frames in high resolution.
-- **ChatGPT, Grok & Gemini** — for providing various "creative" solutions that never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
+- ChatGPT, Grok & Gemini for providing various "creative" solutions that never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
 ### Videos for reference
 #### [Naruto Tenth Anniversary Login CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
 #### [Bad Apple](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
