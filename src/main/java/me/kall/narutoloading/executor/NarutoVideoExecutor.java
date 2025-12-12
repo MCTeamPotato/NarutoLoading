@@ -9,6 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,16 +48,18 @@ public final class NarutoVideoExecutor {
                 this.process = processBuilder.start();
                 InputStream inputStream = this.process.getInputStream();
 
-                byte[] buffer = new byte[NarutoLoadingClient.Constants.width() * NarutoLoadingClient.Constants.height() * 3];
-                int frameSize = buffer.length;
+                int frameSize = NarutoLoadingClient.Constants.width() * NarutoLoadingClient.Constants.height() * 3;
+                ReadableByteChannel channel = Channels.newChannel(inputStream);
+                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(frameSize);
 
                 while (!this.canceled) {
-                    int read = 0;
-                    while (read < frameSize) {
-                        int r = inputStream.read(buffer, read, frameSize - read);
-                        if (r == -1) return;
-                        read += r;
+                    byteBuffer.clear();
+                    while (byteBuffer.hasRemaining()) {
+                        if (channel.read(byteBuffer) == -1) return;
                     }
+                    byteBuffer.flip();
+                    byte[] buffer = new byte[frameSize];
+                    byteBuffer.get(buffer);
 
                     NativeImage image = this.buildImage(buffer);
                     this.frameCounts++;
