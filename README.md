@@ -21,7 +21,7 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - ChatGPT, Grok & Gemini for providing various "creative" solutions that definitely never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
 ### TODO
 - Include [Jaffree](https://github.com/kokorin/Jaffree) and use it to parse audio & video so you don't need to download FFmpeg by yourself.
-- ### Videos for reference
+### Videos for reference
 #### [Naruto Tenth Anniversary Login CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
 #### [Bad Apple](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
 ___
