@@ -20,6 +20,7 @@ public final class NarutoAudioExecutor {
     public int source;
     private @Nullable ExecutorService executor;
     private @Nullable Process process;
+    private boolean selfContext = false;
 
     public void setup() {
         setup("0");
@@ -35,6 +36,7 @@ public final class NarutoAudioExecutor {
             this.device = ALC10.alcOpenDevice((ByteBuffer) null);
             this.context = ALC10.alcCreateContext(this.device, (int[]) null);
             ALC10.alcMakeContextCurrent(this.context);
+            this.selfContext = true;
         } else {
             NarutoLoading.LOGGER.info("Using Minecraft's OpenAL context");
             this.context = currentContext;
@@ -112,15 +114,17 @@ public final class NarutoAudioExecutor {
             this.source = 0;
         }
 
-        if (this.context != 0) {
+        if (this.context != 0 && this.selfContext) {
             ALC10.alcDestroyContext(this.context);
             this.context = 0;
         }
 
-        if (this.device != 0) {
+        if (this.device != 0 && this.selfContext) {
             ALC10.alcCloseDevice(this.device);
             this.device = 0;
         }
+
+        this.selfContext = false;
 
         NarutoLoading.LOGGER.info("NarutoAudioExecutor shuts down successfully");
     }
