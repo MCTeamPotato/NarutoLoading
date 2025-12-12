@@ -10,8 +10,8 @@
     "defaultRequire": 1
   },
   "client": [
-    "clear.GuiGraphicsMixin",
     "clear.MixinFont",
+    "clear.MixinGuiGraphics",
     "clear.MixinStringRenderOutput",
     "impl.overlay.MixinForgeLoadingOverlay",
     "impl.overlay.MixinLoadingOverlay",
@@ -19,6 +19,7 @@
     "impl.screen.MixinCreateWorldScreen",
     "impl.screen.MixinScreen",
     "impl.screen.MixinScrollPanel",
-    "impl.screen.MixinTitleScreen"
+    "impl.screen.MixinTitleScreen",
+    "impl.sound.MixinSoundEngine"
   ]
 }

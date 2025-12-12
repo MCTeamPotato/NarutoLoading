@@ -11,7 +11,7 @@ Play video and audio during loading overlays and screens and replace the vanilla
 ### Notes
 - If you leave the `audioFileName` config property empty, we will try to use the video's sound.
 - You can press `F12` to reload the video and audio during your game. The numeric value of our `reloadKey` config property is the very F12. If you want to tweak it to another key like `R`, write `82` there. (See the `keys.txt` in this repo for complete reference of key mappings)
-- The audio this mod plays is directly through OpenAL, so if you want to change its volume, please tweak the speaker of your PC or the `audioVolume` in our config. In `Master Volume` in MC's `Video Settings` -> `Music & Sounds` you can also tweak it but that's not suggested because our sound playing is somehow silly too.
+- The audio this mod plays is directly through OpenAL, so if you want to change its volume, please tweak the speaker of your PC or the `audioVolume` in our config. In `Master Volume` in MC's `Video Settings` -> `Music & Sounds` you can also tweak it.
 - [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) is required.
 ### Why is it the dumbest?
 - I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like `FancyMenu` or `DrippyLoadingScreen`, our Mixin may crash your game. ~~Not really real, I considered the compatibility with `Modern UI` mod when writing gui elements hiding feature. And of course you can report any compatibility issues you encounter, and I'll try to resolve them~~~~
@@ -35,7 +35,7 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 ### 注意事项
 - 音频的配置项若留空则会使用视频里的声音。
 - 游戏里按 `F12` 可以重载，config 里 `reloadKey` 那个值就是 `F12`。如果想改成别的比如 `R` 键，就把值改成 `82`（本仓库的 `keys.txt` 文件里有完整对应表）。
-- 音频是直接用 OpenAL 放的，你要调音量的话得调自己电脑扬声器的音量或者改 config 里的 `audioVolume`，MC 视频设置`音乐与声音`里的那个`主音量`也能调，但是那个尽量别用，因为咱的音频播放方式有点神经的。
+- 音频是直接用 OpenAL 放的，你要调音量的话得调自己电脑扬声器的音量或者改 config 里的 `audioVolume`，MC 视频设置`音乐与声音`里的那个`主音量`也能调。
 - 需要 [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) 作为前置。
 ### 为啥说蠢？
 - 作者完全没有也不想考虑兼容性，因此如果你装了 `FancyMenu` / `DrippyLoadingScreen` 之类的自定义加载页面模组，有可能会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 `Modern UI` 的兼容。你当然也可以向我报告你遇到的兼容性问题，我会修复它们的。~~

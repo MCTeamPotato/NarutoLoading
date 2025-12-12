@@ -28,9 +28,18 @@ public final class NarutoAudioExecutor {
     public void setup(String sec) {
         this.canceled = false;
 
-        this.device = ALC10.alcOpenDevice((ByteBuffer) null);
-        this.context = ALC10.alcCreateContext(this.device, (int[]) null);
-        ALC10.alcMakeContextCurrent(this.context);
+        long currentContext = ALC10.alcGetCurrentContext();
+
+        if (currentContext == MemoryUtil.NULL) {
+            NarutoLoading.LOGGER.info("Failed to get Minecraft's OpenAL context.");
+            this.device = ALC10.alcOpenDevice((ByteBuffer) null);
+            this.context = ALC10.alcCreateContext(this.device, (int[]) null);
+            ALC10.alcMakeContextCurrent(this.context);
+        } else {
+            NarutoLoading.LOGGER.info("Using Minecraft's OpenAL context");
+            this.context = currentContext;
+            this.device = ALC10.alcGetContextsDevice(this.context);
+        }
 
         ALC.createCapabilities(this.device);
         AL.createCapabilities(ALC.getCapabilities());

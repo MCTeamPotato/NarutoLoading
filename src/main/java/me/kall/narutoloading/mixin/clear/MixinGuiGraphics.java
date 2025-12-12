@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = GuiGraphics.class, priority = 500)
-public abstract class GuiGraphicsMixin {
+public abstract class MixinGuiGraphics {
     @ModifyVariable(method = "setColor", at = @At("HEAD"), argsOnly = true, ordinal = 3)
     private float modifyAlpha(float alpha) {
         return alpha * MouseChecker.fadeAlpha;

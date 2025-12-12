@@ -24,16 +24,12 @@ public final class NarutoRenderer {
     private int lastWidth = -1;
     private int lastHeight = -1;
 
-    private byte lastActive = -1;
-
-    private static final byte ACTIVE = 1;
-    private static final byte INACTIVE = 0;
-    private static final byte NONE = -1;
-
     private int reloadCooldown = 0;
     private int resizeCooldown = 0;
 
     private boolean isRunning = false;
+
+    public volatile boolean syncSoundEngine = false;
 
     private void setup() {
         if (this.dynamicTexture != null) return;
@@ -78,8 +74,8 @@ public final class NarutoRenderer {
             graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
 
             this.checkSize();
-            this.checkActive();
             this.keyReload();
+            this.syncSoundEngine();
         }
     }
 
@@ -87,24 +83,10 @@ public final class NarutoRenderer {
         return this.isRunning;
     }
 
-    private void checkActive() {
-        byte isActive = NarutoLoadingClient.Constants.isWindowActive() ? ACTIVE : INACTIVE;
-        if (this.lastActive == NONE) {
-            this.lastActive = isActive;
-            return;
-        }
-
-        if (this.lastActive != isActive) {
-            this.lastActive = isActive;
-            if (isActive == ACTIVE) {
-                String sec = String.valueOf((double) this.elapsed / 1000D);
-                NarutoLoading.LOGGER.info("Window becomes active. Restart NarutoAudioExecutor from {} seconds", sec);
-                NarutoLoadingClient.AUDIO.shutdown();
-                NarutoLoadingClient.AUDIO.setup(sec);
-            } else {
-                NarutoLoading.LOGGER.info("Window becomes inactive. Shutdown NarutoAudioExecutor.");
-                NarutoLoadingClient.AUDIO.shutdown();
-            }
+    private void syncSoundEngine() {
+        if (this.syncSoundEngine) {
+            this.syncSoundEngine = false;
+            NarutoLoadingClient.AUDIO.setup(String.valueOf((double) this.elapsed / 1000D));
         }
     }
 
