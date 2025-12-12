@@ -98,11 +98,11 @@ public final class NarutoRenderer {
             this.lastActive = isActive;
             if (isActive == ACTIVE) {
                 String sec = String.valueOf((double) this.elapsed / 1000D);
-                NarutoLoading.LOGGER.info("Window become active. Restart NarutoAudioExecutor from {} seconds", sec);
+                NarutoLoading.LOGGER.info("Window becomes active. Restart NarutoAudioExecutor from {} seconds", sec);
                 NarutoLoadingClient.AUDIO.shutdown();
                 NarutoLoadingClient.AUDIO.setup(sec);
             } else {
-                NarutoLoading.LOGGER.info("Window become inactive. Shutdown NarutoAudioExecutor.");
+                NarutoLoading.LOGGER.info("Window becomes inactive. Shutdown NarutoAudioExecutor.");
                 NarutoLoadingClient.AUDIO.shutdown();
             }
         }
