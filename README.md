@@ -35,7 +35,7 @@ _Minecraft 最愚蠢的视频 & 音频播放器。_
 - 音频的配置项若留空则会使用视频里的声音。
 - 游戏里按 F12 可以重载，config 里 reloadKey 那个值就是 F12。如果想改成别的比如 R 键，就把值改成 82（本仓库的 keys.txt 文件里有完整对应表）。
 - 音频不归 MC 的 SoundEngine 管的，你要调音量的话得调自己电脑扬声器的音量或者改 config 里的 audioVolume。
-- maxWidthForExecution 和 maxHeightForExecution 默认是 1280×720，太高会导致解码卡顿进而视频停滞，太低画质会变差，**请务必根据自己电脑的性能表现调整**。
+- maxWidthForExecution 和 maxHeightForExecution 默认是 1280×720，太高会导致解码卡顿进而视频停滞，太低画质会变差。
 - 需要 [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) 作为前置。
 ### 为啥说蠢？
 - 作者完全没有也不想考虑兼容性，因此如果你装了 FancyMenu / DrippyLoadingScreen 之类的自定义加载页面模组，有可能会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 Modern UI 的兼容。你当然也可以向我报告你遇到的兼容性问题，我会修复它们的。~~
