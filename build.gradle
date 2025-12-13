@@ -117,6 +117,8 @@ dependencies {
 
     if (embeddiumIntegration) modImplementation("curse.maven:embeddium-908741:${embeddium}")
     if (useDuplicationLess) modImplementation("curse.maven:duplicationless-1380105:${duplicationLess}")
+
+    shadow(implementation("com.github.kokorin.jaffree:jaffree:2024.08.29"))
 }
 
 processResources {

@@ -148,6 +148,7 @@ public final class NarutoRenderer {
             this.reloadCooldown = 200;
             this.shutdown();
             this.setup();
+            NarutoLoading.LOGGER.info("NarutoRenderer reloads successfully.");
         }
     }
 
