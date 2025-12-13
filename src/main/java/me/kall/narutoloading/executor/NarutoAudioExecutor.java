@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 public final class NarutoAudioExecutor {
     private volatile boolean canceled;
     private long device, context;
-    public int source;
+    private int source;
     private @Nullable ExecutorService executor;
     private @Nullable Process process;
     private boolean selfContext = false;
@@ -32,15 +32,15 @@ public final class NarutoAudioExecutor {
         long currentContext = ALC10.alcGetCurrentContext();
 
         if (currentContext == MemoryUtil.NULL) {
-            NarutoLoading.LOGGER.info("Failed to get Minecraft's OpenAL context.");
             this.device = ALC10.alcOpenDevice((ByteBuffer) null);
             this.context = ALC10.alcCreateContext(this.device, (int[]) null);
             ALC10.alcMakeContextCurrent(this.context);
             this.selfContext = true;
+            NarutoLoading.LOGGER.info("Failed to get Minecraft's OpenAL context. Creating one by ourselves.");
         } else {
-            NarutoLoading.LOGGER.info("Using Minecraft's OpenAL context");
             this.context = currentContext;
             this.device = ALC10.alcGetContextsDevice(this.context);
+            NarutoLoading.LOGGER.info("Synchronizing to Minecraft's OpenAL context successfully.");
         }
 
         ALC.createCapabilities(this.device);
@@ -114,17 +114,21 @@ public final class NarutoAudioExecutor {
             this.source = 0;
         }
 
-        if (this.context != 0 && this.selfContext) {
-            ALC10.alcDestroyContext(this.context);
-            this.context = 0;
-        }
+        if (this.selfContext) {
+            this.selfContext = false;
 
-        if (this.device != 0 && this.selfContext) {
-            ALC10.alcCloseDevice(this.device);
-            this.device = 0;
-        }
+            if (this.context != 0) {
+                ALC10.alcDestroyContext(this.context);
+                this.context = 0;
+            }
 
-        this.selfContext = false;
+            if (this.device != 0) {
+                ALC10.alcCloseDevice(this.device);
+                this.device = 0;
+            }
+
+            NarutoLoading.LOGGER.info("Cleaning NarutoAudioExecutor's own OpenAL context.");
+        }
 
         NarutoLoading.LOGGER.info("NarutoAudioExecutor shuts down successfully");
     }
