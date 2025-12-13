@@ -24,6 +24,9 @@ public final class NarutoVideoExecutor {
     private @Nullable Process process;
     private long frameCounts;
 
+    private @Nullable InputStream inputStream;
+    private @Nullable ReadableByteChannel channel;
+
     public void setup(String sec) {
         this.canceled = false;
         this.executor = Executors.newSingleThreadExecutor(task -> {
@@ -45,17 +48,17 @@ public final class NarutoVideoExecutor {
             );
 
             try {
-                this.process = processBuilder.start();
-                InputStream inputStream = this.process.getInputStream();
-
                 int frameSize = NarutoLoadingClient.Constants.width() * NarutoLoadingClient.Constants.height() * 3;
-                ReadableByteChannel channel = Channels.newChannel(inputStream);
+                this.process = processBuilder.start();
+                this.inputStream = this.process.getInputStream();
+                this.channel = Channels.newChannel(this.inputStream);
                 ByteBuffer byteBuffer = ByteBuffer.allocateDirect(frameSize);
 
                 while (!this.canceled) {
                     byteBuffer.clear();
                     while (byteBuffer.hasRemaining()) {
-                        if (channel.read(byteBuffer) == -1) return;
+                        if (this.channel == null) return;
+                        if (this.channel.read(byteBuffer) == -1) return;
                     }
                     byteBuffer.flip();
                     byte[] buffer = new byte[frameSize];
@@ -104,6 +107,20 @@ public final class NarutoVideoExecutor {
     public void shutdown(long frameElapsed) {
         if (this.canceled) return;
         this.canceled = true;
+
+        try {
+            if (this.inputStream != null) {
+                this.inputStream.close();
+                this.inputStream = null;
+            }
+
+            if (this.channel != null) {
+                this.channel.close();
+                this.channel = null;
+            }
+        } catch (Exception exception) {
+            NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor resources cleanup during shutdown", exception);
+        }
 
         if (this.process != null) {
             this.process.destroyForcibly();
