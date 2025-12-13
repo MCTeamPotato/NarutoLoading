@@ -82,6 +82,7 @@ public final class NarutoVideoExecutor {
         if (frame == null) return null;
 
         while (frame != null && ((double) frame.firstLong()) / ((double) NarutoLoadingClient.Constants.fps()) < elapsedSeconds) {
+            frame.right().close();
             frame = this.frameQueue.poll();
         }
 
