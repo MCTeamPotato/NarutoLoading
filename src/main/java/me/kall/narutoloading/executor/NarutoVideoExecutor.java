@@ -34,7 +34,7 @@ public final class NarutoVideoExecutor {
             thread.setDaemon(true);
             return thread;
         });
-        this.frameQueue = new LinkedBlockingQueue<>(60);
+        this.frameQueue = new LinkedBlockingQueue<>(NarutoLoadingClient.NarutoConfig.BUFFER_SIZE);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
                     NarutoLoadingClient.NarutoConfig.FFMPEG_PATH,

@@ -21,13 +21,16 @@ public class NarutoLoadingClient {
     public static final NarutoRenderer RENDERER = new NarutoRenderer();
 
     public static final class NarutoConfig {
-        private static final JsonConfig CONFIG = JsonConfig.create(NarutoLoading.MOD_ID, "4")
+        private static final JsonConfig CONFIG = JsonConfig.create(NarutoLoading.MOD_ID, "5")
                 .put("ffmpegExePath", "D:\\ffmpeg\\bin\\ffmpeg.exe")
                 .put("ffprobeExePath", "D:\\ffmpeg\\bin\\ffprobe.exe")
                 .put("videoFileName", "naruto.mp4")
                 .put("audioFileName", "")
                 .put("reloadKey", GLFW.GLFW_KEY_F12)
                 .put("audioVolume", 1.0)
+                .put("maxResolutionWidth", 1350)
+                .put("maxResolutionHeight", 720)
+                .put("videoFrameStorageBufferSize", 60)
                 .initialize();
 
         public static final int RELOAD = CONFIG.getInt("reloadKey");
@@ -37,6 +40,11 @@ public class NarutoLoadingClient {
 
         public static final String FFPROBE_PATH = CONFIG.getString("ffprobeExePath");
         public static final String FFMPEG_PATH = CONFIG.getString("ffmpegExePath");
+
+        private static final int WIDTH = CONFIG.getInt("maxResolutionWidth");
+        private static final int HEIGHT = CONFIG.getInt("maxResolutionHeight");
+
+        public static final int BUFFER_SIZE = CONFIG.getInt("videoFrameStorageBufferSize");
 
         public static final float VOLUME = CONFIG.getFloat("audioVolume");
 
@@ -57,11 +65,15 @@ public class NarutoLoadingClient {
         }
 
         public static int width() {
-            return Minecraft.getInstance().getWindow().getScreenWidth();
+            int width = Minecraft.getInstance().getWindow().getScreenWidth();
+            if (width > NarutoConfig.WIDTH) width = NarutoConfig.WIDTH;
+            return width;
         }
 
         public static int height() {
-            return Minecraft.getInstance().getWindow().getScreenHeight();
+            int height = Minecraft.getInstance().getWindow().getScreenHeight();
+            if (height > NarutoConfig.HEIGHT) height = NarutoConfig.HEIGHT;
+            return height;
         }
 
         public static @NotNull String widthString() {
