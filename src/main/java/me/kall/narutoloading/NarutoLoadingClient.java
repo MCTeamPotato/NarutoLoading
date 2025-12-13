@@ -12,8 +12,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,11 +33,10 @@ public class NarutoLoadingClient {
         public static final int RELOAD = CONFIG.getInt("reloadKey");
 
         private static final String VIDEO_PATH = FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("videoFileName")).toAbsolutePath().toString();
-        private static final String AUDIO_PATH = FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("audioFileName")).toAbsolutePath().toString();
+        private static final String AUDIO_PATH = CONFIG.getString("audioFileName").isBlank() ? "" : FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("audioFileName")).toAbsolutePath().toString();
 
         public static final String FFPROBE_PATH = CONFIG.getString("ffprobeExePath");
         public static final String FFMPEG_PATH = CONFIG.getString("ffmpegExePath");
-
 
         public static final float VOLUME = CONFIG.getFloat("audioVolume");
 
@@ -48,36 +45,31 @@ public class NarutoLoadingClient {
         }
 
         public static String audio() {
-            return !AUDIO_PATH.endsWith(".mp3") ? video() : AUDIO_PATH;
+            return AUDIO_PATH.isEmpty() ? video() : AUDIO_PATH;
         }
     }
 
     public static final class Constants {
         private static final int FPS = getVideoFrameRate();
-        private static final IntSupplier WIDTH = () -> Minecraft.getInstance().getWindow().getScreenWidth();
-        private static final IntSupplier HEIGHT = () -> Minecraft.getInstance().getWindow().getScreenHeight();
-
-        private static final Supplier<String> WIDTH_STRING = () -> String.valueOf(WIDTH.getAsInt());
-        private static final Supplier<String> HEIGHT_STRING = () -> String.valueOf(HEIGHT.getAsInt());
 
         public static int fps() {
             return FPS;
         }
 
         public static int width() {
-            return WIDTH.getAsInt();
+            return Minecraft.getInstance().getWindow().getScreenWidth();
         }
 
         public static int height() {
-            return HEIGHT.getAsInt();
+            return Minecraft.getInstance().getWindow().getScreenHeight();
         }
 
         public static @NotNull String widthString() {
-            return WIDTH_STRING.get();
+            return String.valueOf(width());
         }
 
         public static @NotNull String heightString() {
-            return HEIGHT_STRING.get();
+            return String.valueOf(height());
         }
 
         private static int getVideoFrameRate() {

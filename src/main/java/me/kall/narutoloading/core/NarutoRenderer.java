@@ -127,7 +127,7 @@ public final class NarutoRenderer {
     private boolean canRender() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen instanceof GenericDirtMessageScreen) return true;
-        if (NarutoLoadingClient.Constants.width() == 0 && NarutoLoadingClient.Constants.height() == 0) return false;
+        if (NarutoLoadingClient.Constants.width() == 0 || NarutoLoadingClient.Constants.height() == 0) return false;
         if (minecraft.level != null || !minecraft.isRunning()) {
             this.shutdown();
             return false;
