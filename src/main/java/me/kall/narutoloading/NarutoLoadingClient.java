@@ -12,7 +12,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -61,8 +60,6 @@ public class NarutoLoadingClient {
         private static final Supplier<String> WIDTH_STRING = () -> String.valueOf(WIDTH.getAsInt());
         private static final Supplier<String> HEIGHT_STRING = () -> String.valueOf(HEIGHT.getAsInt());
 
-        private static final BooleanSupplier WINDOW = () -> Minecraft.getInstance().isWindowActive();
-
         public static int fps() {
             return FPS;
         }
@@ -81,10 +78,6 @@ public class NarutoLoadingClient {
 
         public static @NotNull String heightString() {
             return HEIGHT_STRING.get();
-        }
-
-        public static boolean isWindowActive() {
-            return WINDOW.getAsBoolean();
         }
 
         private static int getVideoFrameRate() {
