@@ -1,7 +1,6 @@
 package me.kall.narutoloading.mixin.impl.screen;
 
 import me.kall.narutoloading.NarutoLoadingClient;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.PanoramaRenderer;
@@ -20,10 +19,8 @@ public abstract class MixinTitleScreen {
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
     private void panoramaByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {}
 
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;enableBlend()V", remap = false, shift = At.Shift.AFTER))
+    @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (Minecraft.getInstance().screen instanceof TitleScreen) {
-            NarutoLoadingClient.RENDERER.renderFrame(graphics);
-        }
+        NarutoLoadingClient.RENDERER.renderFrame(graphics);
     }
 }

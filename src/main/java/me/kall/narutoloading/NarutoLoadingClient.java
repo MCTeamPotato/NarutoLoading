@@ -1,6 +1,7 @@
 package me.kall.narutoloading;
 
 import me.kall.duplicationless.config.JsonConfig;
+import me.kall.narutoloading.core.FFmpegDetector;
 import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.executor.NarutoVideoExecutor;
@@ -22,8 +23,8 @@ public class NarutoLoadingClient {
 
     public static final class NarutoConfig {
         private static final JsonConfig CONFIG = JsonConfig.create(NarutoLoading.MOD_ID, "5")
-                .put("ffmpegExePath", "D:\\ffmpeg\\bin\\ffmpeg.exe")
-                .put("ffprobeExePath", "D:\\ffmpeg\\bin\\ffprobe.exe")
+                .put("ffmpegExePath", FFmpegDetector.FFMPEG != null ? FFmpegDetector.FFMPEG : "D:\\ffmpeg\\bin\\ffmpeg.exe")
+                .put("ffprobeExePath", FFmpegDetector.FFPROBE != null ? FFmpegDetector.FFPROBE : "D:\\ffmpeg\\bin\\ffprobe.exe")
                 .put("videoFileName", "naruto.mp4")
                 .put("audioFileName", "")
                 .put("reloadKey", GLFW.GLFW_KEY_F12)
@@ -38,8 +39,13 @@ public class NarutoLoadingClient {
         private static final String VIDEO_PATH = FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("videoFileName")).toAbsolutePath().toString();
         private static final String AUDIO_PATH = CONFIG.getString("audioFileName").isBlank() ? "" : FMLLoader.getGamePath().resolve("config").resolve(CONFIG.getString("audioFileName")).toAbsolutePath().toString();
 
-        public static final String FFPROBE_PATH = CONFIG.getString("ffprobeExePath");
-        public static final String FFMPEG_PATH = CONFIG.getString("ffmpegExePath");
+        public static final String FFPROBE_PATH = FFmpegDetector.FFPROBE != null ? FFmpegDetector.FFPROBE : CONFIG.getString("ffprobeExePath");
+        public static final String FFMPEG_PATH = FFmpegDetector.FFMPEG != null ? FFmpegDetector.FFMPEG : CONFIG.getString("ffmpegExePath");
+
+        static {
+            NarutoLoading.LOGGER.info("[NarutoLoading] FFprobe path: {}", FFPROBE_PATH);
+            NarutoLoading.LOGGER.info("[NarutoLoading] FFmpeg path: {}", FFMPEG_PATH);
+        }
 
         private static final int WIDTH = CONFIG.getInt("maxResolutionWidth");
         private static final int HEIGHT = CONFIG.getInt("maxResolutionHeight");
