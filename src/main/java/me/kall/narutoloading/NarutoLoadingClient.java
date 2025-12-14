@@ -64,10 +64,20 @@ public class NarutoLoadingClient {
     }
 
     public static final class Constants {
-        private static final int FPS = getVideoFrameRate();
+        private static final int FPS = getFps();
+        private static final long DURATION = getDuration();
+
+        static {
+            NarutoLoading.LOGGER.info("[NarutoLoading] Video Fps: {}.", fps());
+            NarutoLoading.LOGGER.info("[NarutoLoading] Video duration: {}.", duration());
+        }
 
         public static int fps() {
             return FPS;
+        }
+
+        public static long duration() {
+            return DURATION;
         }
 
         public static int width() {
@@ -90,7 +100,7 @@ public class NarutoLoadingClient {
             return String.valueOf(height());
         }
 
-        private static int getVideoFrameRate() {
+        private static int getFps() {
             String json = run();
 
             if (json != null) {
@@ -108,9 +118,30 @@ public class NarutoLoadingClient {
             throw new RuntimeException("Failed to read video frame rate");
         }
 
+        public static long getDuration() {
+            String json = run();
+
+            if (json != null) {
+                Pattern p = Pattern.compile("\"duration\"\\s*:\\s*\"([0-9.]+)\"");
+                Matcher m = p.matcher(json);
+
+                if (m.find()) {
+                    return (long) (Double.parseDouble(m.group(1)) * 1000);
+                }
+            }
+            throw new RuntimeException("Failed to read video duration");
+        }
+
+
         private static @Nullable String run() {
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder(NarutoConfig.FFPROBE_PATH, "-v", "quiet", "-print_format", "json", "-show_streams", NarutoConfig.video());
+                ProcessBuilder processBuilder = new ProcessBuilder(
+                        NarutoConfig.FFPROBE_PATH,
+                        "-v", "quiet",
+                        "-print_format", "json",
+                        "-show_streams", "-show_format",
+                        NarutoConfig.video()
+                );
 
                 processBuilder.redirectErrorStream(true);
                 Process process = processBuilder.start();

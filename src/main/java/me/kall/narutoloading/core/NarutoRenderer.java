@@ -80,11 +80,19 @@ public final class NarutoRenderer {
             this.keyReload();
             this.syncSoundEngine();
             this.lagSpikeRestart();
+            this.endRestart();
         }
     }
 
     public boolean isRunning() {
         return this.isRunning;
+    }
+
+    private void endRestart() {
+        if (this.elapsed >= NarutoLoadingClient.Constants.duration()) {
+            this.shutdown();
+            this.setup();
+        }
     }
 
     private void syncSoundEngine() {
