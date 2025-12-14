@@ -19,7 +19,7 @@ public final class NarutoRenderer {
     private long start = -1L;
     private long elapsed = 0L;
 
-    private long frameCount = 0L;
+    private long frameElapsed = 0L;
 
     private int lastWidth = -1;
     private int lastHeight = -1;
@@ -30,6 +30,9 @@ public final class NarutoRenderer {
     private boolean isRunning = false;
 
     public volatile boolean syncSoundEngine = false;
+
+    public boolean lagSpikeDetected = false;
+    private int lagSpikeRestartable = 200;
 
     private void setup() {
         if (this.dynamicTexture != null) return;
@@ -69,13 +72,14 @@ public final class NarutoRenderer {
 
             if (this.start == -1L) this.start = System.currentTimeMillis();
             this.elapsed = System.currentTimeMillis() - this.start;
-            this.frameCount++;
+            this.frameElapsed++;
 
             graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
 
             this.checkSize();
             this.keyReload();
             this.syncSoundEngine();
+            this.lagSpikeRestart();
         }
     }
 
@@ -87,6 +91,22 @@ public final class NarutoRenderer {
         if (this.syncSoundEngine) {
             this.syncSoundEngine = false;
             NarutoLoadingClient.AUDIO.setup(String.valueOf((double) this.elapsed / 1000D));
+        }
+    }
+
+    private void lagSpikeRestart() {
+        if (this.lagSpikeRestartable != 0) {
+            this.lagSpikeRestartable--;
+            this.lagSpikeDetected = false;
+            return;
+        }
+        if (this.lagSpikeDetected) {
+            this.lagSpikeDetected = false;
+            this.lagSpikeRestartable = 200;
+            String sec = String.valueOf((double) this.elapsed / 1000D);
+            NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
+            NarutoLoadingClient.VIDEO.shutdown(this.frameElapsed);
+            NarutoLoadingClient.VIDEO.setup(sec);
         }
     }
 
@@ -115,7 +135,7 @@ public final class NarutoRenderer {
         String currentSecond = String.valueOf((double) this.elapsed / 1000D);
         NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", currentSecond);
 
-        NarutoLoadingClient.VIDEO.shutdown(this.frameCount);
+        NarutoLoadingClient.VIDEO.shutdown(this.frameElapsed);
         NarutoLoadingClient.VIDEO.setup(currentSecond);
 
         if (this.dynamicTexture != null) this.dynamicTexture.close();
@@ -167,7 +187,7 @@ public final class NarutoRenderer {
         this.start = -1L;
         this.elapsed = 0L;
 
-        this.frameCount = 0L;
+        this.frameElapsed = 0L;
 
         this.isRunning = false;
     }

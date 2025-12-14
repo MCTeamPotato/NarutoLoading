@@ -13,10 +13,10 @@ Play video and audio during loading overlays and screens and replace the vanilla
 - You can press `F12` to reload the video and audio during your game. By default, the reloadKey is set to F12. To change it to another key like R, set the value to 82. (See the `keys.txt` in this repo for complete reference of key mappings)
 - The audio volume can be controlled by MC's `Video Settings` -> `Music & Sounds` -> `Master Volume` (**NOT THE `Music` !!!**).
 - [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) is required.
-### About Audio-Video Desynchronization
+### Memory Cost
 The `videoFrameStorageBufferSize` config property means the size of our buffer list, which contains the images parsed from the video frame by frame and queued for rendering.
 
-If you increase this config value, our ability to compete against lag spike during video playing will be better. For example, if your video is 30 fps and this config value is 60, our video executor can compete against lag spike up to 2 seconds. We can catch up with the audio within those 2 seconds and preserve the viewing experience.
+If you increase this config value, our ability to compete against lag spike during video playing will be better. For example, if your video is 30 fps and this config value is 60, our video executor can compete against lag spike up to 2 seconds. We can catch up with the audio within those 2 seconds and preserve the viewing experience. Additionally, if the lag spike is longer than 2 seconds and we failed to resolve the audio-video desynchronization even after clearing the buffer list, we will attempt to restart the whole video player based on the elapsed time of the audio.
 
 **However, increasing this config value does mean the total amount of stored images in your game is increased, and so your game's required memory will be higher.**
 
@@ -51,10 +51,10 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 - 游戏里按 `F12` 可以重载，config 里 `reloadKey` 那个值就是 `F12`。如果想改成别的比如 `R` 键，就把值改成 `82`（本仓库的 `keys.txt` 文件里有完整对应表）。
 - 音频音量由 MC 视频设置`音乐与声音`里的那个`主音量`控制（**不是`音乐`！**）。
 - 需要 [Duplicationless](https://www.curseforge.com/minecraft/mc-mods/duplicationless) 作为前置。
-### 关于音画不同步
+### 内存占用
 配置文件里有一个 `videoFrameStorageBufferSize`，那个指的是咱缓冲列表的大小，列表里面存了最近从视频里面逐帧拆出来的图片。
 
-这个容量越大，本模组能对抗的卡顿时间就越长，比如如果你是 30 帧/秒的视频，这个容量是 60，视频播放器最多就能对抗 2 秒的卡顿，在这 2 秒内把进度追上音频，直接把音画不同步给你救回来。
+这个容量越大，本模组能对抗的卡顿时间就越长，比如如果你是 30 帧/秒的视频，这个容量是 60，视频播放器最多就能对抗 2 秒的卡顿，在这 2 秒内把进度追上音频，直接把音画不同步给你救回来。另外，如果遇到了 2 秒以上的卡顿，那个缓冲列表全部过期了都救不回来音画不同步，本模组则会尝试直接按照当前音频的播放时间直接重启视频播放器。
 
 **但是，增大容量就意味着你游戏内存里存的图片数量增加，内存占用也势必会提高。**
 

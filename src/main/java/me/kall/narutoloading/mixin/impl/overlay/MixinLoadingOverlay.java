@@ -1,62 +1,30 @@
 package me.kall.narutoloading.mixin.impl.overlay;
 
 import me.kall.narutoloading.NarutoLoadingClient;
-import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.LoadingOverlay;
-import net.minecraft.server.packs.resources.ReloadInstance;
-import org.spongepowered.asm.mixin.Final;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-
-@Mixin(LoadingOverlay.class)
+@Mixin(value = LoadingOverlay.class, priority = 500)
 public abstract class MixinLoadingOverlay {
-    @Shadow @Final private boolean fadeIn;
-    @Shadow private long fadeInStart;
-    @Shadow private long fadeOutStart;
-    @Shadow @Final private Minecraft minecraft;
-    @Shadow @Final private ReloadInstance reload;
-    @Shadow @Final private Consumer<Optional<Throwable>> onFinish;
 
-    /**
-     * @author Kasualix
-     * @reason NarutoLoading
-     */
-    @Overwrite
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        long k = Util.getMillis();
-        if (this.fadeIn && this.fadeInStart == -1L) {
-            this.fadeInStart = k;
-        }
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
+    private void logoByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {}
 
-        float f = this.fadeOutStart > -1L ? (float)(k - this.fadeOutStart) / 1000.0F : -1.0F;
-        float f1 = this.fadeInStart > -1L ? (float)(k - this.fadeInStart) / 500.0F : -1.0F;
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/LoadingOverlay;drawProgressBar(Lnet/minecraft/client/gui/GuiGraphics;IIIIF)V"))
+    private void barByeBye(LoadingOverlay instance, GuiGraphics i, int j, int k, int guiGraphics, int minX, float minY) {}
 
-        if (f >= 2.0F) this.minecraft.setOverlay(null);
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;fill(Lnet/minecraft/client/renderer/RenderType;IIIII)V"))
+    private void bgByeBye(GuiGraphics instance, RenderType renderType, int minX, int minY, int maxX, int maxY, int color) {}
 
-
-        if (this.fadeOutStart == -1L && this.reload.isDone() && (!this.fadeIn || f1 >= 2.0F)) {
-            this.fadeOutStart = Util.getMillis();
-
-            try {
-                this.reload.checkExceptions();
-                this.onFinish.accept(Optional.empty());
-            } catch (Throwable var23) {
-                this.onFinish.accept(Optional.of(var23));
-            }
-
-            if (this.minecraft.screen != null) {
-                this.minecraft.screen.init(this.minecraft, guiGraphics.guiWidth(), guiGraphics.guiHeight());
-            }
-        }
-
-        if (this.minecraft.getOverlay() instanceof LoadingOverlay) {
-            NarutoLoadingClient.RENDERER.renderFrame(guiGraphics);
-        }
+    @Inject(method = "render", at = @At("HEAD"))
+    private void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+        NarutoLoadingClient.RENDERER.renderFrame(guiGraphics);
     }
 }

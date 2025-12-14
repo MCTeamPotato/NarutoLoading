@@ -84,10 +84,15 @@ public final class NarutoVideoExecutor {
         LongObjectPair<NativeImage> frame = this.frameQueue.poll();
         if (frame == null) return null;
 
+        boolean hasSkipping = false;
+
         while (frame != null && ((double) frame.firstLong()) / ((double) NarutoLoadingClient.Constants.fps()) < elapsedSeconds) {
             frame.right().close();
             frame = this.frameQueue.poll();
+            hasSkipping = true;
         }
+
+        if (hasSkipping && frame == null) NarutoLoadingClient.RENDERER.lagSpikeDetected = true;
 
         return frame == null ? null : frame.right();
     }
