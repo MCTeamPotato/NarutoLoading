@@ -28,8 +28,9 @@ Some data, as for images' memory cost:
 
 The width and height is also limited by the `maxResolutionWidth` and `maxResolutionHeight` config property. So generally this mod's memory cost increasingly depends on `videoFrameStorageBufferSize`, `maxResolutionWidth` and `maxResolutionHeight`.
 ### Why is it the dumbest?
-- I never consider and never want to consider its compatibility with other mods. So if you're using mods that customize loading screens like `FancyMenu` or `DrippyLoadingScreen`, our Mixin may crash your game. ~~Not really true, I considered the compatibility with `Modern UI` mod when writing gui elements hiding feature. And of course you can report any compatibility issues you encounter, and I'll try to resolve them~~~~
-- I just violently create thread executors to parse the video and audio in `FFmpeg`, using `ProcessBuilder` and reading the video frame by frame and pixel by pixel in one single thread to build `NativeImage` just for admiring the Naruto Tenth Anniversary Login CG. (Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately as it's undoubtedly too silly) (Well though that's violent, its performance should perhaps probably maybe not a big deal as long as your PC is not a potato.)
+- I just violently create thread executors to parse the video and audio in `FFmpeg`, using `ProcessBuilder` and reading the video frame by frame and pixel by pixel in one single thread to build `NativeImage` just for admiring the Naruto Tenth Anniversary Login CG. 
+- ~~(Well, in the beginning, I even didn't really decide to release this mod publicly and just wanted to use it privately as it's undoubtedly too silly)~~
+- ~~(Well though that's violent, its performance should perhaps probably maybe not a big deal as long as your PC is not a potato.)~~
 ### Credits
 - Deepseek (**MY LIFESAVER**) for fixing the lag of parsing video frames in high resolution and suggesting the synchronization of our NarutoAudioExecutor with the OpenAL context in MC's SoundEngine to resolve various sound issues.
 - ChatGPT, Grok & Gemini for providing various "creative" solutions that definitely never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
@@ -66,8 +67,9 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 
 宽高也受 `maxResolutionWidth` 和 `maxResolutionHeight` 限制的，所以总体来说这个模组的内存占用取决于 `videoFrameStorageBufferSize`、`maxResolutionWidth` 和 `maxResolutionHeight` 这三个配置项，越高，内存需求越大。
 ### 为啥说蠢？
-- 作者完全没有也不想考虑兼容性，因此如果你装了 `FancyMenu` / `DrippyLoadingScreen` 之类的自定义加载页面模组，有可能会炸 Mixin。~~骗你的，其实在做隐藏 GUI 元素的时候考虑了跟 `Modern UI` 的兼容。你当然也可以向我报告你遇到的兼容性问题，我会修复它们的。~~
-- 作者直接暴力开线程用 `FFmpeg` 解析视频和音频，写个 `ProcessBuilder `就摁造，在单个线程里逐像素读取并构建 `NativeImage` 只为在 MC 看火影十周年的登录 CG（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了，毕竟这实现实在是太神秘了）（不过虽然暴力，性能上面应该大概可能也许不是什么大问题——除非你是土豆机）。
+- 作者直接暴力开线程用 `FFmpeg` 解析视频和音频，写个 `ProcessBuilder `就摁造，在单个线程里逐像素读取并构建 `NativeImage` 只为在 MC 看火影十周年的登录 CG
+- ~~（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了，毕竟这实现实在是太神秘了）~~
+- ~~（不过虽然暴力，性能上面应该大概可能也许不是什么大问题——除非你是土豆机）~~
 ### 鸣谢
 - DeepSeek （**我的救星**）：感谢它修复了高分辨率下的视频解析卡顿，并提供与 MC 本身声音引擎同步 OpenAL 上下文的思路来避免 NarutoAudioExecutor 产生各种问题
 - ChatGPT、Grok、Gemini：感谢它们成天左右脑互搏似地提供问题修复方案，虽然真就一次都没有修复成功只会让视频卡住或者游戏崩溃，到最后全是由作者自己想思路自己解决但还是谢谢它们添乱路上提供的情绪价值。
