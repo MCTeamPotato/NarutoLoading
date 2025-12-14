@@ -76,7 +76,7 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 
 宽高也受 `maxResolutionWidth` 和 `maxResolutionHeight` 限制的，所以总体来说这个模组的内存占用取决于 `videoFrameStorageBufferSize`、`maxResolutionWidth` 和 `maxResolutionHeight` 这三个配置项，越高，内存需求越大。
 ### 为啥说蠢？
-- 作者直接暴力开线程用 `FFmpeg` 解析视频和音频，写个 `ProcessBuilder `就摁造，在单个线程里逐像素读取并构建 `NativeImage` 只为在 MC 看火影十周年的登录 CG
+- 作者直接暴力开线程用 `FFmpeg` 解析视频和音频，写个 `ProcessBuilder` 就摁造，在单个线程里逐像素读取并构建 `NativeImage` 只为在 MC 看火影十周年的登录 CG
 - ~~（嗯，其实一开始甚至不打算公开发布的，自己用用爽爽得了，毕竟这实现实在是太神秘了）~~
 - ~~（不过虽然暴力，性能上面应该大概可能也许不是什么大问题——除非你是土豆机）~~
 ### 鸣谢
