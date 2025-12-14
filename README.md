@@ -9,7 +9,7 @@ A: Because I just failed to stop admiring my loading background. It will be shut
 Play video and audio during loading overlays and screens and replace the vanilla panorama and dirt background. Also stop rendering all the gui elements after your mouse remains idle for a while.
 ### How to use it?
 1. Download `FFmpeg`: https://github.com/BtbN/FFmpeg-Builds/releases
-2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system. Or you can simply install it into your Minecraft instance directory, and NarutoLoading will auto-detect it regardless of the config options.
+2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system. Or you can simply install it into your Minecraft instance directory (.minecraft/ffmpeg/bin/ffmpeg.exe installation like this), and NarutoLoading will auto-detect it regardless of the config options.
 3. Put the video and audio that you want to play into config directory, and then tweak the `videoFileName` and `audioFileName` in `narutoloading.json` to their file names.
 4. Launch your game and enjoy it!
 ### Notes
@@ -53,7 +53,7 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 在加载界面和各种屏幕背景里放视频，放音频，取代全景图和泥土界面，并让一段时间鼠标不动后除视频之外的所有 GUI 元素停止渲染。
 ### 怎么用？
 1. 下个 `FFmpeg`：https://github.com/BtbN/FFmpeg-Builds/releases 。
-2. 安装完之后把 `config/narutoloading.json` 里的 `ffmpegExePath` 和 `ffprobeExePath` 改成你电脑里的对应路径。或者你也可以把它安装到你 MC 的实例文件夹里，本模组会自动检测它，这样你就不用管这里的配置项了。
+2. 安装完之后把 `config/narutoloading.json` 里的 `ffmpegExePath` 和 `ffprobeExePath` 改成你电脑里的对应路径。或者你也可以把它安装到你 MC 的实例文件夹（.minecraft/ffmpeg/bin/ffmpeg.exe 这样装）里，本模组会自动检测它，这样你就不用管这里的配置项了。
 3. 把你要播放的视频和音频放进 config 文件夹，然后再把 `narutoloading.json` 里的 `videoFileName` 和 `audioFileName` 改成视频和音频的文件名。
 4. 大功告成，启动游戏吧！
 ### 注意事项
