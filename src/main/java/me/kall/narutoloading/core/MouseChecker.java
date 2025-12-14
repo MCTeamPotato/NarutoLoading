@@ -34,6 +34,9 @@ public final class MouseChecker {
         if (event.phase == TickEvent.Phase.START) {
             if (!NarutoLoadingClient.RENDERER.isRunning()) {
                 fadeAlpha = 1.0F;
+                lastMouseX = Double.NaN;
+                lastMouseY = Double.NaN;
+                stopTickCount = 0;
                 return;
             }
             MouseHandler mouseHandler = Minecraft.getInstance().mouseHandler;
