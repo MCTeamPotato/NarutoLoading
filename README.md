@@ -1,6 +1,10 @@
 # NarutoLoading
 ## EN
 _The **dumbest** video & audio player mod for Minecraft._
+
+Q: I cannot enter my MC world, why?
+
+A: Because I just failed to stop admiring my loading background. It will be shutdown after entering the world and I will cry.
 ### What does it do?
 Play video and audio during loading overlays and screens and replace the vanilla panorama and dirt background. Also stop rendering all the gui elements after your mouse remains idle for a while.
 ### How to use it?
@@ -40,6 +44,11 @@ The width and height is also limited by the `maxResolutionWidth` and `maxResolut
 ___
 ## ZH
 _Minecraft **最愚蠢的**视频 & 音频播放器。_
+
+问：为什么我 MC 进不去世界？
+
+答：因为被加载界面硬控住了，不忍心 shutdown。
+
 ### 干啥的？
 在加载界面和各种屏幕背景里放视频，放音频，取代全景图和泥土界面，并让一段时间鼠标不动后除视频之外的所有 GUI 元素停止渲染。
 ### 怎么用？
