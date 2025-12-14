@@ -71,7 +71,7 @@ public final class NarutoVideoExecutor {
                     this.frameQueue.put(new LongObjectImmutablePair<>(this.frameCounts, image));
                 }
             } catch (Exception exception) {
-                NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
+                if (NarutoConfig.DEBUG) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
             }
         });
         NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully");

@@ -84,7 +84,7 @@ public final class NarutoAudioExecutor {
                     while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
                 }
             } catch (Exception exception) {
-                NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
+                if (NarutoConfig.DEBUG) NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
             }
         });
         NarutoLoading.LOGGER.info("NarutoAudioExecutor sets up successfully");

@@ -17,6 +17,7 @@ public final class NarutoConfig {
             .put("maxResolutionWidth", 1350)
             .put("maxResolutionHeight", 720)
             .put("videoFrameStorageBufferSize", 60)
+            .put("logErrors", false)
             .initialize();
 
     public static final int RELOAD = CONFIG.getInt("reloadKey");
@@ -38,6 +39,8 @@ public final class NarutoConfig {
     public static final int BUFFER_SIZE = CONFIG.getInt("videoFrameStorageBufferSize");
 
     public static final float VOLUME = CONFIG.getFloat("audioVolume");
+
+    public static final boolean DEBUG = CONFIG.getBoolean("logErrors");
 
     public static String video() {
         return VIDEO_PATH;

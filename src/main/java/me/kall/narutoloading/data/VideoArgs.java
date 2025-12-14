@@ -66,7 +66,7 @@ public final class VideoArgs {
         throw new RuntimeException("Failed to read video frame rate");
     }
 
-    public static long getDuration() {
+    private static long getDuration() {
         String json = run();
 
         if (json != null) {
