@@ -26,7 +26,7 @@ public final class NarutoVideoExecutor {
     private @Nullable ExecutorService executor;
     private volatile boolean canceled;
     private @Nullable Process process;
-    private long frameCounts;
+    private long frameIndex;
 
     private @Nullable InputStream inputStream;
     private @Nullable ReadableByteChannel channel;
@@ -69,8 +69,8 @@ public final class NarutoVideoExecutor {
                     byteBuffer.get(buffer);
 
                     NativeImage image = this.buildImage(buffer);
-                    this.frameCounts++;
-                    this.frameQueue.put(new LongObjectImmutablePair<>(this.frameCounts, image));
+                    this.frameIndex++;
+                    this.frameQueue.put(new LongObjectImmutablePair<>(this.frameIndex, image));
                 }
             } catch (Exception exception) {
                 if (NarutoConfig.DEBUG) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
@@ -148,7 +148,7 @@ public final class NarutoVideoExecutor {
             this.frameQueue = null;
         }
 
-        this.frameCounts = frameElapsed;
+        this.frameIndex = frameElapsed;
         NarutoLoading.LOGGER.info("NarutoVideoExecutor shuts down successfully");
     }
 
