@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.clear;
 
-import me.kall.narutoloading.core.MouseChecker;
+import me.kall.narutoloading.core.detection.MouseChecker;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;

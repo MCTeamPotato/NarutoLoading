@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.clear;
 
-import me.kall.narutoloading.core.MouseChecker;
+import me.kall.narutoloading.core.detection.MouseChecker;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;

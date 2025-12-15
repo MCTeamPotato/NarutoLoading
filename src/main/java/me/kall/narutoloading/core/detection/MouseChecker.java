@@ -1,6 +1,7 @@
-package me.kall.narutoloading.core;
+package me.kall.narutoloading.core.detection;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.network.chat.Component;

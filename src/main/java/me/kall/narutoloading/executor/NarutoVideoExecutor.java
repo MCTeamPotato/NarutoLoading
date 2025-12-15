@@ -96,7 +96,7 @@ public final class NarutoVideoExecutor {
             hasSkipping = true;
         }
 
-        if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lagSpikeDetected = true;
+        if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lifetime.detectLagSpike();
 
         return frame == null ? null : frame.right();
     }
