@@ -3,7 +3,7 @@ package me.kall.narutoloading.core.detection;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.data.VideoArgs;
-import me.kall.narutoloading.executor.NarutoVideoExecutor;
+import me.kall.narutoloading.core.execution.NarutoVideoExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraftforge.api.distmarker.Dist;

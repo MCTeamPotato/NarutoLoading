@@ -1,4 +1,4 @@
-package me.kall.narutoloading.executor;
+package me.kall.narutoloading.core.execution;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import it.unimi.dsi.fastutil.longs.LongObjectImmutablePair;

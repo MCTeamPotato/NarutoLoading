@@ -16,7 +16,7 @@ public final class KeyChecker {
     private static boolean reloadable = false;
     private static int reloadCooldown = 0;
 
-    private static final int COOLDOWN_TICKS = 40;
+    private static final int COOLDOWN_TICKS = 200;
 
     @SubscribeEvent
     public static void clientTick(TickEvent.ClientTickEvent event) {

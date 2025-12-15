@@ -2,8 +2,8 @@ package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.data.VideoArgs;
-import me.kall.narutoloading.executor.NarutoAudioExecutor;
-import me.kall.narutoloading.executor.NarutoVideoExecutor;
+import me.kall.narutoloading.core.execution.NarutoAudioExecutor;
+import me.kall.narutoloading.core.execution.NarutoVideoExecutor;
 
 public final class LifetimeController {
     private long lastFrameTime = 0L;

@@ -2,7 +2,7 @@ package me.kall.narutoloading.mixin.impl.sound;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.executor.NarutoAudioExecutor;
+import me.kall.narutoloading.core.execution.NarutoAudioExecutor;
 import net.minecraft.client.sounds.SoundEngine;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

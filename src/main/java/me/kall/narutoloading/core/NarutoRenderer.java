@@ -1,11 +1,12 @@
 package me.kall.narutoloading.core;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.detection.KeyChecker;
 import me.kall.narutoloading.core.detection.WindowSizeChecker;
 import me.kall.narutoloading.data.VideoArgs;
-import me.kall.narutoloading.executor.NarutoAudioExecutor;
-import me.kall.narutoloading.executor.NarutoVideoExecutor;
+import me.kall.narutoloading.core.execution.NarutoAudioExecutor;
+import me.kall.narutoloading.core.execution.NarutoVideoExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
@@ -24,7 +25,10 @@ public final class NarutoRenderer {
     public void setup() {
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(VideoArgs.width(), VideoArgs.height(), false);
-        if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
+        if (this.textureLocation == null) {
+            this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
+            NarutoLoading.LOGGER.info("NarutoRenderer texture location initialized: {}", this.textureLocation.toString());
+        }
         NarutoAudioExecutor.INSTANCE.setup();
         NarutoVideoExecutor.INSTANCE.setup();
         this.lifetime.start();

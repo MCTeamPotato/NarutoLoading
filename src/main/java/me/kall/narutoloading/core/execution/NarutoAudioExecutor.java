@@ -1,4 +1,4 @@
-package me.kall.narutoloading.executor;
+package me.kall.narutoloading.core.execution;
 
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.NarutoLoading;
