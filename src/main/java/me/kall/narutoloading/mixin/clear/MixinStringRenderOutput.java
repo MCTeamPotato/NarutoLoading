@@ -15,6 +15,6 @@ public abstract class MixinStringRenderOutput {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void narutoInit(CallbackInfo ci) {
-        this.a *= MouseChecker.fadeAlpha;
+        this.a *= MouseChecker.fadeAlpha();
     }
 }

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGuiGraphics {
     @ModifyVariable(method = "setColor", at = @At("HEAD"), argsOnly = true, ordinal = 3)
     private float modifyAlpha(float alpha) {
-        return alpha * MouseChecker.fadeAlpha;
+        return alpha * MouseChecker.fadeAlpha();
     }
 
     @ModifyVariable(method = "fill(Lnet/minecraft/client/renderer/RenderType;IIIIII)V", at = @At("HEAD"), argsOnly = true, ordinal = 5)
@@ -34,7 +34,7 @@ public abstract class MixinGuiGraphics {
 
     @ModifyVariable(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFFFFFF)V", at = @At("HEAD"), argsOnly = true, ordinal = 7)
     private float modifyBlitAlpha(float alpha) {
-        return alpha * MouseChecker.fadeAlpha;
+        return alpha * MouseChecker.fadeAlpha();
     }
 
     @Inject(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFF)V", at = @At("HEAD"), cancellable = true)

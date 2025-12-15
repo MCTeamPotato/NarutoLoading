@@ -15,9 +15,12 @@ public final class MouseChecker {
     private static double lastMouseY = Double.NaN;
 
     private static int stopTickCount = 0;
-    public static float fadeAlpha = 1.0F;
+    private static float fadeAlpha = 1.0F;
 
-    public static boolean shouldFade() {
+    public static final String EMPTY_STRING = "";
+    public static final Component EMPTY_COMPONENT = Component.empty();
+
+    private static boolean shouldFade() {
         return stopTickCount >= 20 * 5;
     }
 
@@ -25,52 +28,59 @@ public final class MouseChecker {
         return fadeAlpha == 0.0F;
     }
 
-    public static final String EMPTY_STRING = "";
-    public static final Component EMPTY = Component.empty();
+    public static float fadeAlpha() {
+        return fadeAlpha;
+    }
+
+    public static int modifyAlpha(int color) {
+        if (!shouldFade() || fadeAlpha == 1.0F) return color;
+        if (transparency()) return (color & 0x00FFFFFF);
+        int alpha = (int)(fadeAlpha * 255.0F) & 0xFF;
+        return (color & 0x00FFFFFF) | (alpha << 24);
+    }
 
     @SubscribeEvent
     public static void clientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             Minecraft minecraft = Minecraft.getInstance();
-            if (!NarutoRenderer.INSTANCE.isRunning() || minecraft.level != null) {
-                fadeAlpha = 1.0F;
-                lastMouseX = Double.NaN;
-                lastMouseY = Double.NaN;
-                stopTickCount = 0;
-                return;
-            }
-            MouseHandler mouseHandler = minecraft.mouseHandler;
 
-            double x = mouseHandler.xpos();
-            double y = mouseHandler.ypos();
+            if (MouseChecker.disabled(minecraft)) return;
 
-            if (Double.isNaN(lastMouseX) || Double.isNaN(lastMouseY)) {
-                lastMouseX = x;
-                lastMouseY = y;
-                return;
-            }
+            MouseHandler mouse = minecraft.mouseHandler;
 
-            if (lastMouseX == x && lastMouseY == y) {
-                stopTickCount++;
-            } else {
-                stopTickCount = 0;
-            }
+            double x = mouse.xpos();
+            double y = mouse.ypos();
+
+            if (MouseChecker.init(x, y)) return;
+
+            stopTickCount = lastMouseX == x && lastMouseY == y ? stopTickCount + 1 : 0;
 
             lastMouseX = x;
             lastMouseY = y;
 
-            if (shouldFade()) {
-                fadeAlpha = Math.max(0.0F, fadeAlpha - 0.05F);
-            } else {
-                fadeAlpha = Math.min(1.0F, fadeAlpha + 0.05F);
-            }
+            fadeAlpha = MouseChecker.shouldFade() ? Math.max(0.0F, fadeAlpha - 0.05F) : Math.min(1.0F, fadeAlpha + 0.05F);
         }
     }
 
-    public static int modifyAlpha(int color) {
-        if (!shouldFade()) return color;
-        if (fadeAlpha == 0.0F) return (color & 0x00FFFFFF);
-        int alpha = (int)(fadeAlpha * 255.0F) & 0xFF;
-        return (color & 0x00FFFFFF) | (alpha << 24);
+    private static boolean disabled(Minecraft minecraft) {
+        if (!NarutoRenderer.INSTANCE.isRunning() || minecraft.level != null) {
+            fadeAlpha = 1.0F;
+            lastMouseX = Double.NaN;
+            lastMouseY = Double.NaN;
+            stopTickCount = 0;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean init(double x, double y) {
+        if (Double.isNaN(lastMouseX) || Double.isNaN(lastMouseY)) {
+            lastMouseX = x;
+            lastMouseY = y;
+            return true;
+        }
+
+        return false;
     }
 }

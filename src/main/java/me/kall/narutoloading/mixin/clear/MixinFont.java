@@ -44,6 +44,6 @@ public abstract class MixinFont {
 
     @ModifyVariable(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private Component clearDrawInBatch(Component component) {
-        return MouseChecker.transparency() ? MouseChecker.EMPTY : component;
+        return MouseChecker.transparency() ? MouseChecker.EMPTY_COMPONENT : component;
     }
 }
