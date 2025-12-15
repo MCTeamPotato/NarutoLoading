@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.impl.overlay;
 
-import me.kall.narutoloading.NarutoLoadingClient;
+import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.loading.ForgeLoadingOverlay;
 import net.minecraftforge.fml.earlydisplay.DisplayWindow;
@@ -17,6 +17,6 @@ public abstract class MixinForgeLoadingOverlay {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        NarutoLoadingClient.RENDERER.renderFrame(guiGraphics);
+        NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
     }
 }

@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.impl.screen;
 
-import me.kall.narutoloading.NarutoLoadingClient;
+import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.PanoramaRenderer;
@@ -21,6 +21,6 @@ public abstract class MixinTitleScreen {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        NarutoLoadingClient.RENDERER.renderFrame(graphics);
+        NarutoRenderer.INSTANCE.renderFrame(graphics);
     }
 }

@@ -15,6 +15,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class NarutoAudioExecutor {
+    public static final NarutoAudioExecutor INSTANCE = new NarutoAudioExecutor();
+
     private volatile boolean canceled;
     private long device, context;
     private int source;

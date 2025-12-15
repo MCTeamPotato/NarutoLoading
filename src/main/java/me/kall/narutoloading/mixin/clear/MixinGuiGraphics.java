@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.clear;
 
-import me.kall.narutoloading.NarutoLoadingClient;
 import me.kall.narutoloading.core.MouseChecker;
+import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,7 +39,7 @@ public abstract class MixinGuiGraphics {
 
     @Inject(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFF)V", at = @At("HEAD"), cancellable = true)
     private void hideTexture(ResourceLocation atlasLocation, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV, CallbackInfo ci) {
-        ResourceLocation texture = NarutoLoadingClient.RENDERER.texture();
+        ResourceLocation texture = NarutoRenderer.INSTANCE.texture();
         if (texture == null) return;
         if (MouseChecker.transparency() && !atlasLocation.equals(texture)) ci.cancel();
     }

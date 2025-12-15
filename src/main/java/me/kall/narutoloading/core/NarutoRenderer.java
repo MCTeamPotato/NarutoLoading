@@ -4,7 +4,8 @@ import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.data.VideoArgs;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.NarutoLoadingClient;
+import me.kall.narutoloading.executor.NarutoAudioExecutor;
+import me.kall.narutoloading.executor.NarutoVideoExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
@@ -14,6 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public final class NarutoRenderer {
+    public static final NarutoRenderer INSTANCE = new NarutoRenderer();
+
     private @Nullable DynamicTexture dynamicTexture;
     private @Nullable ResourceLocation textureLocation;
 
@@ -40,8 +43,8 @@ public final class NarutoRenderer {
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(VideoArgs.width(), VideoArgs.height(), false);
         if (this.textureLocation == null) this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
-        NarutoLoadingClient.AUDIO.setup();
-        NarutoLoadingClient.VIDEO.setup();
+        NarutoAudioExecutor.INSTANCE.setup();
+        NarutoVideoExecutor.INSTANCE.setup();
         this.isRunning = true;
     }
 
@@ -50,7 +53,7 @@ public final class NarutoRenderer {
         long now = System.currentTimeMillis();
         if (now - this.last >= 1000L / VideoArgs.fps()) {
             this.last = now;
-            NativeImage frame = NarutoLoadingClient.VIDEO.fetchImage((double) this.elapsed / 1000D);
+            NativeImage frame = NarutoVideoExecutor.INSTANCE.fetchImage((double) this.elapsed / 1000D);
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
@@ -100,7 +103,7 @@ public final class NarutoRenderer {
     private void syncSoundEngine() {
         if (this.syncSoundEngine) {
             this.syncSoundEngine = false;
-            NarutoLoadingClient.AUDIO.setup(String.valueOf((double) this.elapsed / 1000D));
+            NarutoAudioExecutor.INSTANCE.setup(String.valueOf((double) this.elapsed / 1000D));
         }
     }
 
@@ -115,8 +118,8 @@ public final class NarutoRenderer {
             this.lagSpikeRestartable = 200;
             String sec = String.valueOf((double) this.elapsed / 1000D);
             NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
-            NarutoLoadingClient.VIDEO.shutdown(this.frameElapsed);
-            NarutoLoadingClient.VIDEO.setup(sec);
+            NarutoVideoExecutor.INSTANCE.shutdown(this.frameElapsed);
+            NarutoVideoExecutor.INSTANCE.setup(sec);
         }
     }
 
@@ -145,8 +148,8 @@ public final class NarutoRenderer {
         String currentSecond = String.valueOf((double) this.elapsed / 1000D);
         NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", currentSecond);
 
-        NarutoLoadingClient.VIDEO.shutdown(this.frameElapsed);
-        NarutoLoadingClient.VIDEO.setup(currentSecond);
+        NarutoVideoExecutor.INSTANCE.shutdown(this.frameElapsed);
+        NarutoVideoExecutor.INSTANCE.setup(currentSecond);
 
         if (this.dynamicTexture != null) this.dynamicTexture.close();
 
@@ -183,8 +186,8 @@ public final class NarutoRenderer {
     }
 
     private void shutdown() {
-        NarutoLoadingClient.AUDIO.shutdown();
-        NarutoLoadingClient.VIDEO.shutdown();
+        NarutoAudioExecutor.INSTANCE.shutdown();
+        NarutoVideoExecutor.INSTANCE.shutdown();
 
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();

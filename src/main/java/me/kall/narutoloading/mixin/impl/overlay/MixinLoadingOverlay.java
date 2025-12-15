@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.impl.overlay;
 
-import me.kall.narutoloading.NarutoLoadingClient;
+import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.LoadingOverlay;
 import net.minecraft.client.renderer.RenderType;
@@ -25,6 +25,6 @@ public abstract class MixinLoadingOverlay {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        NarutoLoadingClient.RENDERER.renderFrame(guiGraphics);
+        NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
     }
 }

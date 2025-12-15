@@ -3,10 +3,10 @@ package me.kall.narutoloading.executor;
 import com.mojang.blaze3d.platform.NativeImage;
 import it.unimi.dsi.fastutil.longs.LongObjectImmutablePair;
 import it.unimi.dsi.fastutil.longs.LongObjectPair;
+import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.data.VideoArgs;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.NarutoLoadingClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +19,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class NarutoVideoExecutor {
+    public static final NarutoVideoExecutor INSTANCE = new NarutoVideoExecutor();
+
     public @Nullable LinkedBlockingQueue<LongObjectPair<NativeImage>> frameQueue;
 
     private @Nullable ExecutorService executor;
@@ -94,7 +96,7 @@ public final class NarutoVideoExecutor {
             hasSkipping = true;
         }
 
-        if (hasSkipping && frame == null) NarutoLoadingClient.RENDERER.lagSpikeDetected = true;
+        if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lagSpikeDetected = true;
 
         return frame == null ? null : frame.right();
     }
