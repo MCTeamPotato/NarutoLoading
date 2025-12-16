@@ -84,7 +84,7 @@ public final class VideoArgs {
     private static @Nullable String run() {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    NarutoConfig.FFPROBE_PATH,
+                    FFmpeg.FFPROBE,
                     "-v", "quiet",
                     "-print_format", "json",
                     "-show_streams", "-show_format",

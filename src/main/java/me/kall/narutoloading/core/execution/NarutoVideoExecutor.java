@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import it.unimi.dsi.fastutil.longs.LongObjectImmutablePair;
 import it.unimi.dsi.fastutil.longs.LongObjectPair;
 import me.kall.narutoloading.core.NarutoRenderer;
+import me.kall.narutoloading.data.FFmpeg;
 import me.kall.narutoloading.data.VideoArgs;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.NarutoLoading;
@@ -41,7 +42,7 @@ public final class NarutoVideoExecutor {
         this.frameQueue = new LinkedBlockingQueue<>(NarutoConfig.BUFFER_SIZE);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    NarutoConfig.FFMPEG_PATH,
+                    FFmpeg.FFMPEG,
                     "-ss", sec,
                     "-i", NarutoConfig.video(),
                     "-vf", "format=rgb24,scale=" + VideoArgs.widthString() + ":" + VideoArgs.heightString(),

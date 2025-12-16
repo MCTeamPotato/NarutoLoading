@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "me.kall.narutoloading.mixin",
+  "plugin": "me.kall.narutoloading.mixin.EarlySetup",
   "compatibilityLevel": "JAVA_8",
   "overwrites": {
     "conformVisibility": false

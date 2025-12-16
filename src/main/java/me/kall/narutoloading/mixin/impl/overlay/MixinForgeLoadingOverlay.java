@@ -1,6 +1,7 @@
 package me.kall.narutoloading.mixin.impl.overlay;
 
 import me.kall.narutoloading.core.NarutoRenderer;
+import me.kall.narutoloading.data.FFmpeg;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.loading.ForgeLoadingOverlay;
 import net.minecraftforge.fml.earlydisplay.DisplayWindow;
@@ -13,10 +14,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = ForgeLoadingOverlay.class, priority = 500)
 public abstract class MixinForgeLoadingOverlay {
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/fml/earlydisplay/DisplayWindow;render(I)V", remap = false))
-    private void windowByeBye(DisplayWindow instance, int alpha) {}
+    private void windowByeBye(DisplayWindow instance, int alpha) {
+        if (FFmpeg.available()) return;
+        instance.render(alpha);
+    }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
+        if (FFmpeg.available()) NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
     }
 }
