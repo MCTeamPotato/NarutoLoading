@@ -12,11 +12,13 @@ Play video and audio during loading overlays and screens and replace the vanilla
 2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system. 
 3. Put the video and audio that you want to play into config directory, and then tweak the `videoFileName` and `audioFileName` in `narutoloading.json` to their file names.
 4. Launch your game and enjoy it!
-### FFmpeg Auto Detection
+### About FFmpeg
+#### Auto Detection
 - You can simply install FFmpeg into your Minecraft instance directory (file directory structure requirement: .minecraft/ffmpeg/bin/ffmpeg.exe, or .minecraft/versions/YOUR_GAME_VERSION/ffmpeg/bin/ffmpeg.exe), and NarutoLoading will auto-detect it regardless of the config options.
 - The `ffmpeg` directory can also be named as `ffmpeg-win` / `ffmpeg-linux` / `ffmpeg-mac` and we will select the corresponding one for the current OS on runtime.
 - If you want to redistribute this mod in your modpack, you do need to consider including these three FFmpeg files in your modpack. It's up to you, though, as these files are not light and make your zip big.
-- 
+#### Auto Download
+If there are no usable FFmpeg in your runtime environment, NarutoLoading will auto download FFmpeg in a background thread according to the download links in the config and put the downloaded files into your MC instance directory. Before the download task is completed, all the loading screens and backgrounds will remain vanilla. 
 ### Notes
 - If you leave the `audioFileName` config property empty, we will try to use the video's sound.
 - You can press `F12` to reload the video and audio during your game. By default, the reloadKey is set to F12. To change it to another key like R, set the value to 82. (See the `keys.txt` in this repo for complete reference of key mappings)
@@ -44,6 +46,7 @@ The width and height is also limited by the `maxResolutionWidth` and `maxResolut
 - Deepseek (**MY LIFESAVER**) for fixing the lag of parsing video frames in high resolution and suggesting the synchronization of our NarutoAudioExecutor with the OpenAL context in MC's SoundEngine to resolve various sound issues.
 - ChatGPT, Grok & Gemini for providing various "creative" solutions that definitely never worked properly but froze the video or crashed the game, forcing me to think of real solutions myself. Thanks for the emotional value though!
 ### Videos for reference
+(p2 & p3 in one videopod)
 #### [Naruto Tenth Anniversary Login CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
 #### [Bad Apple](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
 ___
@@ -57,14 +60,17 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 ### 干啥的？
 在加载界面和各种屏幕背景里放视频，放音频，取代全景图和泥土界面，并让一段时间鼠标不动后除视频之外的所有 GUI 元素停止渲染。
 ### 怎么用？
-1. 下个 `FFmpeg`：https://github.com/BtbN/FFmpeg-Builds/releases 。
-2. 安装完之后把 `config/narutoloading.json` 里的 `ffmpegExePath` 和 `ffprobeExePath` 改成你电脑里的对应路径。
+1. 下个 `FFmpeg`：https://github.com/BtbN/FFmpeg-Builds/releases 。（非必要）
+2. 安装完之后把 `config/narutoloading.json` 里的 `ffmpegExePath` 和 `ffprobeExePath` 改成你电脑里的对应路径。（非必要）
 3. 把你要播放的视频和音频放进 config 文件夹，然后再把 `narutoloading.json` 里的 `videoFileName` 和 `audioFileName` 改成视频和音频的文件名。
 4. 大功告成，启动游戏吧！
-### FFmpeg 自动检测
+### 关于 FFmpeg
+#### 自动检测
 - 你可以把 FFmpeg 安装到你 MC 的实例文件夹（文件夹结构要求：.minecraft/ffmpeg/bin/ffmpeg.exe 或者 .minecraft/versions/YOUR_GAME_VERSION/ffmpeg/bin/ffmpeg.exe）里，本模组会自动检测它，这样你就不用管那俩文件路径的配置项了。
 - 那个 `ffmepg` 文件夹也可以被命名为 `ffmpeg-win` / `ffmpeg-linux` / `ffmpeg-mac`，本模组会根据当前的操作系统自动选择对应的文件。
 - 如果你想在整合包里使用这个模组，你就得在发布前考虑下包含那仨文件夹。但这取决于你，毕竟那些文件并不轻量，你的 zip 体积会变大。
+#### 自动下载
+环境内没有可用的 FFmpeg 时，本模组会根据 config 里的下载链接在其他线程中自动下载 FFmpeg 并把它放到你的 MC 实例中，下载完成前，所有的加载页面和背景均保持原版逻辑。
 ### 注意事项
 - 音频的配置项若留空则会使用视频里的声音。
 - 游戏里按 `F12` 可以重载，config 里 `reloadKey` 那个值就是 `F12`。如果想改成别的比如 `R` 键，就把值改成 `82`（本仓库的 `keys.txt` 文件里有完整对应表）。
@@ -92,5 +98,6 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 - DeepSeek （**我的救星**）：感谢它修复了高分辨率下的视频解析卡顿，并提供与 MC 本身声音引擎同步 OpenAL 上下文的思路来避免 NarutoAudioExecutor 产生各种问题
 - ChatGPT、Grok、Gemini：感谢它们成天左右脑互搏似地提供问题修复方案，虽然真就一次都没有修复成功只会让视频卡住或者游戏崩溃，到最后全是由作者自己想思路自己解决但还是谢谢它们添乱路上提供的情绪价值。
 ### 演示视频
+（一个视频合集里的 p2 和 p3）
 #### [火影忍者十周年登录 CG](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=3)
 #### [Bad Apple 视频](https://www.bilibili.com/video/BV11JmwBNEBr?vd_source=f683457ac8c6976686c5e1492e159005&spm_id_from=333.788.videopod.episodes&p=2)
