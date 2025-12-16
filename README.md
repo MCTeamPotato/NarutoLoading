@@ -9,9 +9,14 @@ A: Because I just failed to stop admiring my loading background. It will be shut
 Play video and audio during loading overlays and screens and replace the vanilla panorama and dirt background. Also stop rendering all the gui elements after your mouse remains idle for a while.
 ### How to use it?
 1. Download `FFmpeg`: https://github.com/BtbN/FFmpeg-Builds/releases
-2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system. Or you can simply install it into your Minecraft instance directory (file directory structure requirement: .minecraft/ffmpeg/bin/ffmpeg.exe, or .minecraft/versions/YOUR_GAME_VERSION/ffmpeg/bin/ffmpeg.exe), and NarutoLoading will auto-detect it regardless of the config options.
+2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system. 
 3. Put the video and audio that you want to play into config directory, and then tweak the `videoFileName` and `audioFileName` in `narutoloading.json` to their file names.
 4. Launch your game and enjoy it!
+### FFmpeg Auto Detection
+- You can simply install FFmpeg into your Minecraft instance directory (file directory structure requirement: .minecraft/ffmpeg/bin/ffmpeg.exe, or .minecraft/versions/YOUR_GAME_VERSION/ffmpeg/bin/ffmpeg.exe), and NarutoLoading will auto-detect it regardless of the config options.
+- The `ffmpeg` directory can also be named as `ffmpeg-win` / `ffmpeg-linux` / `ffmpeg-mac` and we will select the corresponding one for the current OS on runtime.
+- If you want to redistribute this mod in your modpack, you do need to consider including these three FFmpeg files in your modpack. It's up to you, though, as these files are not light and make your zip big.
+- 
 ### Notes
 - If you leave the `audioFileName` config property empty, we will try to use the video's sound.
 - You can press `F12` to reload the video and audio during your game. By default, the reloadKey is set to F12. To change it to another key like R, set the value to 82. (See the `keys.txt` in this repo for complete reference of key mappings)
@@ -53,9 +58,13 @@ _Minecraft **最愚蠢的**视频 & 音频播放器。_
 在加载界面和各种屏幕背景里放视频，放音频，取代全景图和泥土界面，并让一段时间鼠标不动后除视频之外的所有 GUI 元素停止渲染。
 ### 怎么用？
 1. 下个 `FFmpeg`：https://github.com/BtbN/FFmpeg-Builds/releases 。
-2. 安装完之后把 `config/narutoloading.json` 里的 `ffmpegExePath` 和 `ffprobeExePath` 改成你电脑里的对应路径。或者你也可以把它安装到你 MC 的实例文件夹（文件夹结构要求：.minecraft/ffmpeg/bin/ffmpeg.exe 或者 .minecraft/versions/YOUR_GAME_VERSION/ffmpeg/bin/ffmpeg.exe）里，本模组会自动检测它，这样你就不用管这里的配置项了。
+2. 安装完之后把 `config/narutoloading.json` 里的 `ffmpegExePath` 和 `ffprobeExePath` 改成你电脑里的对应路径。
 3. 把你要播放的视频和音频放进 config 文件夹，然后再把 `narutoloading.json` 里的 `videoFileName` 和 `audioFileName` 改成视频和音频的文件名。
 4. 大功告成，启动游戏吧！
+### FFmpeg 自动检测
+- 你可以把 FFmpeg 安装到你 MC 的实例文件夹（文件夹结构要求：.minecraft/ffmpeg/bin/ffmpeg.exe 或者 .minecraft/versions/YOUR_GAME_VERSION/ffmpeg/bin/ffmpeg.exe）里，本模组会自动检测它，这样你就不用管那俩文件路径的配置项了。
+- 那个 `ffmepg` 文件夹也可以被命名为 `ffmpeg-win` / `ffmpeg-linux` / `ffmpeg-mac`，本模组会根据当前的操作系统自动选择对应的文件。
+- 如果你想在整合包里使用这个模组，你就得在发布前考虑下包含那仨文件夹。但这取决于你，毕竟那些文件并不轻量，你的 zip 体积会变大。
 ### 注意事项
 - 音频的配置项若留空则会使用视频里的声音。
 - 游戏里按 `F12` 可以重载，config 里 `reloadKey` 那个值就是 `F12`。如果想改成别的比如 `R` 键，就把值改成 `82`（本仓库的 `keys.txt` 文件里有完整对应表）。
