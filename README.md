@@ -8,8 +8,8 @@ A: Because I just failed to stop admiring my loading background. It will be shut
 ### What does it do?
 Play video and audio during loading overlays and screens and replace the vanilla panorama and dirt background. Also stop rendering all the gui elements after your mouse remains idle for a while.
 ### How to use it?
-1. Download `FFmpeg`: https://github.com/BtbN/FFmpeg-Builds/releases
-2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system. 
+1. Download `FFmpeg`: https://github.com/BtbN/FFmpeg-Builds/releases (Not a hard requirement)
+2. After installing it, tweak the `ffmpegExePath` and `ffprobeExePath` in `config/narutoloading.json` to their actual file paths on your system. (Not a hard requirement)
 3. Put the video and audio that you want to play into config directory, and then tweak the `videoFileName` and `audioFileName` in `narutoloading.json` to their file names.
 4. Launch your game and enjoy it!
 ### About FFmpeg
