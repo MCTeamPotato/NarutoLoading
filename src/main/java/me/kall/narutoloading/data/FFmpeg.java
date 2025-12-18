@@ -31,7 +31,7 @@ public final class FFmpeg {
 
     public static boolean available() {
         if (fromDownload) {
-            return availability.equals(Availability.DOWNLOAD_SUCCESSFULLY);
+            return availability != null && availability.equals(Availability.DOWNLOAD_SUCCESSFULLY);
         } else {
             return true;
         }
@@ -39,6 +39,7 @@ public final class FFmpeg {
 
     public static void init() {
         EXECUTOR.submit(() -> {
+            boolean downloadSucceed = false;
             String configFFmpeg = validExe(NarutoConfig.ffmpegPath);
             String configFFprobe = validExe(NarutoConfig.ffprobePath);
 
@@ -61,12 +62,10 @@ public final class FFmpeg {
                 fromDownload = true;
                 try {
                     NarutoLoading.LOGGER.info("Downloading FFmpeg...");
-                    availability = Availability.DOWNLOADING;
                     Download.setup(gamePath, os);
                     baseDir = getBase(gamePath, os);
-                    availability = Availability.DOWNLOAD_SUCCESSFULLY;
+                    downloadSucceed = true;
                 } catch (Exception exception) {
-                    availability = Availability.DOWNLOAD_FAILED;
                     NarutoLoading.LOGGER.error("Error downloading FFmpeg.", exception);
                 } finally {
                     NarutoLoading.LOGGER.info("FFmpeg download task ends.");
@@ -88,11 +87,11 @@ public final class FFmpeg {
 
             ffmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
             ffprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
-
             VideoArgs.init();
+
+            if (downloadSucceed) availability = Availability.DOWNLOAD_SUCCESSFULLY;
         });
     }
-
 
     private static @Nullable String validExe(String path) {
         if (path == null || path.isBlank()) return null;
