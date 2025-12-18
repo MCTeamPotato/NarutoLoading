@@ -1,8 +1,7 @@
 package me.kall.narutoloading.mixin;
 
 import com.google.common.collect.Lists;
-import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.data.FFmpeg;
+import me.kall.narutoloading.data.NarutoConfig;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -16,7 +15,6 @@ public class EarlySetup implements IMixinConfigPlugin {
     public void onLoad(String s) {
         if (FMLLoader.getDist().isClient()) {
             NarutoConfig.init();
-            FFmpeg.init();
         }
     }
 

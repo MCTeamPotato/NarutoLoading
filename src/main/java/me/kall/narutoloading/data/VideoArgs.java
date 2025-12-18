@@ -1,6 +1,5 @@
 package me.kall.narutoloading.data;
 
-import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
@@ -12,31 +11,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class VideoArgs {
-    private static final int FPS = getFps();
-    private static final long DURATION = getDuration();
+    private static int fps;
+    private static long duration;
 
-    static {
-        NarutoLoading.LOGGER.info("[NarutoLoading] Video Fps: {}.", fps());
-        NarutoLoading.LOGGER.info("[NarutoLoading] Video duration: {}.", duration());
+    public static void init() {
+        fps = getFps();
+        duration = getDuration();
+        NarutoLoading.LOGGER.info("NarutoLoading Video Fps: {}.", fps());
+        NarutoLoading.LOGGER.info("NarutoLoading Video duration: {}.", duration());
     }
 
     public static int fps() {
-        return FPS;
+        return fps;
     }
 
     public static long duration() {
-        return DURATION;
+        return duration;
     }
 
     public static int width() {
         int width = Minecraft.getInstance().getWindow().getScreenWidth();
-        if (width > NarutoConfig.WIDTH) width = NarutoConfig.WIDTH;
+        if (width > NarutoConfig.width) width = NarutoConfig.width;
         return width;
     }
 
     public static int height() {
         int height = Minecraft.getInstance().getWindow().getScreenHeight();
-        if (height > NarutoConfig.HEIGHT) height = NarutoConfig.HEIGHT;
+        if (height > NarutoConfig.height) height = NarutoConfig.height;
         return height;
     }
 
@@ -84,7 +85,7 @@ public final class VideoArgs {
     private static @Nullable String run() {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    FFmpeg.FFPROBE,
+                    FFmpeg.ffprobe,
                     "-v", "quiet",
                     "-print_format", "json",
                     "-show_streams", "-show_format",

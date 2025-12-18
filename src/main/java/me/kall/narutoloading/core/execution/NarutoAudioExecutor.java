@@ -1,6 +1,6 @@
 package me.kall.narutoloading.core.execution;
 
-import me.kall.narutoloading.config.NarutoConfig;
+import me.kall.narutoloading.data.NarutoConfig;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.data.FFmpeg;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +50,7 @@ public final class NarutoAudioExecutor {
         AL.createCapabilities(ALC.getCapabilities());
 
         this.source = AL10.alGenSources();
-        AL10.alSourcef(this.source, AL10.AL_GAIN, NarutoConfig.VOLUME);
+        AL10.alSourcef(this.source, AL10.AL_GAIN, NarutoConfig.volume);
 
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoAudioExecutor");
@@ -60,9 +60,9 @@ public final class NarutoAudioExecutor {
         this.executor.submit(() -> {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(
-                        FFmpeg.FFMPEG,
+                        FFmpeg.ffmpeg,
                         "-ss", sec,
-                        "-i", NarutoConfig.audio(),
+                        "-i", NarutoConfig.audio().isEmpty() ? NarutoConfig.video() : NarutoConfig.audio(),
                         "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"
                 );
                 this.process = processBuilder.start();
@@ -87,7 +87,7 @@ public final class NarutoAudioExecutor {
                     while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
                 }
             } catch (Exception exception) {
-                if (NarutoConfig.DEBUG) NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
+                if (NarutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
             }
         });
         NarutoLoading.LOGGER.info("NarutoAudioExecutor sets up successfully");

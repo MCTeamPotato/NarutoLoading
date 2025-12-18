@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[36,)"
-#issueTrackerURL = ""
+issueTrackerURL = "https://github.com/MCTeamPotato/NarutoLoading/issues"
 license = "MIT"
 
 [[mods]]
@@ -20,6 +20,6 @@ logoFile = "naruto.png"
 [[dependencies.narutoloading]]
 modId="duplicationless"
 mandatory=true
-versionRange="[1.0.5,)"
+versionRange="[1.0.13,)"
 ordering="NONE"
 side="CLIENT"

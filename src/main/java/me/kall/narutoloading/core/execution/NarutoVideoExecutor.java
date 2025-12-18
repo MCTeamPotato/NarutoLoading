@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.longs.LongObjectPair;
 import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.data.FFmpeg;
 import me.kall.narutoloading.data.VideoArgs;
-import me.kall.narutoloading.config.NarutoConfig;
+import me.kall.narutoloading.data.NarutoConfig;
 import me.kall.narutoloading.NarutoLoading;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,10 +39,10 @@ public final class NarutoVideoExecutor {
             thread.setDaemon(true);
             return thread;
         });
-        this.frameQueue = new LinkedBlockingQueue<>(NarutoConfig.BUFFER_SIZE);
+        this.frameQueue = new LinkedBlockingQueue<>(NarutoConfig.bufferSize);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    FFmpeg.FFMPEG,
+                    FFmpeg.ffmpeg,
                     "-ss", sec,
                     "-i", NarutoConfig.video(),
                     "-vf", "format=rgb24,scale=" + VideoArgs.widthString() + ":" + VideoArgs.heightString(),
@@ -74,7 +74,7 @@ public final class NarutoVideoExecutor {
                     this.frameQueue.put(new LongObjectImmutablePair<>(this.frameIndex, image));
                 }
             } catch (Exception exception) {
-                if (NarutoConfig.DEBUG) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
+                if (NarutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
             }
         });
         NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully");

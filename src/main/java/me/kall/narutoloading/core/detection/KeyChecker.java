@@ -1,8 +1,9 @@
 package me.kall.narutoloading.core.detection;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.config.NarutoConfig;
+import me.kall.narutoloading.data.NarutoConfig;
 import me.kall.narutoloading.core.NarutoRenderer;
+import me.kall.narutoloading.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -34,8 +35,10 @@ public final class KeyChecker {
             return;
         }
 
+        if (SourcesSelectionScreen.screenTriggerable != 0) return;
+
         long window = minecraft.getWindow().getWindow();
-        int state = GLFW.glfwGetKey(window, NarutoConfig.RELOAD);
+        int state = GLFW.glfwGetKey(window, NarutoConfig.reload);
 
         if (state == GLFW.GLFW_PRESS) {
             reloadCooldown = COOLDOWN_TICKS;

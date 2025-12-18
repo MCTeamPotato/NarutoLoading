@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -60,6 +61,16 @@ public final class MouseChecker {
             lastMouseY = y;
 
             fadeAlpha = MouseChecker.shouldFade() ? Math.max(0.0F, fadeAlpha - 0.05F) : Math.min(1.0F, fadeAlpha + 0.05F);
+        }
+    }
+
+    @SubscribeEvent
+    public static void type(InputEvent event) {
+        if (Minecraft.getInstance().screen != null) {
+            fadeAlpha = 1.0F;
+            lastMouseX = Double.NaN;
+            lastMouseY = Double.NaN;
+            stopTickCount = 0;
         }
     }
 

@@ -1,7 +1,6 @@
 package me.kall.narutoloading.data;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.config.NarutoConfig;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,8 +17,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public final class FFmpeg {
-    public static @Nullable String FFMPEG;
-    public static @Nullable String FFPROBE;
+    public static @Nullable String ffmpeg;
+    public static @Nullable String ffprobe;
 
     private static boolean fromDownload = false;
     private static volatile Availability availability;
@@ -40,17 +39,17 @@ public final class FFmpeg {
 
     public static void init() {
         EXECUTOR.submit(() -> {
-            String configFFmpeg = validExe(NarutoConfig.FFMPEG_PATH);
-            String configFFprobe = validExe(NarutoConfig.FFPROBE_PATH);
+            String configFFmpeg = validExe(NarutoConfig.ffmpegPath);
+            String configFFprobe = validExe(NarutoConfig.ffprobePath);
 
             if (configFFmpeg != null && configFFprobe != null) {
-                FFMPEG = configFFmpeg;
-                FFPROBE = configFFprobe;
+                ffmpeg = configFFmpeg;
+                ffprobe = configFFprobe;
                 NarutoLoading.LOGGER.info("Using FFmpeg from config.");
                 return;
             }
 
-            if ((NarutoConfig.FFMPEG_PATH != null && !NarutoConfig.FFMPEG_PATH.isBlank()) || (NarutoConfig.FFPROBE_PATH != null && !NarutoConfig.FFPROBE_PATH.isBlank())) {
+            if ((NarutoConfig.ffmpegPath != null && !NarutoConfig.ffmpegPath.isBlank()) || (NarutoConfig.ffprobePath != null && !NarutoConfig.ffprobePath.isBlank())) {
                 NarutoLoading.LOGGER.info("FFmpeg path in config is invalid, deprecate it.");
             }
 
@@ -75,8 +74,8 @@ public final class FFmpeg {
             }
 
             if (baseDir == null) {
-                FFMPEG = null;
-                FFPROBE = null;
+                ffmpeg = null;
+                ffprobe = null;
                 return;
             }
 
@@ -87,8 +86,10 @@ public final class FFmpeg {
             File ffmpegFile = get(baseDir, ffmpegName);
             File ffprobeFile = get(baseDir, ffprobeName);
 
-            FFMPEG = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
-            FFPROBE = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
+            ffmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
+            ffprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
+
+            VideoArgs.init();
         });
     }
 
@@ -144,8 +145,8 @@ public final class FFmpeg {
     private static final class Download {
         private static void setup(Path gamePath, @NotNull OSType os) throws Exception {
             String url = switch (os) {
-                case WINDOWS -> NarutoConfig.WIN_URL;
-                case LINUX -> NarutoConfig.LINUX_URL;
+                case WINDOWS -> NarutoConfig.winUrl;
+                case LINUX -> NarutoConfig.linuxUrl;
                 default -> throw new UnsupportedOperationException("Unsupported OS: " + os);
             };
 
