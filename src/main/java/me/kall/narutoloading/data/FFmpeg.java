@@ -21,7 +21,7 @@ public final class FFmpeg {
     public static @Nullable String ffprobe;
 
     private static boolean fromDownload = false;
-    private static volatile boolean availability = false;
+    private static volatile boolean availability;
 
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task , "NarutoFFmpegDownloader");
