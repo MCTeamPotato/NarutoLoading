@@ -2,6 +2,7 @@ package me.kall.narutoloading.gui;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
+import me.kall.narutoloading.data.FFmpeg;
 import me.kall.narutoloading.data.NarutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -90,6 +91,7 @@ public class SourcesSelectionScreen extends Screen {
         String audio = this.audioBox.getValue();
         NarutoConfig.config.put("videoFileName", video).put("audioFileName", audio).saveToFile();
         NarutoConfig.init();
+        FFmpeg.init();
         NarutoRenderer.INSTANCE.shutdown();
         NarutoRenderer.INSTANCE.setup();
         Minecraft.getInstance().setScreen(this.lastScreen);
@@ -123,7 +125,7 @@ public class SourcesSelectionScreen extends Screen {
         int stateCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
 
         if (state == GLFW.GLFW_PRESS && stateCtrl == GLFW.GLFW_PRESS && !(mc.screen instanceof SourcesSelectionScreen)) {
-            screenTriggerable = 200;
+            screenTriggerable = 40;
             mc.setScreen(new SourcesSelectionScreen(mc.screen));
         }
     }

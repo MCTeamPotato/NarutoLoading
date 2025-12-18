@@ -3,6 +3,7 @@ package me.kall.narutoloading.core.detection;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.data.NarutoConfig;
 import me.kall.narutoloading.core.NarutoRenderer;
+import me.kall.narutoloading.data.SourceRoller;
 import me.kall.narutoloading.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,11 +18,9 @@ public final class KeyChecker {
     private static boolean reloadable = false;
     private static int reloadCooldown = 0;
 
-    private static final int COOLDOWN_TICKS = 200;
-
     @SubscribeEvent
     public static void clientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.END) return;
 
         Minecraft minecraft = Minecraft.getInstance();
 
@@ -36,12 +35,13 @@ public final class KeyChecker {
         }
 
         if (SourcesSelectionScreen.screenTriggerable != 0) return;
+        if (SourceRoller.sourceRollable != 0) return;
 
         long window = minecraft.getWindow().getWindow();
         int state = GLFW.glfwGetKey(window, NarutoConfig.reload);
 
         if (state == GLFW.GLFW_PRESS) {
-            reloadCooldown = COOLDOWN_TICKS;
+            reloadCooldown = 40;
             reloadable = true;
         }
     }

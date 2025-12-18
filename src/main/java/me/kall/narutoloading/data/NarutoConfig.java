@@ -103,6 +103,5 @@ public final class NarutoConfig {
         LOGGER.info("FFmpeg Windows download link in NarutoConfig: {}", winUrl);
         LOGGER.info("FFmpeg Linux download link in NarutoConfig: {}", linuxUrl);
 
-        FFmpeg.init();
     }
 }
