@@ -21,7 +21,7 @@ public final class FFmpeg {
     public static @Nullable String ffprobe;
 
     private static boolean fromDownload = false;
-    private static volatile Availability availability;
+    private static volatile boolean availability = false;
 
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task , "NarutoFFmpegDownloader");
@@ -31,7 +31,7 @@ public final class FFmpeg {
 
     public static boolean available() {
         if (fromDownload) {
-            return availability != null && availability.equals(Availability.DOWNLOAD_SUCCESSFULLY);
+            return availability;
         } else {
             return true;
         }
@@ -89,7 +89,7 @@ public final class FFmpeg {
             ffprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
             VideoArgs.init();
 
-            if (downloadSucceed) availability = Availability.DOWNLOAD_SUCCESSFULLY;
+            if (downloadSucceed) availability = true;
         });
     }
 
@@ -113,10 +113,6 @@ public final class FFmpeg {
 
     private static @NotNull File get(String baseDir, String fileName) {
         return FMLLoader.getGamePath().resolve(baseDir).resolve("bin").resolve(fileName).toFile();
-    }
-
-    private enum Availability {
-        DOWNLOAD_FAILED, DOWNLOAD_SUCCESSFULLY, DOWNLOADING
     }
 
     public enum OSType {
