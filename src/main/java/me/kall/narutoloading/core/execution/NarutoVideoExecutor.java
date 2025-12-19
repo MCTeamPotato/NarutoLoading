@@ -1,13 +1,11 @@
 package me.kall.narutoloading.core.execution;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import it.unimi.dsi.fastutil.longs.LongObjectImmutablePair;
-import it.unimi.dsi.fastutil.longs.LongObjectPair;
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.data.FFmpeg;
-import me.kall.narutoloading.data.VideoArgs;
 import me.kall.narutoloading.data.NarutoConfig;
-import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.data.VideoArgs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public final class NarutoVideoExecutor {
     public static final NarutoVideoExecutor INSTANCE = new NarutoVideoExecutor();
 
-    public @Nullable LinkedBlockingQueue<LongObjectPair<byte[]>> frameQueue;
+    private @Nullable LinkedBlockingQueue<Frame> frameQueue;
 
     private @Nullable ExecutorService executor;
     private volatile boolean canceled;
@@ -70,7 +68,7 @@ public final class NarutoVideoExecutor {
                     byteBuffer.get(buffer);
 
                     this.frameIndex++;
-                    this.frameQueue.put(new LongObjectImmutablePair<>(this.frameIndex, buffer));
+                    this.frameQueue.put(new Frame(this.frameIndex, buffer));
                 }
             } catch (Exception exception) {
                 if (NarutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
@@ -85,19 +83,19 @@ public final class NarutoVideoExecutor {
 
     public @Nullable NativeImage fetchImage(double elapsedSeconds) {
         if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
-        LongObjectPair<byte[]> frame = this.frameQueue.poll();
+        Frame frame = this.frameQueue.poll();
         if (frame == null) return null;
 
         boolean hasSkipping = false;
 
-        while (frame != null && ((double) frame.firstLong()) / ((double) VideoArgs.fps()) < elapsedSeconds) {
+        while (frame != null && ((double) frame.frameIndex()) / ((double) VideoArgs.fps()) < elapsedSeconds) {
             frame = this.frameQueue.poll();
             hasSkipping = true;
         }
 
         if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lifetime.detectLagSpike();
 
-        return frame == null ? null : this.buildImage(frame.right());
+        return frame == null ? null : this.buildImage(frame.buffer());
     }
 
     public @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
@@ -152,4 +150,6 @@ public final class NarutoVideoExecutor {
     public void shutdown() {
         this.shutdown(0L);
     }
+
+    private record Frame(long frameIndex, byte[] buffer) {}
 }
