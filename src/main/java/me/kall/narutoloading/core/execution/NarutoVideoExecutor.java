@@ -22,7 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public final class NarutoVideoExecutor {
     public static final NarutoVideoExecutor INSTANCE = new NarutoVideoExecutor();
 
-    public @Nullable LinkedBlockingQueue<LongObjectPair<NativeImage>> frameQueue;
+    public @Nullable LinkedBlockingQueue<LongObjectPair<byte[]>> frameQueue;
 
     private @Nullable ExecutorService executor;
     private volatile boolean canceled;
@@ -69,9 +69,8 @@ public final class NarutoVideoExecutor {
                     byte[] buffer = new byte[frameSize];
                     byteBuffer.get(buffer);
 
-                    NativeImage image = this.buildImage(buffer);
                     this.frameIndex++;
-                    this.frameQueue.put(new LongObjectImmutablePair<>(this.frameIndex, image));
+                    this.frameQueue.put(new LongObjectImmutablePair<>(this.frameIndex, buffer));
                 }
             } catch (Exception exception) {
                 if (NarutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
@@ -86,20 +85,19 @@ public final class NarutoVideoExecutor {
 
     public @Nullable NativeImage fetchImage(double elapsedSeconds) {
         if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
-        LongObjectPair<NativeImage> frame = this.frameQueue.poll();
+        LongObjectPair<byte[]> frame = this.frameQueue.poll();
         if (frame == null) return null;
 
         boolean hasSkipping = false;
 
         while (frame != null && ((double) frame.firstLong()) / ((double) VideoArgs.fps()) < elapsedSeconds) {
-            frame.right().close();
             frame = this.frameQueue.poll();
             hasSkipping = true;
         }
 
         if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lifetime.detectLagSpike();
 
-        return frame == null ? null : frame.right();
+        return frame == null ? null : this.buildImage(frame.right());
     }
 
     public @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
@@ -143,9 +141,7 @@ public final class NarutoVideoExecutor {
         }
 
         if (this.frameQueue != null) {
-            for (LongObjectPair<NativeImage> frame : this.frameQueue) {
-                frame.right().close();
-            }
+            this.frameQueue.clear();
             this.frameQueue = null;
         }
 
