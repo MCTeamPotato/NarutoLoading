@@ -125,7 +125,7 @@ public class SourcesSelectionScreen extends Screen {
         int stateCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
 
         if (state == GLFW.GLFW_PRESS && stateCtrl == GLFW.GLFW_PRESS && !(mc.screen instanceof SourcesSelectionScreen)) {
-            screenTriggerable = 40;
+            screenTriggerable = 20;
             mc.setScreen(new SourcesSelectionScreen(mc.screen));
         }
     }

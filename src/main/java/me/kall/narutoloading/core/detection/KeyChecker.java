@@ -41,7 +41,7 @@ public final class KeyChecker {
         int state = GLFW.glfwGetKey(window, NarutoConfig.reload);
 
         if (state == GLFW.GLFW_PRESS) {
-            reloadCooldown = 40;
+            reloadCooldown = 20;
             reloadable = true;
         }
     }

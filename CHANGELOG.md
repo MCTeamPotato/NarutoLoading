@@ -1,2 +1,2 @@
-# 1.3.3
-- Loading screen source switching (Shift + Reload key) now automatically avoids selecting the same video folder as the previous one, improving the source-switching experience (when multiple valid sources are available).
+# 1.3.4
+- Added automatic random video rolling: When a video finishes playing, the mod now automatically selects and plays a different random video from the narutoloading-sources folder instead of replaying the same one.

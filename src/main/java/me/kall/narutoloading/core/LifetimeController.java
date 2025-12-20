@@ -1,9 +1,11 @@
 package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.data.VideoArgs;
 import me.kall.narutoloading.core.execution.NarutoAudioExecutor;
 import me.kall.narutoloading.core.execution.NarutoVideoExecutor;
+import me.kall.narutoloading.data.FFmpeg;
+import me.kall.narutoloading.data.SourceRoller;
+import me.kall.narutoloading.data.VideoArgs;
 
 public final class LifetimeController {
     private long lastFrameTime = 0L;
@@ -85,6 +87,10 @@ public final class LifetimeController {
 
     public void endRestart() {
         if (this.elapsedTime >= VideoArgs.duration()) {
+            NarutoLoading.LOGGER.info("Video finished, rolling to a new random source...");
+            SourceRoller.init();
+            FFmpeg.init();
+            VideoArgs.init();
             NarutoRenderer.INSTANCE.shutdown();
             NarutoRenderer.INSTANCE.setup();
         }

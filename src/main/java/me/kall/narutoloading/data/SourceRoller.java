@@ -46,7 +46,7 @@ public final class SourceRoller {
         int stateShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT);
 
         if (state == GLFW.GLFW_PRESS && stateShift == GLFW.GLFW_PRESS) {
-            sourceRollable = 40;
+            sourceRollable = 20;
             SourceRoller.init();
             FFmpeg.init();
             NarutoRenderer.INSTANCE.shutdown();
