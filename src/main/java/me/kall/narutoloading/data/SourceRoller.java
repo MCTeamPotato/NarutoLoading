@@ -28,8 +28,10 @@ public final class SourceRoller {
 
     public static int sourceRollable = 0;
 
+    private static Path lastSelectedFolder = null;
+
     @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
+    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
         Minecraft mc = Minecraft.getInstance();
@@ -69,7 +71,28 @@ public final class SourceRoller {
             return;
         }
 
-        Path selectedFolder = validFolders.get(ThreadLocalRandom.current().nextInt(validFolders.size()));
+        if (validFolders.size() == 1) {
+            Path selectedFolder = validFolders.get(0);
+            selectAndSave(selectedFolder);
+            return;
+        }
+
+        List<Path> candidates = new ArrayList<>(validFolders);
+        if (lastSelectedFolder != null) {
+            candidates.removeIf(p -> p.getFileName().equals(lastSelectedFolder.getFileName()));
+        }
+
+        if (candidates.isEmpty()) {
+            candidates = validFolders;
+        }
+
+        Path selectedFolder = candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+
+        selectAndSave(selectedFolder);
+    }
+
+    private static void selectAndSave(@NotNull Path selectedFolder) {
+        lastSelectedFolder = selectedFolder;
 
         String relativeVideo = "narutoloading-sources/" + selectedFolder.getFileName() + "/" + VIDEO_FILE_NAME;
         String relativeAudio = Files.exists(selectedFolder.resolve(AUDIO_FILE_NAME)) ? "narutoloading-sources/" + selectedFolder.getFileName() + "/" + AUDIO_FILE_NAME : "";

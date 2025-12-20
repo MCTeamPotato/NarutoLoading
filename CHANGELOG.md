@@ -1,2 +1,2 @@
-# 1.3.2
-- Delay and reduce the building of NativeImage for less NativeImage#close calls and better performance
+# 1.3.3
+- Loading screen source switching (Shift + Reload key) now automatically avoids selecting the same video folder as the previous one, improving the source-switching experience (when multiple valid sources are available).
