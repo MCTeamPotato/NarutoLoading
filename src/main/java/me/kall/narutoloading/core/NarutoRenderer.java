@@ -12,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class NarutoRenderer {
@@ -21,6 +22,18 @@ public final class NarutoRenderer {
     public @Nullable ResourceLocation textureLocation;
 
     public final LifetimeController lifetime = new LifetimeController();
+
+    private static @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
+        NativeImage image = new NativeImage(VideoArgs.width(), VideoArgs.height(), false);
+        for (int i = 0; i < buffer.length; i += 3) {
+            int b = buffer[i] & 0xFF;
+            int g = buffer[i + 1] & 0xFF;
+            int r = buffer[i + 2] & 0xFF;
+            int argb = 0xFF000000 | (r << 16) | (g << 8) | b;
+            image.setPixelRGBA(i / 3 % VideoArgs.width(), i / 3 / VideoArgs.width(), argb);
+        }
+        return image;
+    }
 
     public void setup() {
         if (this.dynamicTexture != null) return;
@@ -37,11 +50,12 @@ public final class NarutoRenderer {
     private ResourceLocation nextFrame() {
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime.shouldUpdateFrame(VideoArgs.fps())) {
-            NativeImage frame = NarutoVideoExecutor.INSTANCE.fetchImage(this.lifetime.elapsedSeconds());
+            byte[] frame = NarutoVideoExecutor.INSTANCE.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
-                this.dynamicTexture.setPixels(frame);
+                NativeImage image = buildImage(frame);
+                this.dynamicTexture.setPixels(image);
                 this.dynamicTexture.upload();
-                frame.close();
+                image.close();
             }
         }
 
@@ -91,7 +105,10 @@ public final class NarutoRenderer {
             this.dynamicTexture = null;
         }
 
-        this.textureLocation = null;
+        if (this.textureLocation != null) {
+            Minecraft.getInstance().getTextureManager().release(this.textureLocation);
+            this.textureLocation = null;
+        }
 
         this.lifetime.stop();
     }

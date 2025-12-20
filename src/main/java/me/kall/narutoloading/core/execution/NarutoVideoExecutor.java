@@ -1,12 +1,10 @@
 package me.kall.narutoloading.core.execution;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.data.FFmpeg;
 import me.kall.narutoloading.data.NarutoConfig;
 import me.kall.narutoloading.data.VideoArgs;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
@@ -81,7 +79,7 @@ public final class NarutoVideoExecutor {
         setup("0");
     }
 
-    public @Nullable NativeImage fetchImage(double elapsedSeconds) {
+    public byte @Nullable [] fetchImage(double elapsedSeconds) {
         if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
         Frame frame = this.frameQueue.poll();
         if (frame == null) return null;
@@ -95,19 +93,7 @@ public final class NarutoVideoExecutor {
 
         if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lifetime.detectLagSpike();
 
-        return frame == null ? null : this.buildImage(frame.buffer());
-    }
-
-    public @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
-        NativeImage image = new NativeImage(VideoArgs.width(), VideoArgs.height(), false);
-        for (int i = 0; i < buffer.length; i += 3) {
-            int b = buffer[i] & 0xFF;
-            int g = buffer[i + 1] & 0xFF;
-            int r = buffer[i + 2] & 0xFF;
-            int argb = 0xFF000000 | (r << 16) | (g << 8) | b;
-            image.setPixelRGBA(i / 3 % VideoArgs.width(), i / 3 / VideoArgs.width(), argb);
-        }
-        return image;
+        return frame == null ? null : frame.buffer();
     }
 
     public void shutdown(long frameElapsed) {
