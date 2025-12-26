@@ -28,7 +28,7 @@ public class ScreenChecker {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<Screen>> SCREENS = new Object2ObjectOpenHashMap<>();
 
     static {
-        for (int i = 1; i < 6; i++) {
+        for (int i = 1; i < 100; i++) {
             SCREEN_SIZES.put(16 * i, 9 * i);
         }
     }
@@ -146,7 +146,6 @@ public class ScreenChecker {
     }
 
     public record Screen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
-
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof Screen screen) {

@@ -28,6 +28,12 @@ public final class NarutoVideoExecutor {
     private @Nullable InputStream inputStream;
     private @Nullable ReadableByteChannel channel;
 
+    private final NarutoRenderer renderer;
+
+    public NarutoVideoExecutor(NarutoRenderer renderer) {
+        this.renderer = renderer;
+    }
+
     public void setup(String sec) {
         this.canceled = false;
         this.executor = Executors.newSingleThreadExecutor(task -> {
@@ -103,7 +109,7 @@ public final class NarutoVideoExecutor {
             hasSkipping = true;
         }
 
-        if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lifetime.detectLagSpike();
+        if (hasSkipping && frame == null) this.renderer.lifetime.detectLagSpike();
 
         return frame == null ? null : frame.image();
     }

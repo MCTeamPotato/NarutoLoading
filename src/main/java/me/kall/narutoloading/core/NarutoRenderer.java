@@ -21,10 +21,10 @@ public class NarutoRenderer {
     public @Nullable ResourceLocation textureLocation;
 
     public final NarutoAudioExecutor narutoAudioExecutor = new NarutoAudioExecutor();
-    public final NarutoVideoExecutor narutoVideoExecutor = new NarutoVideoExecutor();
-    public final LifetimeController lifetime = new LifetimeController(this.narutoAudioExecutor, this.narutoVideoExecutor);
-    public final WindowSizeChecker windowSizeChecker = new WindowSizeChecker();
-    public final KeyChecker keyChecker = new KeyChecker();
+    public final NarutoVideoExecutor narutoVideoExecutor = new NarutoVideoExecutor(this);
+    public final LifetimeController lifetime = new LifetimeController(this);
+    public final WindowSizeChecker windowSizeChecker = new WindowSizeChecker(this);
+    public final KeyChecker keyChecker = new KeyChecker(this);
 
     public void setup() {
         if (this.dynamicTexture != null) return;
@@ -67,8 +67,8 @@ public class NarutoRenderer {
 
             graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
 
-            this.keyChecker.reload(this);
-            this.windowSizeChecker.resize(this);
+            this.keyChecker.reload();
+            this.windowSizeChecker.resize();
             this.lifetime.syncSoundEngine();
             this.lifetime.lagSpikeRestart();
             this.lifetime.endRestart();

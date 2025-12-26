@@ -13,13 +13,18 @@ public final class WindowSizeChecker {
     private int lastHeight = -1;
 
     private boolean resizable = false;
+    private final NarutoRenderer renderer;
+
+    public WindowSizeChecker(NarutoRenderer renderer) {
+        this.renderer = renderer;
+    }
 
     public void clientTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
         Minecraft minecraft = Minecraft.getInstance();
 
-        if (!NarutoRenderer.INSTANCE.isRunning() || minecraft.level != null) {
+        if (!this.renderer.isRunning() || minecraft.level != null) {
             reset();
             return;
         }
@@ -48,19 +53,19 @@ public final class WindowSizeChecker {
         resizable = false;
     }
 
-    public void resize(NarutoRenderer renderer) {
+    public void resize() {
         if (resizable){
             resizable = false;
             String currentSecond = String.valueOf(renderer.lifetime.elapsedSeconds());
             NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", currentSecond);
 
-            renderer.narutoVideoExecutor.shutdown(renderer.lifetime.frameCount());
-            renderer.narutoVideoExecutor.setup(currentSecond);
+            this.renderer.narutoVideoExecutor.shutdown(renderer.lifetime.frameCount());
+            this.renderer.narutoVideoExecutor.setup(currentSecond);
 
-            if (renderer.dynamicTexture != null) renderer.dynamicTexture.close();
+            if (this.renderer.dynamicTexture != null) this.renderer.dynamicTexture.close();
 
-            renderer.dynamicTexture = new DynamicTexture(VideoArgs.width(), VideoArgs.height(), false);
-            renderer.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", renderer.dynamicTexture);
+            this.renderer.dynamicTexture = new DynamicTexture(VideoArgs.width(), VideoArgs.height(), false);
+            this.renderer.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.renderer.dynamicTexture);
         }
     }
 }

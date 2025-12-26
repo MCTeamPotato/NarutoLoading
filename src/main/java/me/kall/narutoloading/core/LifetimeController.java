@@ -1,8 +1,6 @@
 package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.core.execution.NarutoAudioExecutor;
-import me.kall.narutoloading.core.execution.NarutoVideoExecutor;
 import me.kall.narutoloading.data.FFmpeg;
 import me.kall.narutoloading.data.SourceRoller;
 import me.kall.narutoloading.data.VideoArgs;
@@ -20,12 +18,10 @@ public final class LifetimeController {
 
     private volatile boolean syncSoundEngine = false;
 
-    private final NarutoAudioExecutor narutoAudioExecutor;
-    private final NarutoVideoExecutor narutoVideoExecutor;
+    private final NarutoRenderer renderer;
 
-    public LifetimeController(NarutoAudioExecutor narutoAudioExecutor, NarutoVideoExecutor narutoVideoExecutor) {
-        this.narutoAudioExecutor = narutoAudioExecutor;
-        this.narutoVideoExecutor = narutoVideoExecutor;
+    public LifetimeController(NarutoRenderer renderer) {
+        this.renderer = renderer;
     }
 
     public void tick() {
@@ -99,8 +95,8 @@ public final class LifetimeController {
             SourceRoller.init();
             FFmpeg.init();
             VideoArgs.init();
-            NarutoRenderer.INSTANCE.shutdown();
-            NarutoRenderer.INSTANCE.setup();
+            renderer.shutdown();
+            renderer.setup();
         }
     }
 
@@ -108,15 +104,15 @@ public final class LifetimeController {
         if (this.shouldRestartForLag()) {
             String sec = String.valueOf(this.elapsedSeconds());
             NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
-            this.narutoVideoExecutor.shutdown(this.frameCount());
-            this.narutoVideoExecutor.setup(sec);
+            this.renderer.narutoVideoExecutor.shutdown(this.frameCount());
+            this.renderer.narutoVideoExecutor.setup(sec);
         }
     }
 
     public void syncSoundEngine() {
         if (this.syncSoundEngine) {
             this.setSyncSoundEngine(false);
-            this.narutoAudioExecutor.setup(String.valueOf(this.elapsedSeconds()));
+            this.renderer.narutoAudioExecutor.setup(String.valueOf(this.elapsedSeconds()));
         }
     }
 }

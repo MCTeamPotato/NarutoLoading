@@ -10,16 +10,20 @@ import net.minecraftforge.event.TickEvent;
 import org.lwjgl.glfw.GLFW;
 
 public final class KeyChecker {
-
     private boolean reloadable = false;
     private int reloadCooldown = 0;
+    private final NarutoRenderer renderer;
+
+    public KeyChecker(NarutoRenderer renderer) {
+        this.renderer = renderer;
+    }
 
     public void clientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
         Minecraft minecraft = Minecraft.getInstance();
 
-        if (!NarutoRenderer.INSTANCE.isRunning() || minecraft.level != null) {
+        if (!renderer.isRunning() || minecraft.level != null) {
             reset();
             return;
         }
@@ -46,11 +50,11 @@ public final class KeyChecker {
         reloadCooldown = 0;
     }
 
-    public void reload(NarutoRenderer renderer) {
+    public void reload() {
         if (this.reloadable) {
             this.reloadable = false;
-            renderer.shutdown();
-            renderer.setup();
+            this.renderer.shutdown();
+            this.renderer.setup();
             NarutoLoading.LOGGER.info("NarutoRenderer reloads successfully.");
         }
     }

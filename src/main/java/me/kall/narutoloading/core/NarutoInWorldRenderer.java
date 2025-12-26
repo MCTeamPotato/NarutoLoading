@@ -4,7 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.core.detection.inworld.ScreenChecker;
+import me.kall.narutoloading.data.VideoArgs;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -30,14 +33,41 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
+        Vec3 cameraPos = event.getCamera().getPosition();
 
         for (ScreenChecker.Screen screen : screens) {
+            poseStack.pushPose();
+            poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
             renderImage(poseStack, bufferSource, this.nextFrame(), screen);
+            this.renderFrame(null);
+            poseStack.popPose();
         }
     }
 
+    @Override
+    public void renderFrame(GuiGraphics graphics) {
+        if (this.isEnabled()) {
+            this.lifetime.tick();
+            this.keyChecker.reload();
+            this.lifetime.lagSpikeRestart();
+            this.lifetime.endRestart();
+        }
+    }
+
+    @Override
+    public boolean isEnabled() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.screen instanceof GenericDirtMessageScreen) return false;
+        if (VideoArgs.width() == 0 || VideoArgs.height() == 0) return false;
+        if (minecraft.level == null || !minecraft.isRunning()) {
+            this.shutdown();
+            return false;
+        }
+        return true;
+    }
+
     private static void renderImage(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation, ScreenChecker.@NotNull Screen screen) {
-        RenderType renderType = RenderType.entityTranslucentCull(textureLocation);
+        RenderType renderType = RenderType.entityTranslucent(textureLocation);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
         Vec3 leftBottom = new Vec3(
@@ -63,12 +93,16 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
         Vec3 normal = leftTop.subtract(leftBottom).cross(rightBottom.subtract(leftBottom)).normalize();
 
-        poseStack.pushPose();
+        double offset = 0.01;
+        leftBottom = leftBottom.add(normal.scale(offset));
+        leftTop = leftTop.add(normal.scale(offset));
+        rightBottom = rightBottom.add(normal.scale(offset));
+        rightTop = rightTop.add(normal.scale(offset));
 
         vertexConsumer
                 .vertex(poseStack.last().pose(), (float)leftBottom.x, (float)leftBottom.y, (float)leftBottom.z)
                 .color(255, 255, 255, 255)
-                .uv(0, 1)
+                .uv(1, 1)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
                 .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
@@ -76,7 +110,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         vertexConsumer
                 .vertex(poseStack.last().pose(), (float)leftTop.x, (float)leftTop.y, (float)leftTop.z)
                 .color(255, 255, 255, 255)
-                .uv(0, 0)
+                .uv(1, 0)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
                 .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
@@ -84,7 +118,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         vertexConsumer
                 .vertex(poseStack.last().pose(), (float)rightTop.x, (float)rightTop.y, (float)rightTop.z)
                 .color(255, 255, 255, 255)
-                .uv(1, 0)
+                .uv(0, 0)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
                 .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
@@ -92,12 +126,10 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         vertexConsumer
                 .vertex(poseStack.last().pose(), (float)rightBottom.x, (float)rightBottom.y, (float)rightBottom.z)
                 .color(255, 255, 255, 255)
-                .uv(1, 1)
+                .uv(0, 1)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
                 .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
                 .endVertex();
-
-        poseStack.popPose();
     }
 }
