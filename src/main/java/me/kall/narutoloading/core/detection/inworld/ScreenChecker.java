@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.data.saved.Displayers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -25,7 +26,6 @@ import java.util.UUID;
 public class ScreenChecker {
     private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
     private static final Int2IntMap SCREEN_SIZES = new Int2IntOpenHashMap();
-    public static final Object2ObjectMap<ResourceLocation, ObjectSet<Screen>> SCREENS = new Object2ObjectOpenHashMap<>();
 
     static {
         for (int i = 1; i < 100; i++) {
@@ -135,7 +135,7 @@ public class ScreenChecker {
 
                     Screen screen = new Screen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
 
-                    SCREENS.computeIfAbsent(dim, key -> new ObjectOpenHashSet<>()).add(screen);
+                    NarutoInWorldRenderer.SCREENS.computeIfAbsent(dim, key -> new ObjectOpenHashSet<>()).add(screen);
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toString()), false);
                 } else {
                     lastCorners.put(playerID, corner);

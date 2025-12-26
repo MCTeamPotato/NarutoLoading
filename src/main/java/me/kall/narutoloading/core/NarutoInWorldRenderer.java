@@ -2,6 +2,8 @@ package me.kall.narutoloading.core;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.core.detection.inworld.ScreenChecker;
 import me.kall.narutoloading.data.VideoArgs;
@@ -12,13 +14,17 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
     public static final NarutoInWorldRenderer INSTANCE = new NarutoInWorldRenderer();
+    public static final Object2ObjectMap<ResourceLocation, ObjectSet<ScreenChecker.Screen>> SCREENS = new Object2ObjectOpenHashMap<>();
 
     public void onRenderLevel(@NotNull RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
@@ -28,7 +34,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (level == null) return;
 
         ResourceLocation dimension = level.dimension().location();
-        ObjectSet<ScreenChecker.Screen> screens =  ScreenChecker.SCREENS.get(dimension);
+        ObjectSet<ScreenChecker.Screen> screens = SCREENS.get(dimension);
         if (screens == null) return;
 
         PoseStack poseStack = event.getPoseStack();
@@ -39,9 +45,10 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             poseStack.pushPose();
             poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
             renderImage(poseStack, bufferSource, this.nextFrame(), screen);
-            this.renderFrame(null);
             poseStack.popPose();
         }
+
+        this.renderFrame(null);
     }
 
     @Override
@@ -67,69 +74,98 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     }
 
     private static void renderImage(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation, ScreenChecker.@NotNull Screen screen) {
-        RenderType renderType = RenderType.entityTranslucent(textureLocation);
+        RenderType renderType = RenderType.entityTranslucentCull(textureLocation);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
-        Vec3 leftBottom = new Vec3(
-                screen.leftBottomCorner().getX(),
-                screen.leftBottomCorner().getY(),
-                screen.leftBottomCorner().getZ()
-        );
-        Vec3 leftTop = new Vec3(
-                screen.leftTopCorner().getX(),
-                screen.leftTopCorner().getY(),
-                screen.leftTopCorner().getZ()
-        );
-        Vec3 rightBottom = new Vec3(
-                screen.rightBottomCorner().getX(),
-                screen.rightBottomCorner().getY(),
-                screen.rightBottomCorner().getZ()
-        );
-        Vec3 rightTop = new Vec3(
-                screen.rightTopCorner().getX(),
-                screen.rightTopCorner().getY(),
-                screen.rightTopCorner().getZ()
-        );
+        BlockPos leftBottomCorner = screen.leftBottomCorner();
+        BlockPos leftTopCorner = screen.leftTopCorner();
+        BlockPos rightBottomCorner = screen.rightBottomCorner();
+        BlockPos rightTopCorner = screen.rightTopCorner();
 
-        Vec3 normal = leftTop.subtract(leftBottom).cross(rightBottom.subtract(leftBottom)).normalize();
+        double leftBottomCornerX = leftBottomCorner.getX();
+        double leftBottomCornerY = leftBottomCorner.getY();
+        double leftBottomCornerZ = leftBottomCorner.getZ();
 
-        double offset = 0.01;
-        leftBottom = leftBottom.add(normal.scale(offset));
-        leftTop = leftTop.add(normal.scale(offset));
-        rightBottom = rightBottom.add(normal.scale(offset));
-        rightTop = rightTop.add(normal.scale(offset));
+        double leftTopCornerX = leftTopCorner.getX();
+        double leftTopCornerY = leftTopCorner.getY();
+        double leftTopCornerZ = leftTopCorner.getZ();
+
+        double rightBottomCornerX = rightBottomCorner.getX();
+        double rightBottomCornerY = rightBottomCorner.getY();
+        double rightBottomCornerZ = rightBottomCorner.getZ();
+
+        double rightTopCornerX = rightTopCorner.getX();
+        double rightTopCornerY = rightTopCorner.getY();
+        double rightTopCornerZ = rightTopCorner.getZ();
+
+        double leftCornerDistX = leftTopCornerX - leftBottomCornerX;
+        double leftCornerDistY = leftTopCornerY - leftBottomCornerY;
+        double leftCornerDistZ = leftTopCornerZ - leftBottomCornerZ;
+
+        double rightCornerDistX = rightBottomCornerX - leftBottomCornerX;
+        double rightCornerDistY = rightBottomCornerY - leftBottomCornerY;
+        double rightCornerDistZ = rightBottomCornerZ - leftBottomCornerZ;
+
+        double normalX = leftCornerDistY * rightCornerDistZ - leftCornerDistZ * rightCornerDistY;
+        double normalY = leftCornerDistZ * rightCornerDistX - leftCornerDistX * rightCornerDistZ;
+        double normalZ = leftCornerDistX * rightCornerDistY - leftCornerDistY * rightCornerDistX;
+
+        double length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
+        normalX /= length;
+        normalY /= length;
+        normalZ /= length;
+
+        double againstZFighting = 0.01;
+        leftBottomCornerX += normalX * againstZFighting;
+        leftBottomCornerY += normalY * againstZFighting;
+        leftBottomCornerZ += normalZ * againstZFighting;
+
+        leftTopCornerX += normalX * againstZFighting;
+        leftTopCornerY += normalY * againstZFighting;
+        leftTopCornerZ += normalZ * againstZFighting;
+
+        rightBottomCornerX += normalX * againstZFighting;
+        rightBottomCornerY += normalY * againstZFighting;
+        rightBottomCornerZ += normalZ * againstZFighting;
+
+        rightTopCornerX += normalX * againstZFighting;
+        rightTopCornerY += normalY * againstZFighting;
+        rightTopCornerZ += normalZ * againstZFighting;
+
+        Matrix4f pose = poseStack.last().pose();
+        Matrix3f normal = poseStack.last().normal();
 
         vertexConsumer
-                .vertex(poseStack.last().pose(), (float)leftBottom.x, (float)leftBottom.y, (float)leftBottom.z)
+                .vertex(pose, (float)leftBottomCornerX, (float)leftBottomCornerY, (float)leftBottomCornerZ)
                 .color(255, 255, 255, 255)
                 .uv(1, 1)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
-                .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
+                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
                 .endVertex();
         vertexConsumer
-                .vertex(poseStack.last().pose(), (float)leftTop.x, (float)leftTop.y, (float)leftTop.z)
+                .vertex(pose, (float)leftTopCornerX, (float)leftTopCornerY, (float)leftTopCornerZ)
                 .color(255, 255, 255, 255)
                 .uv(1, 0)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
-                .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
+                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
                 .endVertex();
         vertexConsumer
-                .vertex(poseStack.last().pose(), (float)rightTop.x, (float)rightTop.y, (float)rightTop.z)
+                .vertex(pose, (float)rightTopCornerX, (float)rightTopCornerY, (float)rightTopCornerZ)
                 .color(255, 255, 255, 255)
                 .uv(0, 0)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
-                .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
+                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
                 .endVertex();
         vertexConsumer
-                .vertex(poseStack.last().pose(), (float)rightBottom.x, (float)rightBottom.y, (float)rightBottom.z)
+                .vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ)
                 .color(255, 255, 255, 255)
                 .uv(0, 1)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(15728880)
-                .normal(poseStack.last().normal(), (float)normal.x, (float)normal.y, (float)normal.z)
+                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
                 .endVertex();
     }
 }

@@ -88,7 +88,7 @@ public class NarutoRenderer {
 
     public void shutdown() {
         this.narutoAudioExecutor.shutdown();
-        this.narutoAudioExecutor.shutdown();
+        this.narutoVideoExecutor.shutdown();
 
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();
