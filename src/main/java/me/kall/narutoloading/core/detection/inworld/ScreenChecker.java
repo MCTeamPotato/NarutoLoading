@@ -22,10 +22,8 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
@@ -141,44 +139,13 @@ public class ScreenChecker {
 
                     Screen screen = new Screen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
 
-                    ScreenDelivery.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new ScreenPacket(screen));
-                    player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toString()), false);
+                    ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(screen));
+                    player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toLocalString()), false);
                 } else {
                     lastCorners.put(playerID, corner);
                     player.displayClientMessage(Component.translatable("info.narutoloading.set.first", currentCorner.toShortString()), false);
                 }
             }
-        }
-    }
-
-    public record Screen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
-        @Contract(" -> new")
-        public long @NotNull [] toLongArray() {
-            return new long[]{this.leftBottomCorner.asLong(), this.leftTopCorner.asLong(), this.rightBottomCorner.asLong(), this.rightTopCorner.asLong()};
-        }
-
-        @Contract("_, _ -> new")
-        public static @NotNull Screen from(long @NotNull [] corners, ResourceLocation dimension) {
-            return new Screen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof Screen screen) {
-                return screen.leftBottomCorner.equals(this.leftBottomCorner) && screen.leftTopCorner.equals(this.leftTopCorner) && screen.rightTopCorner.equals(this.rightTopCorner) && screen.rightBottomCorner.equals(this.rightBottomCorner) && screen.dimension.equals(this.dimension);
-            }
-
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(this.leftBottomCorner, this.leftTopCorner, this.rightBottomCorner, this.rightTopCorner, this.dimension);
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return Component.translatable("screen.narutoloading.arg", this.leftBottomCorner.toShortString(), this.leftTopCorner.toShortString(), this.rightBottomCorner.toShortString(), this.rightTopCorner.toShortString(), this.dimension.toString()).getString();
         }
     }
 }
