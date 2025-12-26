@@ -29,6 +29,7 @@ public final class NarutoLoading {
             forgeBus.addListener(NarutoRenderer.INSTANCE.windowSizeChecker::clientTick);
             forgeBus.addListener(NarutoRenderer.INSTANCE.keyChecker::clientTick);
             forgeBus.addListener(NarutoInWorldRenderer.INSTANCE::onRenderLevel);
+            forgeBus.addListener(NarutoInWorldRenderer.INSTANCE::onRenderTick);
 
             modBus.addListener(NarutoLoadingClient::onClientSetup);
         }

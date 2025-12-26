@@ -18,13 +18,21 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.TickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
     public static final NarutoInWorldRenderer INSTANCE = new NarutoInWorldRenderer();
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<ScreenChecker.Screen>> SCREENS = new Object2ObjectOpenHashMap<>();
+
+    public void onRenderTick(TickEvent.@NotNull RenderTickEvent event) {
+        if (event.phase == TickEvent.Phase.START && this.isRunning()) {
+            this.renderFrame(null);
+        }
+    }
 
     public void onRenderLevel(@NotNull RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
@@ -44,20 +52,20 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         for (ScreenChecker.Screen screen : screens) {
             poseStack.pushPose();
             poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-            renderImage(poseStack, bufferSource, this.nextFrame(), screen);
+            screen.renderImage(poseStack, bufferSource, this.nextFrame());
             poseStack.popPose();
         }
-
-        this.renderFrame(null);
     }
 
     @Override
-    public void renderFrame(GuiGraphics graphics) {
+    public void renderFrame(@Nullable GuiGraphics graphics) {
         if (this.isEnabled()) {
             this.lifetime.tick();
             this.keyChecker.reload();
             this.lifetime.lagSpikeRestart();
             this.lifetime.endRestart();
+        } else {
+            this.shutdown();
         }
     }
 
@@ -66,11 +74,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen instanceof GenericDirtMessageScreen) return false;
         if (VideoArgs.width() == 0 || VideoArgs.height() == 0) return false;
-        if (minecraft.level == null || !minecraft.isRunning()) {
-            this.shutdown();
-            return false;
-        }
-        return true;
+        return minecraft.level != null && minecraft.isRunning();
     }
 
     private static void renderImage(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation, ScreenChecker.@NotNull Screen screen) {

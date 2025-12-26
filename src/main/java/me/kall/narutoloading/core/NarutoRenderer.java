@@ -72,6 +72,8 @@ public class NarutoRenderer {
             this.lifetime.syncSoundEngine();
             this.lifetime.lagSpikeRestart();
             this.lifetime.endRestart();
+        } else {
+            this.shutdown();
         }
     }
 
@@ -79,11 +81,7 @@ public class NarutoRenderer {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen instanceof GenericDirtMessageScreen) return true;
         if (VideoArgs.width() == 0 || VideoArgs.height() == 0) return false;
-        if (minecraft.level != null || !minecraft.isRunning()) {
-            this.shutdown();
-            return false;
-        }
-        return true;
+        return minecraft.level == null && minecraft.isRunning();
     }
 
     public void shutdown() {
