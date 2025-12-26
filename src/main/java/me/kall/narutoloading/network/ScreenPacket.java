@@ -26,7 +26,7 @@ public class ScreenPacket {
     }
 
     public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> NarutoInWorldRenderer.SCREENS.computeIfAbsent(this.screen.dimension(), key -> new ObjectOpenHashSet<>()).add(this.screen));
+        ctx.get().enqueueWork(() -> NarutoInWorldRenderer.INSTANCE.screens.computeIfAbsent(this.screen.dimension(), key -> new ObjectOpenHashSet<>()).add(this.screen));
         ctx.get().setPacketHandled(true);
     }
 }

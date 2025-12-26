@@ -26,7 +26,8 @@ import org.joml.Matrix4f;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
     public static final NarutoInWorldRenderer INSTANCE = new NarutoInWorldRenderer();
-    public static final Object2ObjectMap<ResourceLocation, ObjectSet<ScreenChecker.Screen>> SCREENS = new Object2ObjectOpenHashMap<>();
+
+    public final Object2ObjectMap<ResourceLocation, ObjectSet<ScreenChecker.Screen>> screens = new Object2ObjectOpenHashMap<>();
 
     public void onRenderTick(TickEvent.@NotNull RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START && this.isRunning()) {
@@ -44,7 +45,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (level == null) return;
 
         ResourceLocation dimension = level.dimension().location();
-        ObjectSet<ScreenChecker.Screen> screens = SCREENS.get(dimension);
+        ObjectSet<ScreenChecker.Screen> screens = this.screens.get(dimension);
         if (screens == null) return;
 
         PoseStack poseStack = event.getPoseStack();
@@ -164,8 +165,6 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.keyChecker.reload();
             this.lifetime.lagSpikeRestart();
             this.lifetime.endRestart();
-        } else {
-            this.shutdown();
         }
     }
 
@@ -175,5 +174,11 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (minecraft.screen instanceof GenericDirtMessageScreen) return false;
         if (VideoArgs.width() == 0 || VideoArgs.height() == 0) return false;
         return minecraft.level != null && minecraft.isRunning();
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+        this.screens.clear();
     }
 }

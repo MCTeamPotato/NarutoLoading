@@ -2,10 +2,12 @@ package me.kall.narutoloading.core.detection.inworld;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.data.saved.Displayers;
 import me.kall.narutoloading.network.ScreenDelivery;
 import me.kall.narutoloading.network.ScreenPacket;
@@ -140,7 +142,6 @@ public class ScreenChecker {
                     Screen screen = new Screen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
 
                     ScreenDelivery.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new ScreenPacket(screen));
-                    NarutoInWorldRenderer.SCREENS.computeIfAbsent(dim, key -> new ObjectOpenHashSet<>()).add(screen);
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toString()), false);
                 } else {
                     lastCorners.put(playerID, corner);
