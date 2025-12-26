@@ -1,7 +1,5 @@
 package me.kall.narutoloading.core.detection.inworld;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
@@ -9,9 +7,8 @@ import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.data.saved.Displayers;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import me.kall.narutoloading.network.ScreenDelivery;
+import me.kall.narutoloading.network.ScreenPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -22,9 +19,9 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -142,6 +139,7 @@ public class ScreenChecker {
 
                     Screen screen = new Screen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
 
+                    ScreenDelivery.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new ScreenPacket(screen));
                     NarutoInWorldRenderer.SCREENS.computeIfAbsent(dim, key -> new ObjectOpenHashSet<>()).add(screen);
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toString()), false);
                 } else {
@@ -153,100 +151,14 @@ public class ScreenChecker {
     }
 
     public record Screen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
-        public void renderImage(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation) {
-            RenderType renderType = RenderType.entityTranslucentCull(textureLocation);
-            VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+        @Contract(" -> new")
+        public long @NotNull [] toLongArray() {
+            return new long[]{this.leftBottomCorner.asLong(), this.leftTopCorner.asLong(), this.rightBottomCorner.asLong(), this.rightTopCorner.asLong()};
+        }
 
-            BlockPos leftBottomCorner = this.leftBottomCorner();
-            BlockPos leftTopCorner = this.leftTopCorner();
-            BlockPos rightBottomCorner = this.rightBottomCorner();
-            BlockPos rightTopCorner = this.rightTopCorner();
-
-            double leftBottomCornerX = leftBottomCorner.getX();
-            double leftBottomCornerY = leftBottomCorner.getY();
-            double leftBottomCornerZ = leftBottomCorner.getZ();
-
-            double leftTopCornerX = leftTopCorner.getX();
-            double leftTopCornerY = leftTopCorner.getY();
-            double leftTopCornerZ = leftTopCorner.getZ();
-
-            double rightBottomCornerX = rightBottomCorner.getX();
-            double rightBottomCornerY = rightBottomCorner.getY();
-            double rightBottomCornerZ = rightBottomCorner.getZ();
-
-            double rightTopCornerX = rightTopCorner.getX();
-            double rightTopCornerY = rightTopCorner.getY();
-            double rightTopCornerZ = rightTopCorner.getZ();
-
-            double leftCornerDistX = leftTopCornerX - leftBottomCornerX;
-            double leftCornerDistY = leftTopCornerY - leftBottomCornerY;
-            double leftCornerDistZ = leftTopCornerZ - leftBottomCornerZ;
-
-            double rightCornerDistX = rightBottomCornerX - leftBottomCornerX;
-            double rightCornerDistY = rightBottomCornerY - leftBottomCornerY;
-            double rightCornerDistZ = rightBottomCornerZ - leftBottomCornerZ;
-
-            double normalX = leftCornerDistY * rightCornerDistZ - leftCornerDistZ * rightCornerDistY;
-            double normalY = leftCornerDistZ * rightCornerDistX - leftCornerDistX * rightCornerDistZ;
-            double normalZ = leftCornerDistX * rightCornerDistY - leftCornerDistY * rightCornerDistX;
-
-            double length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
-            normalX /= length;
-            normalY /= length;
-            normalZ /= length;
-
-            double againstZFighting = 0.01;
-            leftBottomCornerX += normalX * againstZFighting;
-            leftBottomCornerY += normalY * againstZFighting;
-            leftBottomCornerZ += normalZ * againstZFighting;
-
-            leftTopCornerX += normalX * againstZFighting;
-            leftTopCornerY += normalY * againstZFighting;
-            leftTopCornerZ += normalZ * againstZFighting;
-
-            rightBottomCornerX += normalX * againstZFighting;
-            rightBottomCornerY += normalY * againstZFighting;
-            rightBottomCornerZ += normalZ * againstZFighting;
-
-            rightTopCornerX += normalX * againstZFighting;
-            rightTopCornerY += normalY * againstZFighting;
-            rightTopCornerZ += normalZ * againstZFighting;
-
-            Matrix4f pose = poseStack.last().pose();
-            Matrix3f normal = poseStack.last().normal();
-
-            vertexConsumer
-                    .vertex(pose, (float)leftBottomCornerX, (float)leftBottomCornerY, (float)leftBottomCornerZ)
-                    .color(255, 255, 255, 255)
-                    .uv(1, 1)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY)
-                    .uv2(15728880)
-                    .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                    .endVertex();
-            vertexConsumer
-                    .vertex(pose, (float)leftTopCornerX, (float)leftTopCornerY, (float)leftTopCornerZ)
-                    .color(255, 255, 255, 255)
-                    .uv(1, 0)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY)
-                    .uv2(15728880)
-                    .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                    .endVertex();
-            vertexConsumer
-                    .vertex(pose, (float)rightTopCornerX, (float)rightTopCornerY, (float)rightTopCornerZ)
-                    .color(255, 255, 255, 255)
-                    .uv(0, 0)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY)
-                    .uv2(15728880)
-                    .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                    .endVertex();
-            vertexConsumer
-                    .vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ)
-                    .color(255, 255, 255, 255)
-                    .uv(0, 1)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY)
-                    .uv2(15728880)
-                    .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                    .endVertex();
+        @Contract("_, _ -> new")
+        public static @NotNull Screen from(long @NotNull [] corners, ResourceLocation dimension) {
+            return new Screen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
         }
 
         @Override
