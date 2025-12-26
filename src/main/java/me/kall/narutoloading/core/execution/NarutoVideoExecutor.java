@@ -105,6 +105,7 @@ public final class NarutoVideoExecutor {
         boolean hasSkipping = false;
 
         while (frame != null && ((double) frame.frameIndex()) / ((double) VideoArgs.fps()) < elapsedSeconds) {
+            frame.image.close();
             frame = this.frameQueue.poll();
             hasSkipping = true;
         }
