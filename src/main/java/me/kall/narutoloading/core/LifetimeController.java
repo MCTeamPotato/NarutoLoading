@@ -14,7 +14,7 @@ public final class LifetimeController {
     private boolean running = false;
 
     private boolean lagSpikeDetected = false;
-    private int lagSpikeCooldown = 200;
+    private int lagSpikeCooldown = 100;
 
     private volatile boolean syncSoundEngine = false;
 
@@ -104,15 +104,15 @@ public final class LifetimeController {
         if (this.shouldRestartForLag()) {
             String sec = String.valueOf(this.elapsedSeconds());
             NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
-            this.renderer.narutoVideoExecutor.shutdown(this.frameCount());
-            this.renderer.narutoVideoExecutor.setup(sec);
+            this.renderer.video.shutdown((long) (this.elapsedSeconds() * VideoArgs.fps()));
+            this.renderer.video.setup(sec);
         }
     }
 
     public void syncSoundEngine() {
         if (this.syncSoundEngine) {
             this.setSyncSoundEngine(false);
-            this.renderer.narutoAudioExecutor.setup(String.valueOf(this.elapsedSeconds()));
+            this.renderer.audio.setup(String.valueOf(this.elapsedSeconds()));
         }
     }
 }

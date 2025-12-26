@@ -14,7 +14,7 @@ public abstract class MixinSoundEngine {
     @Inject(method = "reload", at = @At("HEAD"))
     private void shutdown(CallbackInfo ci) {
         if (FFmpeg.available()) {
-            NarutoRenderer.INSTANCE.narutoAudioExecutor.shutdown();
+            NarutoRenderer.INSTANCE.audio.shutdown();
             NarutoLoading.LOGGER.info("Minecraft SoundEngine starts to load. Shutting down NarutoAudioExecutor for the OpenAL context synchronization.");
         }
     }

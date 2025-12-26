@@ -1,2 +1,2 @@
-# 1.3.4
-- Added automatic random video rolling: When a video finishes playing, the mod now automatically selects and plays a different random video from the narutoloading-sources folder instead of replaying the same one.
+# 1.4.0
+- In-world video & audio playing!

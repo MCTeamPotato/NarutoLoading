@@ -59,8 +59,8 @@ public final class WindowSizeChecker {
             String currentSecond = String.valueOf(renderer.lifetime.elapsedSeconds());
             NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", currentSecond);
 
-            this.renderer.narutoVideoExecutor.shutdown(renderer.lifetime.frameCount());
-            this.renderer.narutoVideoExecutor.setup(currentSecond);
+            this.renderer.video.shutdown(renderer.lifetime.frameCount());
+            this.renderer.video.setup(currentSecond);
 
             if (this.renderer.dynamicTexture != null) this.renderer.dynamicTexture.close();
 

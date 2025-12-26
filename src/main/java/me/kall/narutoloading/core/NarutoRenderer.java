@@ -20,35 +20,36 @@ public class NarutoRenderer {
     public @Nullable DynamicTexture dynamicTexture;
     public @Nullable ResourceLocation textureLocation;
 
-    public final NarutoAudioExecutor narutoAudioExecutor = new NarutoAudioExecutor();
-    public final NarutoVideoExecutor narutoVideoExecutor = new NarutoVideoExecutor(this);
+    public final NarutoAudioExecutor audio = new NarutoAudioExecutor();
+    public final NarutoVideoExecutor video = new NarutoVideoExecutor(this);
     public final LifetimeController lifetime = new LifetimeController(this);
     public final WindowSizeChecker windowSizeChecker = new WindowSizeChecker(this);
     public final KeyChecker keyChecker = new KeyChecker(this);
 
     public void setup() {
+        if (!this.isEnabled()) return;
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(VideoArgs.width(), VideoArgs.height(), false);
         if (this.textureLocation == null) {
             this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
             NarutoLoading.LOGGER.info("NarutoRenderer texture location initialized: {}", this.textureLocation.toString());
         }
-        this.narutoAudioExecutor.setup();
-        this.narutoVideoExecutor.setup();
+        this.audio.setup();
+        this.video.setup();
         this.lifetime.start();
     }
 
     public ResourceLocation nextFrame() {
+        if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime.shouldUpdateFrame(VideoArgs.fps())) {
-            NativeImage frame = this.narutoVideoExecutor.fetchImage(this.lifetime.elapsedSeconds());
+            NativeImage frame = this.video.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
                 frame.close();
             }
         }
-
         return this.textureLocation;
     }
 
@@ -72,8 +73,6 @@ public class NarutoRenderer {
             this.lifetime.syncSoundEngine();
             this.lifetime.lagSpikeRestart();
             this.lifetime.endRestart();
-        } else {
-            this.shutdown();
         }
     }
 
@@ -85,8 +84,8 @@ public class NarutoRenderer {
     }
 
     public void shutdown() {
-        this.narutoAudioExecutor.shutdown();
-        this.narutoVideoExecutor.shutdown();
+        this.audio.shutdown();
+        this.video.shutdown();
 
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();
