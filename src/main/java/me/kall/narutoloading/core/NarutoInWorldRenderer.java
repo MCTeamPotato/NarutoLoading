@@ -31,11 +31,13 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     public void onRenderTick(TickEvent.@NotNull RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START && this.isRunning()) {
             this.renderFrame(null);
+            if (Minecraft.getInstance().level == null) this.shutdown();
         }
     }
 
     public void onRenderLevel(@NotNull RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
+        if (!this.isRunning()) return;
 
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
@@ -95,11 +97,13 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         double normalZ = leftCornerDistX * rightCornerDistY - leftCornerDistY * rightCornerDistX;
 
         double length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
+
         normalX /= length;
         normalY /= length;
         normalZ /= length;
 
         double againstZFighting = 0.01;
+
         leftBottomCornerX += normalX * againstZFighting;
         leftBottomCornerY += normalY * againstZFighting;
         leftBottomCornerZ += normalZ * againstZFighting;
