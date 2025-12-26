@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.data.saved.Displayers;
+import me.kall.narutoloading.data.saved.Screens;
 import me.kall.narutoloading.network.ScreenDelivery;
 import me.kall.narutoloading.network.ScreenPacket;
 import net.minecraft.core.BlockPos;
@@ -138,7 +139,7 @@ public class ScreenChecker {
                     }
 
                     Screen screen = new Screen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
-
+                    Screens.get(level).addScreen(screen);
                     ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(screen));
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toLocalString()), false);
                 } else {
