@@ -12,28 +12,19 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class NarutoRenderer {
+public class NarutoRenderer {
     public static final NarutoRenderer INSTANCE = new NarutoRenderer();
 
     public @Nullable DynamicTexture dynamicTexture;
     public @Nullable ResourceLocation textureLocation;
 
-    public final LifetimeController lifetime = new LifetimeController();
-
-    private static @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
-        NativeImage image = new NativeImage(VideoArgs.width(), VideoArgs.height(), false);
-        for (int i = 0; i < buffer.length; i += 3) {
-            int b = buffer[i] & 0xFF;
-            int g = buffer[i + 1] & 0xFF;
-            int r = buffer[i + 2] & 0xFF;
-            int argb = 0xFF000000 | (r << 16) | (g << 8) | b;
-            image.setPixelRGBA(i / 3 % VideoArgs.width(), i / 3 / VideoArgs.width(), argb);
-        }
-        return image;
-    }
+    public final NarutoAudioExecutor narutoAudioExecutor = new NarutoAudioExecutor();
+    public final NarutoVideoExecutor narutoVideoExecutor = new NarutoVideoExecutor();
+    public final LifetimeController lifetime = new LifetimeController(this.narutoAudioExecutor, this.narutoVideoExecutor);
+    public final WindowSizeChecker windowSizeChecker = new WindowSizeChecker();
+    public final KeyChecker keyChecker = new KeyChecker();
 
     public void setup() {
         if (this.dynamicTexture != null) return;
@@ -42,20 +33,19 @@ public final class NarutoRenderer {
             this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
             NarutoLoading.LOGGER.info("NarutoRenderer texture location initialized: {}", this.textureLocation.toString());
         }
-        NarutoAudioExecutor.INSTANCE.setup();
-        NarutoVideoExecutor.INSTANCE.setup();
+        this.narutoAudioExecutor.setup();
+        this.narutoVideoExecutor.setup();
         this.lifetime.start();
     }
 
-    private ResourceLocation nextFrame() {
+    public ResourceLocation nextFrame() {
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime.shouldUpdateFrame(VideoArgs.fps())) {
-            byte[] frame = NarutoVideoExecutor.INSTANCE.fetchImage(this.lifetime.elapsedSeconds());
+            NativeImage frame = this.narutoVideoExecutor.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
-                NativeImage image = buildImage(frame);
-                this.dynamicTexture.setPixels(image);
+                this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
-                image.close();
+                frame.close();
             }
         }
 
@@ -77,15 +67,15 @@ public final class NarutoRenderer {
 
             graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
 
-            KeyChecker.reload(this);
-            WindowSizeChecker.resize(this);
+            this.keyChecker.reload(this);
+            this.windowSizeChecker.resize(this);
             this.lifetime.syncSoundEngine();
             this.lifetime.lagSpikeRestart();
             this.lifetime.endRestart();
         }
     }
 
-    private boolean isEnabled() {
+    public boolean isEnabled() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen instanceof GenericDirtMessageScreen) return true;
         if (VideoArgs.width() == 0 || VideoArgs.height() == 0) return false;
@@ -97,8 +87,8 @@ public final class NarutoRenderer {
     }
 
     public void shutdown() {
-        NarutoAudioExecutor.INSTANCE.shutdown();
-        NarutoVideoExecutor.INSTANCE.shutdown();
+        this.narutoAudioExecutor.shutdown();
+        this.narutoAudioExecutor.shutdown();
 
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();

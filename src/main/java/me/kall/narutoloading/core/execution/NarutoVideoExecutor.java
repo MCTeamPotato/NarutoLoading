@@ -1,10 +1,12 @@
 package me.kall.narutoloading.core.execution;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.data.FFmpeg;
 import me.kall.narutoloading.data.NarutoConfig;
 import me.kall.narutoloading.data.VideoArgs;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
@@ -16,8 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class NarutoVideoExecutor {
-    public static final NarutoVideoExecutor INSTANCE = new NarutoVideoExecutor();
-
     private @Nullable LinkedBlockingQueue<Frame> frameQueue;
 
     private @Nullable ExecutorService executor;
@@ -66,7 +66,7 @@ public final class NarutoVideoExecutor {
                     byteBuffer.get(buffer);
 
                     this.frameIndex++;
-                    this.frameQueue.put(new Frame(this.frameIndex, buffer));
+                    this.frameQueue.put(new Frame(this.frameIndex, buildImage(buffer)));
                 }
             } catch (Exception exception) {
                 if (NarutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
@@ -75,11 +75,23 @@ public final class NarutoVideoExecutor {
         NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully");
     }
 
+    private static @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
+        NativeImage image = new NativeImage(VideoArgs.width(), VideoArgs.height(), false);
+        for (int i = 0; i < buffer.length; i += 3) {
+            int b = buffer[i] & 0xFF;
+            int g = buffer[i + 1] & 0xFF;
+            int r = buffer[i + 2] & 0xFF;
+            int argb = 0xFF000000 | (r << 16) | (g << 8) | b;
+            image.setPixelRGBA(i / 3 % VideoArgs.width(), i / 3 / VideoArgs.width(), argb);
+        }
+        return image;
+    }
+
     public void setup() {
         setup("0");
     }
 
-    public byte @Nullable [] fetchImage(double elapsedSeconds) {
+    public @Nullable NativeImage fetchImage(double elapsedSeconds) {
         if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
         Frame frame = this.frameQueue.poll();
         if (frame == null) return null;
@@ -93,7 +105,7 @@ public final class NarutoVideoExecutor {
 
         if (hasSkipping && frame == null) NarutoRenderer.INSTANCE.lifetime.detectLagSpike();
 
-        return frame == null ? null : frame.buffer();
+        return frame == null ? null : frame.image();
     }
 
     public void shutdown(long frameElapsed) {
@@ -137,5 +149,5 @@ public final class NarutoVideoExecutor {
         this.shutdown(0L);
     }
 
-    private record Frame(long frameIndex, byte[] buffer) {}
+    private record Frame(long frameIndex, NativeImage image) {}
 }

@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.clear;
 
-import me.kall.narutoloading.core.detection.MouseChecker;
+import me.kall.narutoloading.core.detection.fade.MouseChecker;
 import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;

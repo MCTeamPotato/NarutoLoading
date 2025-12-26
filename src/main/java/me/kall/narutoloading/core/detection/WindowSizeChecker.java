@@ -3,23 +3,18 @@ package me.kall.narutoloading.core.detection;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
 import me.kall.narutoloading.data.VideoArgs;
-import me.kall.narutoloading.core.execution.NarutoVideoExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.NotNull;
 
-@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class WindowSizeChecker {
-    private static int lastWidth = -1;
-    private static int lastHeight = -1;
+    private int lastWidth = -1;
+    private int lastHeight = -1;
 
-    private static boolean resizable = false;
+    private boolean resizable = false;
 
-    @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
+    public void clientTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -47,20 +42,20 @@ public final class WindowSizeChecker {
         }
     }
 
-    private static void reset() {
+    private void reset() {
         lastWidth = -1;
         lastHeight = -1;
         resizable = false;
     }
 
-    public static void resize(NarutoRenderer renderer) {
+    public void resize(NarutoRenderer renderer) {
         if (resizable){
             resizable = false;
             String currentSecond = String.valueOf(renderer.lifetime.elapsedSeconds());
             NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", currentSecond);
 
-            NarutoVideoExecutor.INSTANCE.shutdown(renderer.lifetime.frameCount());
-            NarutoVideoExecutor.INSTANCE.setup(currentSecond);
+            renderer.narutoVideoExecutor.shutdown(renderer.lifetime.frameCount());
+            renderer.narutoVideoExecutor.setup(currentSecond);
 
             if (renderer.dynamicTexture != null) renderer.dynamicTexture.close();
 

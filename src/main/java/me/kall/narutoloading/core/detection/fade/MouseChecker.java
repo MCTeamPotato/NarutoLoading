@@ -1,4 +1,4 @@
-package me.kall.narutoloading.core.detection;
+package me.kall.narutoloading.core.detection.fade;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;

@@ -2,7 +2,6 @@ package me.kall.narutoloading.mixin.impl.sound;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.core.execution.NarutoAudioExecutor;
 import me.kall.narutoloading.data.FFmpeg;
 import net.minecraft.client.sounds.SoundEngine;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +14,7 @@ public abstract class MixinSoundEngine {
     @Inject(method = "reload", at = @At("HEAD"))
     private void shutdown(CallbackInfo ci) {
         if (FFmpeg.available()) {
-            NarutoAudioExecutor.INSTANCE.shutdown();
+            NarutoRenderer.INSTANCE.narutoAudioExecutor.shutdown();
             NarutoLoading.LOGGER.info("Minecraft SoundEngine starts to load. Shutting down NarutoAudioExecutor for the OpenAL context synchronization.");
         }
     }
