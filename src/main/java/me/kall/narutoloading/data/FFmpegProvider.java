@@ -18,8 +18,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public final class FFmpegProvider {
-    public @Nullable String ffmpeg;
-    public @Nullable String ffprobe;
+    public volatile @Nullable String ffmpeg;
+    public volatile @Nullable String ffprobe;
 
     private boolean fromDownload = false;
     private volatile boolean availability;

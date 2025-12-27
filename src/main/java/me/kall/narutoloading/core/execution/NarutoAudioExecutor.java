@@ -2,7 +2,6 @@ package me.kall.narutoloading.core.execution;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.FFmpegProvider;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -63,7 +62,7 @@ public final class NarutoAudioExecutor {
         this.executor.submit(() -> {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(
-                        FFmpegProvider.ffmpeg,
+                        this.renderer.ffmpegProvider.ffmpeg,
                         "-ss", sec,
                         "-i", this.renderer.narutoConfig.audio.isEmpty() ? this.renderer.narutoConfig.video : this.renderer.narutoConfig.audio,
                         "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"

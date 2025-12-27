@@ -141,7 +141,9 @@ public final class NarutoVideoExecutor {
         }
 
         if (this.frameQueue != null) {
-            this.frameQueue.clear();
+            for (Frame frame : this.frameQueue) {
+                frame.image.close();
+            }
             this.frameQueue = null;
         }
 
