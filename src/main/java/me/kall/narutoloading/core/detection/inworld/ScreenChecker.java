@@ -2,14 +2,14 @@ package me.kall.narutoloading.core.detection.inworld;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
+import me.kall.duplicationless.event.BlockChangeEvent;
+import me.kall.duplicationless.util.Executor;
 import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.data.saved.Displayers;
 import me.kall.narutoloading.data.saved.Screens;
+import me.kall.narutoloading.init.NarutoBlocks;
 import me.kall.narutoloading.network.ScreenDelivery;
 import me.kall.narutoloading.network.ScreenPacket;
 import net.minecraft.core.BlockPos;
@@ -140,13 +140,34 @@ public class ScreenChecker {
 
                     Screen screen = new Screen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
                     Screens.get(level).addScreen(screen);
-                    ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(screen));
+                    ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(screen, false));
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toLocalString()), false);
                 } else {
                     lastCorners.put(playerID, corner);
                     player.displayClientMessage(Component.translatable("info.narutoloading.set.first", currentCorner.toShortString()), false);
                 }
             }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void blockChange(@NotNull BlockChangeEvent event) {
+        ServerLevel level = event.level();
+        ResourceLocation dimension = level.dimension().location();
+        long block = event.blockPos();
+        if (event.oldState().is(NarutoBlocks.DISPLAYER.get())) {
+            Executor.runAfter(1, () -> {
+                ObjectSet<Screen> screens = Screens.get(level).screens.get(dimension);
+                if (screens == null || screens.isEmpty()) return;
+                ObjectIterator<Screen> screenIterator = screens.iterator();
+                while (screenIterator.hasNext()) {
+                    Screen nextScreen = screenIterator.next();
+                    if (nextScreen.involved().contains(block)) {
+                        screenIterator.remove();
+                        ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(nextScreen, true));
+                    }
+                }
+            });
         }
     }
 }

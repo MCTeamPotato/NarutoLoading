@@ -27,7 +27,7 @@ public class Screens extends SavedData {
     private static final String DIMENSION_KEY = "Dimension";
     private static final String CORNERS_KEY = "Corners";
 
-    private final Object2ObjectMap<ResourceLocation, ObjectSet<Screen>> screens = new Object2ObjectOpenHashMap<>();
+    public final Object2ObjectMap<ResourceLocation, ObjectSet<Screen>> screens = new Object2ObjectOpenHashMap<>();
 
     public static @NotNull Screens load(@NotNull CompoundTag tag) {
         Screens screens = new Screens();
@@ -85,7 +85,7 @@ public class Screens extends SavedData {
             PacketDistributor.PacketTarget packetTarget = PacketDistributor.PLAYER.with(() -> player);
             for (ObjectSet<Screen> screenSet : get(level).screens.values()) {
                 for (Screen screen : screenSet) {
-                    ScreenDelivery.INSTANCE.send(packetTarget, new ScreenPacket(screen));
+                    ScreenDelivery.INSTANCE.send(packetTarget, new ScreenPacket(screen, false));
                 }
             }
         }

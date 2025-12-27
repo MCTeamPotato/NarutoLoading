@@ -9,7 +9,6 @@ public final class LifetimeController {
     private long lastFrameTime = 0L;
     private long startTime = -1L;
     private long elapsedTime = 0L;
-    private long frameCount = 0L;
 
     private boolean running = false;
 
@@ -30,7 +29,6 @@ public final class LifetimeController {
         if (this.startTime == -1L) this.startTime = now;
 
         this.elapsedTime = now - this.startTime;
-        this.frameCount++;
     }
 
     public void setSyncSoundEngine(boolean syncSoundEngine) {
@@ -69,7 +67,6 @@ public final class LifetimeController {
         this.running = true;
         this.startTime = -1L;
         this.elapsedTime = 0L;
-        this.frameCount = 0L;
         this.lastFrameTime = 0L;
     }
 
@@ -83,10 +80,6 @@ public final class LifetimeController {
 
     public double elapsedSeconds() {
         return (double) this.elapsedTime / 1000D;
-    }
-
-    public long frameCount() {
-        return this.frameCount;
     }
 
     public void endRestart() {
