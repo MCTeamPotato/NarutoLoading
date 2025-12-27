@@ -2,8 +2,6 @@ package me.kall.narutoloading.gui;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.FFmpeg;
-import me.kall.narutoloading.data.NarutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -20,15 +18,14 @@ import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class SourcesSelectionScreen extends Screen {
     private final Screen lastScreen;
+    protected EditBox videoBox;
+    protected EditBox audioBox;
 
-    private EditBox videoBox;
-    private EditBox audioBox;
-
-    private static final Component SCREEN = Component.translatable("screen.narutoloading.selection");
-    private static final Component DONE = Component.translatable("button.narutoloading.done");
-    private static final Component CANCEL = Component.translatable("button.narutoloading.cancel");
-    private static final Component VIDEO = Component.translatable("box.narutoloading.video");
-    private static final Component AUDIO = Component.translatable("box.narutoloading.audio");
+    public static final Component SCREEN = Component.translatable("screen.narutoloading.selection");
+    public static final Component DONE = Component.translatable("button.narutoloading.done");
+    public static final Component CANCEL = Component.translatable("button.narutoloading.cancel");
+    public static final Component VIDEO = Component.translatable("box.narutoloading.video");
+    public static final Component AUDIO = Component.translatable("box.narutoloading.audio");
 
     public SourcesSelectionScreen(Screen lastScreen) {
         super(SCREEN);
@@ -46,12 +43,12 @@ public class SourcesSelectionScreen extends Screen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(256);
-        this.videoBox.setValue(NarutoConfig.videoName);
+        this.videoBox.setValue(NarutoRenderer.INSTANCE.narutoConfig.videoName);
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY + spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(256);
-        this.audioBox.setValue(NarutoConfig.audioName);
+        this.audioBox.setValue(NarutoRenderer.INSTANCE.narutoConfig.audioName);
         this.addRenderableWidget(this.audioBox);
 
         int buttonWidth = 80;
@@ -59,12 +56,25 @@ public class SourcesSelectionScreen extends Screen {
         int buttonY = centerY + spacing * 2 + 10;
 
         Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, buttonY, buttonWidth, buttonHeight).build();
-        Button cancel = Button.builder(CANCEL, button -> Minecraft.getInstance().setScreen(this.lastScreen)).bounds(centerX + 5, buttonY, buttonWidth, buttonHeight).build();
+        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, buttonY, buttonWidth, buttonHeight).build();
 
         this.addRenderableWidget(done);
         this.addRenderableWidget(cancel);
 
         this.setInitialFocus(this.videoBox);
+    }
+
+    protected void onCancel() {
+        Minecraft.getInstance().setScreen(this.lastScreen);
+    }
+
+    protected void onDone() {
+        String video = this.videoBox.getValue();
+        String audio = this.audioBox.getValue();
+        NarutoRenderer.INSTANCE.narutoConfig.config.put("videoFileName", video).put("audioFileName", audio).saveToFile();
+        NarutoRenderer.INSTANCE.shutdown();
+        NarutoRenderer.INSTANCE.setup();
+        Minecraft.getInstance().setScreen(this.lastScreen);
     }
 
     @Override
@@ -86,20 +96,10 @@ public class SourcesSelectionScreen extends Screen {
         graphics.drawCenteredString(this.font, AUDIO, centerX, this.audioBox.getY() - 12, 0xFFFFFF);
     }
 
-    private void onDone() {
-        String video = this.videoBox.getValue();
-        String audio = this.audioBox.getValue();
-        NarutoConfig.config.put("videoFileName", video).put("audioFileName", audio).saveToFile();
-        NarutoConfig.init();
-        FFmpeg.init();
-        NarutoRenderer.INSTANCE.shutdown();
-        NarutoRenderer.INSTANCE.setup();
-        Minecraft.getInstance().setScreen(this.lastScreen);
-    }
-
     @Override
     public void onClose() {
         Minecraft.getInstance().setScreen(this.lastScreen);
+        super.onClose();
     }
 
     @Override
@@ -110,7 +110,7 @@ public class SourcesSelectionScreen extends Screen {
     public static int screenTriggerable = 0;
 
     @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
+    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
         Minecraft mc = Minecraft.getInstance();
@@ -121,7 +121,7 @@ public class SourcesSelectionScreen extends Screen {
         }
 
         long window = mc.getWindow().getWindow();
-        int state = GLFW.glfwGetKey(window, NarutoConfig.reload);
+        int state = GLFW.glfwGetKey(window, NarutoRenderer.INSTANCE.narutoConfig.reload);
         int stateCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
 
         if (state == GLFW.GLFW_PRESS && stateCtrl == GLFW.GLFW_PRESS && !(mc.screen instanceof SourcesSelectionScreen)) {

@@ -1,7 +1,6 @@
 package me.kall.narutoloading.mixin.impl.overlay;
 
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.FFmpeg;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.LoadingOverlay;
 import net.minecraft.client.renderer.RenderType;
@@ -20,24 +19,24 @@ public abstract class MixinLoadingOverlay {
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
     private void logoByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
-        if (FFmpeg.available()) return;
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()) return;
         instance.blit(atlasLocation,x, y, uOffset, vOffset, width, height, textureWidth, textureHeight);
     }
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/LoadingOverlay;drawProgressBar(Lnet/minecraft/client/gui/GuiGraphics;IIIIF)V"))
     private void barByeBye(LoadingOverlay instance, GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick) {
-        if (FFmpeg.available()) return;
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()) return;
         this.drawProgressBar(guiGraphics, minX, minY, maxX, maxY, partialTick);
     }
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;fill(Lnet/minecraft/client/renderer/RenderType;IIIII)V"))
     private void bgByeBye(GuiGraphics instance, RenderType renderType, int minX, int minY, int maxX, int maxY, int color) {
-        if (FFmpeg.available()) return;
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()) return;
         instance.fill(renderType, minX, minY, maxX, maxY, color);
     }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (FFmpeg.available()) NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()) NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
     }
 }

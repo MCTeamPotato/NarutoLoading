@@ -1,7 +1,6 @@
 package me.kall.narutoloading.mixin.impl.screen;
 
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.FFmpeg;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.PanoramaRenderer;
@@ -16,18 +15,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinTitleScreen {
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PanoramaRenderer;render(FF)V"))
     private void panoramaByeBye(PanoramaRenderer instance, float f, float deltaT) {
-        if (FFmpeg.available()) return;
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()) return;
         instance.render(f, deltaT);
     }
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
     private void panoramaByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
-        if (FFmpeg.available()) return;
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()) return;
         instance.blit(atlasLocation, x, y, width, height, uOffset, vOffset, uWidth, vHeight, textureWidth, textureHeight);
     }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (FFmpeg.available()) NarutoRenderer.INSTANCE.renderFrame(graphics);
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()) NarutoRenderer.INSTANCE.renderFrame(graphics);
     }
 }

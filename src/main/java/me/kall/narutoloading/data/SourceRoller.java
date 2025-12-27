@@ -22,39 +22,17 @@ import java.util.stream.Stream;
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class SourceRoller {
     private static final Path SOURCES_ROOT = FMLLoader.getGamePath().resolve("config").resolve("narutoloading-sources").toAbsolutePath();
-
     private static final String VIDEO_FILE_NAME = "video.mp4";
     private static final String AUDIO_FILE_NAME = "audio.mp3";
 
-    public static int sourceRollable = 0;
+    private Path lastSelectedFolder = null;
+    private final NarutoRenderer renderer;
 
-    private static Path lastSelectedFolder = null;
-
-    @SubscribeEvent
-    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-
-        Minecraft mc = Minecraft.getInstance();
-
-        if (sourceRollable > 0) {
-            sourceRollable--;
-            return;
-        }
-
-        long window = mc.getWindow().getWindow();
-        int state = GLFW.glfwGetKey(window, NarutoConfig.reload);
-        int stateShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT);
-
-        if (state == GLFW.GLFW_PRESS && stateShift == GLFW.GLFW_PRESS) {
-            sourceRollable = 20;
-            SourceRoller.init();
-            FFmpeg.init();
-            NarutoRenderer.INSTANCE.shutdown();
-            NarutoRenderer.INSTANCE.setup();
-        }
+    public SourceRoller(NarutoRenderer renderer) {
+        this.renderer = renderer;
     }
 
-    public static void init() {
+    public void init() {
         if (!Files.isDirectory(SOURCES_ROOT)) {
             NarutoLoading.LOGGER.info("narutoloading-sources directory not found.");
             return;
@@ -63,7 +41,7 @@ public final class SourceRoller {
         roll();
     }
 
-    private static void roll() {
+    private void roll() {
         List<Path> validFolders = sources();
 
         if (validFolders.isEmpty()) {
@@ -78,8 +56,8 @@ public final class SourceRoller {
         }
 
         List<Path> candidates = new ArrayList<>(validFolders);
-        if (lastSelectedFolder != null) {
-            candidates.removeIf(p -> p.getFileName().equals(lastSelectedFolder.getFileName()));
+        if (this.lastSelectedFolder != null) {
+            candidates.removeIf(p -> p.getFileName().equals(this.lastSelectedFolder.getFileName()));
         }
 
         if (candidates.isEmpty()) {
@@ -91,17 +69,17 @@ public final class SourceRoller {
         selectAndSave(selectedFolder);
     }
 
-    private static void selectAndSave(@NotNull Path selectedFolder) {
-        lastSelectedFolder = selectedFolder;
+    private void selectAndSave(@NotNull Path selectedFolder) {
+        this.lastSelectedFolder = selectedFolder;
 
         String relativeVideo = "narutoloading-sources/" + selectedFolder.getFileName() + "/" + VIDEO_FILE_NAME;
         String relativeAudio = Files.exists(selectedFolder.resolve(AUDIO_FILE_NAME)) ? "narutoloading-sources/" + selectedFolder.getFileName() + "/" + AUDIO_FILE_NAME : "";
 
         NarutoLoading.LOGGER.info("SourceRoller selected: folder={}, video={}, audio={}", selectedFolder.getFileName(), relativeVideo, relativeAudio.isEmpty() ? "(video embedded)" : relativeAudio);
 
-        NarutoConfig.config.put("videoFileName", relativeVideo).put("audioFileName", relativeAudio).saveToFile();
+        this.renderer.narutoConfig.config.put("videoFileName", relativeVideo).put("audioFileName", relativeAudio).saveToFile();
 
-        NarutoConfig.init();
+        this.renderer.narutoConfig.init();
     }
 
     private static @NotNull List<Path> sources() {
@@ -117,5 +95,29 @@ public final class SourceRoller {
         }
 
         return valid;
+    }
+
+    public static int sourceRollable = 0;
+
+    @SubscribeEvent
+    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
+
+        Minecraft mc = Minecraft.getInstance();
+
+        if (sourceRollable > 0) {
+            sourceRollable--;
+            return;
+        }
+
+        long window = mc.getWindow().getWindow();
+        int state = GLFW.glfwGetKey(window, NarutoRenderer.INSTANCE.narutoConfig.reload);
+        int stateShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT);
+
+        if (state == GLFW.GLFW_PRESS && stateShift == GLFW.GLFW_PRESS) {
+            sourceRollable = 20;
+            NarutoRenderer.INSTANCE.shutdown();
+            NarutoRenderer.INSTANCE.setup();
+        }
     }
 }

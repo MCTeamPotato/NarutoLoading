@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.core.detection.inworld.Screen;
+import me.kall.narutoloading.core.detection.inworld.InWorldScreen;
 import me.kall.narutoloading.network.ScreenDelivery;
 import me.kall.narutoloading.network.ScreenPacket;
 import net.minecraft.nbt.CompoundTag;
@@ -26,8 +26,10 @@ public class Screens extends SavedData {
     private static final String SCREENS_KEY = "Screens";
     private static final String DIMENSION_KEY = "Dimension";
     private static final String CORNERS_KEY = "Corners";
+    private static final String VIDEO_KEY = "Video";
+    private static final String AUDIO_KEY = "Audio";
 
-    public final Object2ObjectMap<ResourceLocation, ObjectSet<Screen>> screens = new Object2ObjectOpenHashMap<>();
+    public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
 
     public static @NotNull Screens load(@NotNull CompoundTag tag) {
         Screens screens = new Screens();
@@ -36,7 +38,7 @@ public class Screens extends SavedData {
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(Screen.from(screenTag.getLongArray(CORNERS_KEY), dimension));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY)));
         }
 
         return screens;
@@ -46,33 +48,21 @@ public class Screens extends SavedData {
     public @NotNull CompoundTag save(@NotNull CompoundTag tag) {
         ListTag screensList = new ListTag();
 
-        for (Object2ObjectMap.Entry<ResourceLocation, ObjectSet<Screen>> entry : screens.object2ObjectEntrySet()) {
+        for (Object2ObjectMap.Entry<ResourceLocation, ObjectSet<InWorldScreen>> entry : screens.object2ObjectEntrySet()) {
             ResourceLocation dimension = entry.getKey();
 
-            for (Screen screen : entry.getValue()) {
+            for (InWorldScreen inWorldScreen : entry.getValue()) {
                 CompoundTag screenTag = new CompoundTag();
                 screenTag.putString(DIMENSION_KEY, dimension.toString());
-                screenTag.putLongArray(CORNERS_KEY, screen.toLongArray());
+                screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
+                screenTag.putString(VIDEO_KEY, inWorldScreen.video);
+                screenTag.putString(AUDIO_KEY, inWorldScreen.audio);
                 screensList.add(screenTag);
             }
         }
 
         tag.put(SCREENS_KEY, screensList);
         return tag;
-    }
-
-    public void addScreen(@NotNull Screen screen) {
-        this.screens.computeIfAbsent(screen.dimension(), key -> new ObjectOpenHashSet<>()).add(screen);
-        this.setDirty();
-    }
-
-    public void removeScreen(@NotNull Screen screen) {
-        ObjectSet<Screen> screenSet = this.screens.get(screen.dimension());
-        if (screenSet != null) {
-            screenSet.remove(screen);
-            if (screenSet.isEmpty()) this.screens.remove(screen.dimension());
-            this.setDirty();
-        }
     }
 
     public static @NotNull Screens get(@NotNull ServerLevel level) {
@@ -83,9 +73,9 @@ public class Screens extends SavedData {
     public static void syncScreens(PlayerEvent.@NotNull PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             PacketDistributor.PacketTarget packetTarget = PacketDistributor.PLAYER.with(() -> player);
-            for (ObjectSet<Screen> screenSet : get(level).screens.values()) {
-                for (Screen screen : screenSet) {
-                    ScreenDelivery.INSTANCE.send(packetTarget, new ScreenPacket(screen, false));
+            for (ObjectSet<InWorldScreen> inWorldScreenSet : get(level).screens.values()) {
+                for (InWorldScreen inWorldScreen : inWorldScreenSet) {
+                    ScreenDelivery.INSTANCE.send(packetTarget, new ScreenPacket(inWorldScreen, false));
                 }
             }
         }

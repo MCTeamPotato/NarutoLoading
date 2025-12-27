@@ -5,11 +5,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
-import me.kall.narutoloading.core.detection.inworld.Screen;
-import me.kall.narutoloading.data.VideoArgs;
+import me.kall.narutoloading.core.detection.inworld.InWorldScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -27,7 +25,33 @@ import org.joml.Matrix4f;
 public class NarutoInWorldRenderer extends NarutoRenderer {
     public static final NarutoInWorldRenderer INSTANCE = new NarutoInWorldRenderer();
 
-    public final Object2ObjectMap<ResourceLocation, ObjectSet<Screen>> screens = new Object2ObjectOpenHashMap<>();
+    public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
+
+    @Override
+    public void renderFrame(@Nullable GuiGraphics graphics) {
+        if (this.isEnabled()) {
+            this.lifetime.tick();
+            this.lifetime.lagSpikeRestart();
+            this.lifetime.endRestart();
+        } else {
+            this.shutdown();
+        }
+    }
+
+    @Override
+    public boolean runInLevel() {
+        return true;
+    }
+
+    public boolean runInGenericScreen() {
+        return false;
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+        this.screens.clear();
+    }
 
     public void onRenderTick(TickEvent.@NotNull RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START && this.isRunning()) {
@@ -44,29 +68,29 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (level == null) return;
 
         ResourceLocation dimension = level.dimension().location();
-        ObjectSet<Screen> screens = this.screens.get(dimension);
-        if (screens == null) return;
+        ObjectSet<InWorldScreen> inWorldScreens = this.screens.get(dimension);
+        if (inWorldScreens == null) return;
 
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
         Vec3 cameraPos = event.getCamera().getPosition();
 
-        for (Screen screen : screens) {
+        for (InWorldScreen inWorldScreen : inWorldScreens) {
             poseStack.pushPose();
             poseStack.translate(-cameraPos.x, - cameraPos.y, - cameraPos.z);
-            this.renderImage(poseStack, bufferSource, this.nextFrame(), screen);
+            this.renderImage(poseStack, bufferSource, this.nextFrame(), inWorldScreen);
             poseStack.popPose();
         }
     }
 
-    public void renderImage(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation, @NotNull Screen screen) {
+    public void renderImage(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation, @NotNull InWorldScreen inWorldScreen) {
         RenderType renderType = RenderType.entityTranslucentCull(textureLocation);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
-        BlockPos leftBottomCorner = screen.leftBottomCorner();
-        BlockPos leftTopCorner = screen.leftTopCorner();
-        BlockPos rightBottomCorner = screen.rightBottomCorner();
-        BlockPos rightTopCorner = screen.rightTopCorner();
+        BlockPos leftBottomCorner = inWorldScreen.leftBottomCorner();
+        BlockPos leftTopCorner = inWorldScreen.leftTopCorner();
+        BlockPos rightBottomCorner = inWorldScreen.rightBottomCorner();
+        BlockPos rightTopCorner = inWorldScreen.rightTopCorner();
 
         double leftBottomCornerX = leftBottomCorner.getX();
         double leftBottomCornerY = leftBottomCorner.getY();
@@ -123,61 +147,9 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         Matrix4f pose = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
 
-        vertexConsumer
-                .vertex(pose, (float)leftBottomCornerX, (float)leftBottomCornerY, (float)leftBottomCornerZ)
-                .color(255, 255, 255, 255)
-                .uv(1, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                .endVertex();
-        vertexConsumer
-                .vertex(pose, (float)leftTopCornerX, (float)leftTopCornerY, (float)leftTopCornerZ)
-                .color(255, 255, 255, 255)
-                .uv(1, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                .endVertex();
-        vertexConsumer
-                .vertex(pose, (float)rightTopCornerX, (float)rightTopCornerY, (float)rightTopCornerZ)
-                .color(255, 255, 255, 255)
-                .uv(0, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                .endVertex();
-        vertexConsumer
-                .vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ)
-                .color(255, 255, 255, 255)
-                .uv(0, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(normal, (float)normalX, (float)normalY, (float)normalZ)
-                .endVertex();
-    }
-
-    @Override
-    public void renderFrame(@Nullable GuiGraphics graphics) {
-        if (this.isEnabled()) {
-            this.lifetime.tick();
-            this.keyChecker.reload();
-            this.lifetime.lagSpikeRestart();
-            this.lifetime.endRestart();
-        }
-    }
-
-    @Override
-    public boolean isEnabled() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.screen instanceof GenericDirtMessageScreen) return false;
-        if (VideoArgs.width() == 0 || VideoArgs.height() == 0) return false;
-        return minecraft.level != null && minecraft.isRunning();
-    }
-
-    @Override
-    public void shutdown() {
-        super.shutdown();
-        this.screens.clear();
+        vertexConsumer.vertex(pose, (float)leftBottomCornerX,   (float)leftBottomCornerY,  (float)leftBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+        vertexConsumer.vertex(pose, (float)leftTopCornerX,         (float)leftTopCornerY,     (float)leftTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+        vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+        vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
     }
 }

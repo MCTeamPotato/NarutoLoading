@@ -11,41 +11,41 @@ import org.lwjgl.glfw.GLFW;
 public final class NarutoConfig {
     private static final Logger LOGGER = LogManager.getLogger(NarutoConfig.class);
 
-    public static JsonConfig config;
+    public JsonConfig config;
 
-    public static int reload;
+    public int reload;
 
-    public static String videoName;
-    public static String audioName;
+    public String videoName;
+    public String audioName;
 
-    public static String ffprobePath;
-    public static String ffmpegPath;
+    public String ffprobePath;
+    public String ffmpegPath;
 
-    public static int width;
-    public static int height;
+    public int width;
+    public int height;
 
-    public static int bufferSize;
+    public int bufferSize;
 
-    public static float volume;
+    public float volume;
 
-    public static boolean debug;
+    public boolean debug;
 
-    public static String winUrl;
-    public static String linuxUrl;
+    public String winUrl;
+    public String linuxUrl;
 
-    private static String videoPath;
-    private static String audioPath;
+    public String video;
+    public String audio;
 
-    public static @NotNull String video() {
-        return videoPath;
+    public static @NotNull String toPath(String name) {
+        return FMLLoader.getGamePath().resolve("config").resolve(name).toAbsolutePath().toString();
     }
 
-    public static @NotNull String audio() {
-        return audioPath;
+    public NarutoConfig() {
+        this.init();
     }
 
-    public static void init() {
-        config = JsonConfig.create(NarutoLoading.MOD_ID, "5")
+    public void init() {
+        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "5")
                 .put("ffmpegExePath", "D:\\your\\ffmpeg\\file.exe")
                 .put("ffprobeExePath", "D:\\your\\ffprobe\\file.exe")
                 .put("ffmpegLinuxDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl.tar.xz")
@@ -60,48 +60,51 @@ public final class NarutoConfig {
                 .put("logErrors", false)
                 .initialize();
 
-        reload = config.getInt("reloadKey");
+        this.reload = this.config.getInt("reloadKey");
 
-        videoName = config.getString("videoFileName");
-        audioName = config.getString("audioFileName");
+        this.videoName = this.config.getString("videoFileName");
+        this.video = NarutoConfig.toPath(this.videoName);
 
-        videoPath = FMLLoader.getGamePath().resolve("config").resolve(videoName).toAbsolutePath().toString();
-        audioPath = audioName.isBlank() ? "" : FMLLoader.getGamePath().resolve("config").resolve(audioName).toAbsolutePath().toString();
+        this.audioName = this.config.getString("audioFileName");
+        this.audio = this.audioName.isBlank() ? "" : NarutoConfig.toPath(this.audioName);
 
-        ffprobePath = config.getString("ffprobeExePath");
-        ffmpegPath = config.getString("ffmpegExePath");
+        this.ffprobePath = this.config.getString("ffprobeExePath");
+        this.ffmpegPath = this.config.getString("ffmpegExePath");
 
-        width = config.getInt("maxResolutionWidth");
-        height = config.getInt("maxResolutionHeight");
+        this.width = this.config.getInt("maxResolutionWidth");
+        this.height = this.config.getInt("maxResolutionHeight");
 
-        bufferSize = config.getInt("videoFrameStorageBufferSize");
+        this.bufferSize = this.config.getInt("videoFrameStorageBufferSize");
 
-        volume = config.getFloat("audioVolume");
+        this.volume = this.config.getFloat("audioVolume");
 
-        debug = config.getBoolean("logErrors");
+        this.debug = this.config.getBoolean("logErrors");
 
-        winUrl = config.getString("ffmpegWindowsDownloadLink");
-        linuxUrl = config.getString("ffmpegLinuxDownloadLink");
+        this.winUrl = this.config.getString("ffmpegWindowsDownloadLink");
+        this.linuxUrl = this.config.getString("ffmpegLinuxDownloadLink");
 
-        LOGGER.info("Reload key in NarutoConfig: {}", reload);
+        this.log();
+    }
 
-        LOGGER.info("Video path in NarutoConfig: {}", videoName);
-        LOGGER.info("Audio path in NarutoConfig: {}", audioName);
+    private void log() {
+        LOGGER.info("Reload key in NarutoConfig: {}", this.reload);
 
-        LOGGER.info("FFprobe path in NarutoConfig: {}", ffprobePath);
-        LOGGER.info("FFmpeg path in NarutoConfig: {}", ffmpegPath);
+        LOGGER.info("Video path in NarutoConfig: {}", this.videoName);
+        LOGGER.info("Audio path in NarutoConfig: {}", this.audioName);
 
-        LOGGER.info("Max resolution width in NarutoConfig: {}", width);
-        LOGGER.info("Max resolution height in NarutoConfig: {}", height);
+        LOGGER.info("FFprobe path in NarutoConfig: {}", this.ffprobePath);
+        LOGGER.info("FFmpeg path in NarutoConfig: {}", this.ffmpegPath);
 
-        LOGGER.info("Video frame storage buffer size in NarutoConfig: {}", bufferSize);
+        LOGGER.info("Max resolution width in NarutoConfig: {}", this.width);
+        LOGGER.info("Max resolution height in NarutoConfig: {}", this.height);
 
-        LOGGER.info("Audio volume in NarutoConfig: {}", volume);
+        LOGGER.info("Video frame storage buffer size in NarutoConfig: {}", this.bufferSize);
 
-        LOGGER.info("Log errors in NarutoConfig: {}", debug);
+        LOGGER.info("Audio volume in NarutoConfig: {}", this.volume);
 
-        LOGGER.info("FFmpeg Windows download link in NarutoConfig: {}", winUrl);
-        LOGGER.info("FFmpeg Linux download link in NarutoConfig: {}", linuxUrl);
+        LOGGER.info("Log errors in NarutoConfig: {}", this.debug);
 
+        LOGGER.info("FFmpeg Windows download link in NarutoConfig: {}", this.winUrl);
+        LOGGER.info("FFmpeg Linux download link in NarutoConfig: {}", this.linuxUrl);
     }
 }

@@ -2,7 +2,6 @@ package me.kall.narutoloading.mixin.impl.screen;
 
 import com.mojang.blaze3d.vertex.Tesselator;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.FFmpeg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.gui.widget.ScrollPanel;
@@ -27,7 +26,7 @@ public abstract class MixinScrollPanel {
 
     @Inject(method = "drawBackground", at = @At("HEAD"), cancellable = true)
     private void dirtScreenByeBye(GuiGraphics guiGraphics, Tesselator tess, float partialTick, @NotNull CallbackInfo ci) {
-        if (FFmpeg.available()){
+        if (NarutoRenderer.INSTANCE.ffmpegProvider.available()){
             ci.cancel();
 
             if (this.client.level != null) {

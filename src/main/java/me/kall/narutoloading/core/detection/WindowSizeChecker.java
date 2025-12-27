@@ -2,7 +2,6 @@ package me.kall.narutoloading.core.detection;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.VideoArgs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraftforge.event.TickEvent;
@@ -22,49 +21,47 @@ public final class WindowSizeChecker {
     public void clientTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
-        Minecraft minecraft = Minecraft.getInstance();
-
-        if (!this.renderer.isRunning() || minecraft.level != null) {
+        if (!this.renderer.isRunning() || !this.renderer.isEnabled()) {
             reset();
             return;
         }
 
-        int width = VideoArgs.width();
-        int height = VideoArgs.height();
+        int width = this.renderer.videoArgReader.width();
+        int height = this.renderer.videoArgReader.height();
 
-        if (lastWidth == -1 && lastHeight == -1) {
-            lastWidth = width;
-            lastHeight = height;
+        if (this.lastWidth == -1 && this.lastHeight == -1) {
+            this.lastWidth = width;
+            this.lastHeight = height;
             return;
         }
 
-        if (width != lastWidth || height != lastHeight) {
+        if (width != this.lastWidth || height != this.lastHeight) {
             NarutoLoading.LOGGER.info("Window size changed from [{}, {}] to [{}, {}]", lastWidth, lastHeight, width, height);
 
-            lastWidth = width;
-            lastHeight = height;
-            resizable = true;
+            this.lastWidth = width;
+            this.lastHeight = height;
+            this.resizable = true;
         }
     }
 
     private void reset() {
-        lastWidth = -1;
-        lastHeight = -1;
-        resizable = false;
+        this.lastWidth = -1;
+        this.lastHeight = -1;
+        this.resizable = false;
     }
 
     public void resize() {
-        if (resizable){
-            resizable = false;
+        if (this.resizable){
+            this.resizable = false;
             String currentSecond = String.valueOf(renderer.lifetime.elapsedSeconds());
             NarutoLoading.LOGGER.info("Resizing Naruto Loading video from {} seconds", currentSecond);
 
-            this.renderer.video.shutdown((long) (renderer.lifetime.elapsedSeconds() * VideoArgs.fps()));
-            this.renderer.video.setup(currentSecond);
+            this.renderer.videoExecutor.shutdown((long) (renderer.lifetime.elapsedSeconds() * renderer.videoArgReader.fps()));
+            this.renderer.videoExecutor.setup(currentSecond);
 
             if (this.renderer.dynamicTexture != null) this.renderer.dynamicTexture.close();
 
-            this.renderer.dynamicTexture = new DynamicTexture(VideoArgs.width(), VideoArgs.height(), false);
+            this.renderer.dynamicTexture = new DynamicTexture(this.renderer.videoArgReader.width(), this.renderer.videoArgReader.height(), false);
             this.renderer.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.renderer.dynamicTexture);
         }
     }

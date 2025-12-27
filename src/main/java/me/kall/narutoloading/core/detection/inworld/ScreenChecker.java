@@ -138,10 +138,14 @@ public class ScreenChecker {
                         }
                     }
 
-                    Screen screen = new Screen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
-                    Screens.get(level).addScreen(screen);
-                    ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(screen, false));
-                    player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", screen.toLocalString()), false);
+                    InWorldScreen inWorldScreen = new InWorldScreen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
+
+                    Screens screenData = Screens.get(level);
+                    if (screenData.screens.computeIfAbsent(inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(inWorldScreen)) screenData.setDirty();
+
+                    ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(inWorldScreen, false));
+
+                    player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
                 } else {
                     lastCorners.put(playerID, corner);
                     player.displayClientMessage(Component.translatable("info.narutoloading.set.first", currentCorner.toShortString()), false);
@@ -156,15 +160,25 @@ public class ScreenChecker {
         ResourceLocation dimension = level.dimension().location();
         long block = event.blockPos();
         if (event.oldState().is(NarutoBlocks.DISPLAYER.get())) {
-            Executor.runAfter(1, () -> {
-                ObjectSet<Screen> screens = Screens.get(level).screens.get(dimension);
-                if (screens == null || screens.isEmpty()) return;
-                ObjectIterator<Screen> screenIterator = screens.iterator();
+            Executor.run(() -> {
+                Screens screenData = Screens.get(level);
+                ObjectSet<InWorldScreen> inWorldScreens = screenData.screens.get(dimension);
+                if (inWorldScreens == null || inWorldScreens.isEmpty()) return;
+
+                ObjectIterator<InWorldScreen> screenIterator = inWorldScreens.iterator();
                 while (screenIterator.hasNext()) {
-                    Screen nextScreen = screenIterator.next();
-                    if (nextScreen.involved().contains(block)) {
+                    InWorldScreen nextInWorldScreen = screenIterator.next();
+                    if (nextInWorldScreen.involved().contains(block)) {
+                        InWorldScreen copy = nextInWorldScreen.copy();
+
                         screenIterator.remove();
-                        ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(nextScreen, true));
+                        screenData.setDirty();
+
+                        Component component = Component.translatable("info.narutoloading.screen.destroy", copy.toLocalString());
+                        for (ServerPlayer player : level.players()) {
+                            player.displayClientMessage(component, false);
+                        }
+                        ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenPacket(copy, true));
                     }
                 }
             });

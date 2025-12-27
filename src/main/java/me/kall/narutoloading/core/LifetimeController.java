@@ -1,9 +1,6 @@
 package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.data.FFmpeg;
-import me.kall.narutoloading.data.SourceRoller;
-import me.kall.narutoloading.data.VideoArgs;
 
 public final class LifetimeController {
     private long lastFrameTime = 0L;
@@ -83,11 +80,8 @@ public final class LifetimeController {
     }
 
     public void endRestart() {
-        if (this.elapsedTime >= VideoArgs.duration()) {
+        if (this.elapsedTime >= this.renderer.videoArgReader.duration()) {
             NarutoLoading.LOGGER.info("Video finished, rolling to a new random source...");
-            SourceRoller.init();
-            FFmpeg.init();
-            VideoArgs.init();
             renderer.shutdown();
             renderer.setup();
         }
@@ -97,15 +91,15 @@ public final class LifetimeController {
         if (this.shouldRestartForLag()) {
             String sec = String.valueOf(this.elapsedSeconds());
             NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
-            this.renderer.video.shutdown((long) (this.elapsedSeconds() * VideoArgs.fps()));
-            this.renderer.video.setup(sec);
+            this.renderer.videoExecutor.shutdown((long) (this.elapsedSeconds() * this.renderer.videoArgReader.duration()));
+            this.renderer.videoExecutor.setup(sec);
         }
     }
 
     public void syncSoundEngine() {
         if (this.syncSoundEngine) {
             this.setSyncSoundEngine(false);
-            this.renderer.audio.setup(String.valueOf(this.elapsedSeconds()));
+            this.renderer.audioExecutor.setup(String.valueOf(this.elapsedSeconds()));
         }
     }
 }

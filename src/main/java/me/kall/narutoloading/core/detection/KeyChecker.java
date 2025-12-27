@@ -2,11 +2,11 @@ package me.kall.narutoloading.core.detection;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.NarutoConfig;
 import me.kall.narutoloading.data.SourceRoller;
 import me.kall.narutoloading.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.event.TickEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 public final class KeyChecker {
@@ -18,18 +18,18 @@ public final class KeyChecker {
         this.renderer = renderer;
     }
 
-    public void clientTick(TickEvent.ClientTickEvent event) {
+    public void clientTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
         Minecraft minecraft = Minecraft.getInstance();
 
-        if (!renderer.isRunning() || minecraft.level != null) {
+        if (!this.renderer.isRunning() || !this.renderer.isEnabled()) {
             reset();
             return;
         }
 
-        if (reloadCooldown > 0) {
-            reloadCooldown--;
+        if (this.reloadCooldown > 0) {
+            this.reloadCooldown--;
             return;
         }
 
@@ -37,25 +37,24 @@ public final class KeyChecker {
         if (SourceRoller.sourceRollable != 0) return;
 
         long window = minecraft.getWindow().getWindow();
-        int state = GLFW.glfwGetKey(window, NarutoConfig.reload);
+        int state = GLFW.glfwGetKey(window, this.renderer.narutoConfig.reload);
 
         if (state == GLFW.GLFW_PRESS) {
-            reloadCooldown = 20;
-            reloadable = true;
+            this.reloadCooldown = 20;
+            this.reloadable = true;
         }
     }
 
     private void reset() {
-        reloadable = false;
-        reloadCooldown = 0;
+        this.reloadable = false;
+        this.reloadCooldown = 0;
     }
 
     public void reload() {
-        if (this.reloadable) {
-            this.reloadable = false;
-            this.renderer.shutdown();
-            this.renderer.setup();
-            NarutoLoading.LOGGER.info("NarutoRenderer reloads successfully.");
-        }
+        if (!this.reloadable) return;
+        this.reloadable = false;
+        this.renderer.shutdown();
+        this.renderer.setup();
+        NarutoLoading.LOGGER.info("NarutoRenderer reloads successfully.");
     }
 }

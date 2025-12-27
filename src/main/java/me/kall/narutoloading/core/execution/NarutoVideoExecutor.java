@@ -3,9 +3,6 @@ package me.kall.narutoloading.core.execution;
 import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.data.FFmpeg;
-import me.kall.narutoloading.data.NarutoConfig;
-import me.kall.narutoloading.data.VideoArgs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,13 +38,13 @@ public final class NarutoVideoExecutor {
             thread.setDaemon(true);
             return thread;
         });
-        this.frameQueue = new LinkedBlockingQueue<>(NarutoConfig.bufferSize);
+        this.frameQueue = new LinkedBlockingQueue<>(this.renderer.narutoConfig.bufferSize);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    FFmpeg.ffmpeg,
+                    this.renderer.ffmpegProvider.ffmpeg,
                     "-ss", sec,
-                    "-i", NarutoConfig.video(),
-                    "-vf", "format=rgb24,scale=" + VideoArgs.widthString() + ":" + VideoArgs.heightString(),
+                    "-i", this.renderer.narutoConfig.video,
+                    "-vf", "format=rgb24,scale=" + this.renderer.videoArgReader.widthString() + ":" + this.renderer.videoArgReader.heightString(),
                     "-pix_fmt", "rgb24",
                     "-f", "image2pipe",
                     "-vcodec", "rawvideo",
@@ -55,7 +52,7 @@ public final class NarutoVideoExecutor {
             );
 
             try {
-                int frameSize = VideoArgs.width() * VideoArgs.height() * 3;
+                int frameSize = this.renderer.videoArgReader.width() * this.renderer.videoArgReader.height() * 3;
                 this.process = processBuilder.start();
                 this.inputStream = this.process.getInputStream();
                 this.channel = Channels.newChannel(this.inputStream);
@@ -75,20 +72,20 @@ public final class NarutoVideoExecutor {
                     this.frameQueue.put(new Frame(this.frameIndex, buildImage(buffer)));
                 }
             } catch (Exception exception) {
-                if (NarutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
+                if (this.renderer.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
             }
         });
         NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully");
     }
 
-    private static @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
-        NativeImage image = new NativeImage(VideoArgs.width(), VideoArgs.height(), false);
+    private @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
+        NativeImage image = new NativeImage(this.renderer.videoArgReader.width(), this.renderer.videoArgReader.height(), false);
         for (int i = 0; i < buffer.length; i += 3) {
             int b = buffer[i] & 0xFF;
             int g = buffer[i + 1] & 0xFF;
             int r = buffer[i + 2] & 0xFF;
             int argb = 0xFF000000 | (r << 16) | (g << 8) | b;
-            image.setPixelRGBA(i / 3 % VideoArgs.width(), i / 3 / VideoArgs.width(), argb);
+            image.setPixelRGBA(i / 3 % this.renderer.videoArgReader.width(), i / 3 / this.renderer.videoArgReader.width(), argb);
         }
         return image;
     }
@@ -104,7 +101,7 @@ public final class NarutoVideoExecutor {
 
         boolean hasSkipping = false;
 
-        while (frame != null && ((double) frame.frameIndex()) / ((double) VideoArgs.fps()) < elapsedSeconds) {
+        while (frame != null && ((double) frame.frameIndex()) / ((double) this.renderer.videoArgReader.fps()) < elapsedSeconds) {
             frame.image.close();
             frame = this.frameQueue.poll();
             hasSkipping = true;
