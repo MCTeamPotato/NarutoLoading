@@ -1,7 +1,7 @@
 package me.kall.narutoloading;
 
-import me.kall.narutoloading.init.NarutoBlocks;
-import me.kall.narutoloading.init.NarutoItems;
+import me.kall.narutoloading.inworld.init.NarutoBlocks;
+import me.kall.narutoloading.inworld.init.NarutoItems;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.CreativeModeTabs;

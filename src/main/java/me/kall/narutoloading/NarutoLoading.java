@@ -1,10 +1,10 @@
 package me.kall.narutoloading;
 
-import me.kall.narutoloading.core.NarutoInWorldRenderer;
-import me.kall.narutoloading.core.NarutoRenderer;
-import me.kall.narutoloading.init.NarutoBlocks;
-import me.kall.narutoloading.init.NarutoItems;
-import me.kall.narutoloading.network.ScreenDelivery;
+import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import me.kall.narutoloading.inworld.init.NarutoBlocks;
+import me.kall.narutoloading.inworld.init.NarutoItems;
+import me.kall.narutoloading.inworld.network.ScreenDelivery;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -28,7 +28,9 @@ public final class NarutoLoading {
 
         if (FMLLoader.getDist().isClient()) {
             forgeBus.addListener(NarutoLoadingClient::onBuildCreativeTab);
+            //noinspection DataFlowIssue
             forgeBus.addListener(NarutoRenderer.INSTANCE.windowSizeChecker::clientTick);
+            //noinspection DataFlowIssue
             forgeBus.addListener(NarutoRenderer.INSTANCE.keyChecker::clientTick);
             forgeBus.addListener(NarutoInWorldRenderer.INSTANCE::onRenderLevel);
             forgeBus.addListener(NarutoInWorldRenderer.INSTANCE::onRenderTick);

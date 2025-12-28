@@ -11,17 +11,17 @@
     "defaultRequire": 1
   },
   "client": [
-    "clear.MixinFont",
-    "clear.MixinGuiGraphics",
-    "clear.MixinStringRenderOutput",
-    "impl.overlay.MixinForgeLoadingOverlay",
-    "impl.overlay.MixinLoadingOverlay",
-    "impl.screen.MixinAbstractSelectionList",
-    "impl.screen.MixinCreateWorldScreen",
-    "impl.screen.MixinScreen",
-    "impl.screen.MixinScrollPanel",
-    "impl.screen.MixinTitleScreen",
-    "impl.sound.MixinOptions",
-    "impl.sound.MixinSoundEngine"
+    "noworld.clear.MixinFont",
+    "noworld.clear.MixinGuiGraphics",
+    "noworld.clear.MixinStringRenderOutput",
+    "noworld.impl.overlay.MixinForgeLoadingOverlay",
+    "noworld.impl.overlay.MixinLoadingOverlay",
+    "noworld.impl.screen.MixinAbstractSelectionList",
+    "noworld.impl.screen.MixinCreateWorldScreen",
+    "noworld.impl.screen.MixinScreen",
+    "noworld.impl.screen.MixinScrollPanel",
+    "noworld.impl.screen.MixinTitleScreen",
+    "sound.MixinOptions",
+    "sound.MixinSoundEngine"
   ]
 }

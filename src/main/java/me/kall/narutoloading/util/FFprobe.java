@@ -1,0 +1,55 @@
+package me.kall.narutoloading.util;
+
+import org.jetbrains.annotations.Nullable;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class FFprobe {
+    private static final Pattern FPS = Pattern.compile("\"avg_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
+    private static final Pattern DURATION = Pattern.compile("\"duration\"\\s*:\\s*\"([0-9.]+)\"");
+
+    public static int getFps(String json) {
+        if (json != null) {
+            Matcher matcher = FPS.matcher(json);
+
+            if (matcher.find()) {
+                double num = Double.parseDouble(matcher.group(1));
+                double den = Double.parseDouble(matcher.group(2));
+                if (den != 0) {
+                    return (int) (num / den);
+                }
+            }
+        }
+        throw new RuntimeException("Failed to read video frame rate");
+    }
+
+    public static long getDuration(String json) {
+        if (json != null) {
+            Matcher matcher = DURATION.matcher(json);
+
+            if (matcher.find()) return (long) (Double.parseDouble(matcher.group(1)) * 1000);
+        }
+        throw new RuntimeException("Failed to read video duration");
+    }
+
+    public static @Nullable String genJson(String video, String ffprobe) {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(ffprobe, "-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", video);
+
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) stringBuilder.append(line).append('\n');
+            process.waitFor();
+            return stringBuilder.toString();
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+}
