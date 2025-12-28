@@ -2,7 +2,6 @@ package me.kall.narutoloading.common;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
-import me.kall.narutoloading.common.env.BaseEnv;
 
 public final class LifetimeController {
     private long lastFrameTime = 0L;
@@ -16,9 +15,11 @@ public final class LifetimeController {
     public volatile boolean syncSoundEngine = false;
 
     private final NarutoRenderer renderer;
+    private final long duration;
 
-    public LifetimeController(NarutoRenderer renderer) {
+    public LifetimeController(NarutoRenderer renderer, long duration) {
         this.renderer = renderer;
+        this.duration = duration;
     }
 
     public void tick() {
@@ -56,7 +57,7 @@ public final class LifetimeController {
     }
 
     public void endRestart() {
-        if (this.elapsedTime >= BaseEnv.videoArgReader.duration()) {
+        if (this.elapsedTime >= this.duration) {
             NarutoLoading.LOGGER.info("Video finished, rolling to a new random source...");
             this.renderer.shutdown();
             this.renderer.setup();
@@ -68,7 +69,7 @@ public final class LifetimeController {
             this.lagSpikeDetected = false;
             String sec = String.valueOf(this.elapsedSeconds());
             NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
-            this.renderer.videoExecutor.shutdown((long) (this.elapsedSeconds() * BaseEnv.videoArgReader.duration()));
+            this.renderer.videoExecutor.shutdown((long) (this.elapsedSeconds() * this.duration));
             this.renderer.videoExecutor.setup(sec);
         }
     }

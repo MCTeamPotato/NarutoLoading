@@ -9,7 +9,7 @@ public final class BaseEnv {
 
     public static NarutoConfig narutoConfig;
     public static volatile FFmpegProvider ffmpegProvider;
-    public static volatile VideoArgReader videoArgReader;
+    public static volatile VideoArgReader noWorldVideoArgs;
 
     private static volatile boolean available;
 
@@ -23,7 +23,7 @@ public final class BaseEnv {
         ffmpegProvider = new FFmpegProvider(narutoConfig.ffprobePath, narutoConfig.ffmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl);
         ffmpegProvider.setup(() -> {
             if (ffmpegProvider.ffprobe == null) return;
-            videoArgReader = new VideoArgReader(narutoConfig.video, ffmpegProvider.ffprobe);
+            noWorldVideoArgs = new VideoArgReader(narutoConfig.video, ffmpegProvider.ffprobe);
             available = true;
         });
     }

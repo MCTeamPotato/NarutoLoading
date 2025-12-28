@@ -24,6 +24,7 @@ public final class NarutoVideoExecutor {
     private volatile boolean canceled;
     private @Nullable Process process;
     private long frameIndex;
+    private long baseFrameOffset = 0L;
 
     private @Nullable InputStream inputStream;
     private @Nullable ReadableByteChannel channel;
@@ -46,6 +47,11 @@ public final class NarutoVideoExecutor {
 
     public void setup(String sec) {
         this.canceled = false;
+
+        double startSeconds = Double.parseDouble(sec);
+        this.baseFrameOffset = (long) (startSeconds * this.fps.getAsInt());
+        this.frameIndex = 0;
+
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoVideoExecutor");
             thread.setDaemon(true);
@@ -82,13 +88,14 @@ public final class NarutoVideoExecutor {
                     byteBuffer.get(buffer);
 
                     this.frameIndex++;
-                    this.frameQueue.put(new Frame(this.frameIndex, buildImage(buffer)));
+                    long absoluteFrameIndex = this.baseFrameOffset + this.frameIndex;
+                    this.frameQueue.put(new Frame(absoluteFrameIndex, buildImage(buffer)));
                 }
             } catch (Exception exception) {
                 if (BaseEnv.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
             }
         });
-        NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully");
+        NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully from second {} (frame offset: {})", sec, this.baseFrameOffset);
     }
 
     private @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
@@ -114,15 +121,20 @@ public final class NarutoVideoExecutor {
         Frame frame = this.frameQueue.poll();
         if (frame == null) return null;
 
+        long expectedFrameIndex = (long) (elapsedSeconds * this.fps.getAsInt());
         boolean hasSkipping = false;
 
-        while (frame != null && ((double) frame.frameIndex()) / ((double) this.fps.getAsInt()) < elapsedSeconds) {
+        while (frame != null && frame.frameIndex() < expectedFrameIndex) {
             frame.image.close();
             frame = this.frameQueue.poll();
             hasSkipping = true;
         }
 
-        if (hasSkipping && frame == null) this.lifetime.lagSpikeDetected = true;
+        if (hasSkipping) {
+            if (frame == null) {
+                this.lifetime.lagSpikeDetected = true;
+            }
+        }
 
         return frame == null ? null : frame.image();
     }
@@ -162,12 +174,11 @@ public final class NarutoVideoExecutor {
             this.frameQueue = null;
         }
 
-        this.frameIndex = frameElapsed;
-        NarutoLoading.LOGGER.info("NarutoVideoExecutor shuts down successfully");
+        NarutoLoading.LOGGER.info("NarutoVideoExecutor shuts down successfully (was at frame {})", frameElapsed);
     }
 
     public void shutdown() {
-        this.shutdown(0L);
+        this.shutdown(this.baseFrameOffset + this.frameIndex);
     }
 
     private record Frame(long frameIndex, NativeImage image) {}

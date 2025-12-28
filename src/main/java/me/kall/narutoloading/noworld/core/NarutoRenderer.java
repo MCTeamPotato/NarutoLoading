@@ -30,10 +30,10 @@ public class NarutoRenderer {
     public @Nullable KeyChecker keyChecker;
 
     public NarutoRenderer() {
-        this.lifetime = new LifetimeController(this);
+        this.lifetime = new LifetimeController(this, BaseEnv.noWorldVideoArgs.duration());
 
         this.audioExecutor = new NarutoAudioExecutor(BaseEnv.narutoConfig.video, BaseEnv.narutoConfig.audio, BaseEnv.ffmpegProvider.ffmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.video, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.videoArgReader.fps());
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.video, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.noWorldVideoArgs.fps());
 
         this.windowSizeChecker = this.runInLevel() ? null : new WindowSizeChecker(this);
         this.keyChecker = this.runInLevel() ? null : new KeyChecker(this);
@@ -55,7 +55,7 @@ public class NarutoRenderer {
     public ResourceLocation nextFrame() {
         if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
-        if (this.lifetime.shouldUpdateFrame(BaseEnv.videoArgReader.fps())) {
+        if (this.lifetime.shouldUpdateFrame(BaseEnv.noWorldVideoArgs.fps())) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
