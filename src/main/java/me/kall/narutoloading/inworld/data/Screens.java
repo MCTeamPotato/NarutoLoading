@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
+import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenDelivery;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -74,7 +75,7 @@ public class Screens extends SavedData {
             PacketDistributor.PacketTarget packetTarget = PacketDistributor.PLAYER.with(() -> player);
             for (ObjectSet<InWorldScreen> inWorldScreenSet : get(level).screens.values()) {
                 for (InWorldScreen inWorldScreen : inWorldScreenSet) {
-                    ScreenDelivery.INSTANCE.send(packetTarget, new ScreenDelivery(inWorldScreen, false));
+                    NarutoPackets.INSTANCE.send(packetTarget, new ScreenDelivery(inWorldScreen, false));
                 }
             }
         }

@@ -7,6 +7,7 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import me.kall.narutoloading.util.VideoArgReader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -14,12 +15,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
     private final InWorldScreen screen;
+    private final VideoArgReader videoArgReader;
 
     public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
         this.lifetime = new LifetimeController(this);
 
         this.audioExecutor = new NarutoAudioExecutor(screen.video, screen.audio, BaseEnv.ffmpegProvider.ffmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime::detectLagSpike, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> screen.video, () -> 1280, () -> 720, () -> screen.fps);
+        this.videoArgReader = new VideoArgReader(screen.video, BaseEnv.ffmpegProvider.ffprobe);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> screen.video, () -> 1280, () -> 720, videoArgReader::fps);
 
         this.windowSizeChecker = null;
         this.keyChecker = null;
@@ -44,7 +47,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     public ResourceLocation nextFrame() {
         if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
-        if (this.lifetime.shouldUpdateFrame(this.screen.fps)) {
+        if (this.lifetime.shouldUpdateFrame(this.videoArgReader.fps())) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
@@ -57,7 +60,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
     @Override
     public boolean isEnabled() {
-        return this.screen.fps != 0 && !this.screen.video.isBlank() && !this.screen.audio.isBlank() && super.isEnabled();
+        return !this.screen.video.isBlank() && !this.screen.audio.isBlank() && super.isEnabled();
     }
 
     @Override
@@ -75,6 +78,5 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         super.shutdown();
         this.screen.video = "";
         this.screen.audio = "";
-        this.screen.fps = 0;
     }
 }

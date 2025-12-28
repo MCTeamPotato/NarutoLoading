@@ -22,8 +22,6 @@ public final class BaseEnv {
 
         ffmpegProvider = new FFmpegProvider(narutoConfig.ffprobePath, narutoConfig.ffmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl);
         ffmpegProvider.setup(() -> {
-            ffmpegProvider.shutdown();
-
             if (ffmpegProvider.ffprobe == null) return;
             videoArgReader = new VideoArgReader(narutoConfig.video, ffmpegProvider.ffprobe);
             available = true;

@@ -1,8 +1,8 @@
 package me.kall.narutoloading.noworld.gui;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -11,14 +11,14 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
-@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class SourcesSelectionScreen extends Screen {
-    private final Screen lastScreen;
+    protected final Screen lastScreen;
     protected EditBox videoBox;
     protected EditBox audioBox;
 
@@ -108,26 +108,29 @@ public class SourcesSelectionScreen extends Screen {
         return false;
     }
 
-    public static int screenTriggerable = 0;
+    @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+    public static final class Trigger {
+        public static int screenTriggerable = 0;
 
-    @SubscribeEvent
-    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
+            if (event.phase != TickEvent.Phase.START) return;
 
-        Minecraft mc = Minecraft.getInstance();
+            Minecraft mc = Minecraft.getInstance();
 
-        if (screenTriggerable > 0) {
-            screenTriggerable--;
-            return;
-        }
+            if (screenTriggerable > 0) {
+                screenTriggerable--;
+                return;
+            }
 
-        long window = mc.getWindow().getWindow();
-        int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
-        int stateCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
+            long window = mc.getWindow().getWindow();
+            int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
+            int stateCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
 
-        if (state == GLFW.GLFW_PRESS && stateCtrl == GLFW.GLFW_PRESS && !(mc.screen instanceof SourcesSelectionScreen)) {
-            screenTriggerable = 20;
-            mc.setScreen(new SourcesSelectionScreen(mc.screen));
+            if (state == GLFW.GLFW_PRESS && stateCtrl == GLFW.GLFW_PRESS && !(mc.screen instanceof SourcesSelectionScreen)) {
+                screenTriggerable = 20;
+                mc.setScreen(new SourcesSelectionScreen(mc.screen));
+            }
         }
     }
 }

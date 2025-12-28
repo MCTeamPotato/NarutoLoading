@@ -2,23 +2,17 @@ package me.kall.narutoloading.inworld.network;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
-import me.kall.duplicationless.network.Networker;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.ClientScreens;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.simple.SimpleChannel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
 public class ScreenDelivery {
-    public static final SimpleChannel INSTANCE = Networker.create(NarutoLoading.MOD_ID, "1");
-
-    private static int id = 0;
-
     private final InWorldScreen inWorldScreen;
     private final boolean isRemoval;
 
@@ -56,7 +50,4 @@ public class ScreenDelivery {
         ctx.get().setPacketHandled(true);
     }
 
-    public static void register() {
-        INSTANCE.registerMessage(id++, ScreenDelivery.class, ScreenDelivery::encode, ScreenDelivery::new, ScreenDelivery::handle);
-    }
 }

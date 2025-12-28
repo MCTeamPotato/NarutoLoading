@@ -22,7 +22,6 @@ public final class InWorldScreen {
     private final int hashCode;
 
     public String video = "", audio = "";
-    public int fps = 0;
 
     public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
         this.leftBottomCorner = leftBottomCorner;
@@ -60,7 +59,7 @@ public final class InWorldScreen {
         return involved;
     }
 
-    private static @NotNull LongSet getInvolved(BlockPos leftBottom, BlockPos leftTop, BlockPos rightBottom, BlockPos rightTop) {
+    private static @NotNull LongSet genInvolved(BlockPos leftBottom, BlockPos leftTop, BlockPos rightBottom, BlockPos rightTop) {
         LongList leftY = getLine(leftBottom, leftTop);
         LongList rightY = getLine(rightBottom, rightTop);
         LongList bottom = getLine(leftBottom, rightBottom);
@@ -96,7 +95,7 @@ public final class InWorldScreen {
     }
 
     public LongSet involved() {
-        if (this.involved == null) this.involved = LongSets.unmodifiable(getInvolved(leftBottomCorner, leftTopCorner, rightBottomCorner, rightTopCorner));
+        if (this.involved == null) this.involved = LongSets.unmodifiable(InWorldScreen.genInvolved(leftBottomCorner(), leftTopCorner(), rightBottomCorner(), rightTopCorner()));
         return this.involved;
     }
 
@@ -110,7 +109,7 @@ public final class InWorldScreen {
 
     @Contract(" -> new")
     public long @NotNull [] toLongArray() {
-        return new long[]{this.leftBottomCorner.asLong(), this.leftTopCorner.asLong(), this.rightBottomCorner.asLong(), this.rightTopCorner.asLong()};
+        return new long[]{this.leftBottomCorner().asLong(), this.leftTopCorner().asLong(), this.rightBottomCorner().asLong(), this.rightTopCorner().asLong()};
     }
 
     public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio) {

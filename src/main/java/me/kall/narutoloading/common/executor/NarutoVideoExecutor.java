@@ -2,6 +2,7 @@ package me.kall.narutoloading.common.executor;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,13 +28,13 @@ public final class NarutoVideoExecutor {
     private @Nullable InputStream inputStream;
     private @Nullable ReadableByteChannel channel;
 
-    private final Runnable detectLagSpike;
+    private final LifetimeController lifetime;
 
     private final Supplier<String> ffmpeg, widthString, heightString, video;
     private final IntSupplier width, height, fps;
 
-    public NarutoVideoExecutor(Runnable detectLagSpike, Supplier<String> ffmpeg, Supplier<String> widthString, Supplier<String> heightString, Supplier<String> video, IntSupplier width, IntSupplier height, IntSupplier fps) {
-        this.detectLagSpike = detectLagSpike;
+    public NarutoVideoExecutor(LifetimeController lifetime, Supplier<String> ffmpeg, Supplier<String> widthString, Supplier<String> heightString, Supplier<String> video, IntSupplier width, IntSupplier height, IntSupplier fps) {
+        this.lifetime = lifetime;
         this.ffmpeg = ffmpeg;
         this.widthString = widthString;
         this.heightString = heightString;
@@ -56,7 +57,7 @@ public final class NarutoVideoExecutor {
                     this.ffmpeg.get(),
                     "-ss", sec,
                     "-i", this.video.get(),
-                    "-vf", "format=rgb24,scale=" + this.widthString + ":" + this.heightString,
+                    "-vf", "format=rgb24,scale=" + this.widthString.get() + ":" + this.heightString.get(),
                     "-pix_fmt", "rgb24",
                     "-f", "image2pipe",
                     "-vcodec", "rawvideo",
@@ -121,7 +122,7 @@ public final class NarutoVideoExecutor {
             hasSkipping = true;
         }
 
-        if (hasSkipping && frame == null) this.detectLagSpike.run();
+        if (hasSkipping && frame == null) this.lifetime.lagSpikeDetected = true;
 
         return frame == null ? null : frame.image();
     }

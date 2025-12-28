@@ -22,7 +22,7 @@ public abstract class MixinSoundEngine {
     @Inject(method = "reload", at = @At("TAIL"))
     private void setup(CallbackInfo ci) {
         if (BaseEnv.available()) {
-            NarutoRenderer.INSTANCE.lifetime.setSyncSoundEngine(true);
+            NarutoRenderer.INSTANCE.lifetime.syncSoundEngine = true;
         }
     }
 }

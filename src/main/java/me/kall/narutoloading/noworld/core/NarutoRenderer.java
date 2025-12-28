@@ -33,7 +33,7 @@ public class NarutoRenderer {
         this.lifetime = new LifetimeController(this);
 
         this.audioExecutor = new NarutoAudioExecutor(BaseEnv.narutoConfig.video, BaseEnv.narutoConfig.audio, BaseEnv.ffmpegProvider.ffmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime::detectLagSpike, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.video, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.videoArgReader.fps());
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.video, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.videoArgReader.fps());
 
         this.windowSizeChecker = this.runInLevel() ? null : new WindowSizeChecker(this);
         this.keyChecker = this.runInLevel() ? null : new KeyChecker(this);
@@ -80,6 +80,7 @@ public class NarutoRenderer {
             this.lifetime.tick();
 
             if (!this.runInLevel()) graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
+
 
             if (this.keyChecker != null) this.keyChecker.reload();
             if (this.windowSizeChecker != null) this.windowSizeChecker.resize();

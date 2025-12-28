@@ -12,10 +12,10 @@
   "info.narutoloading.set.first": "第一处屏幕角落已设定：[%s]。",
   "info.narutoloading.set.second": "第二处屏幕角落已设定：[%s]。",
   "info.narutoloading.screen": "开始构建屏幕……",
-  "info.narutoloading.screen.invalid_size": "屏幕宽度无效：%s",
-  "info.narutoloading.screen.displayer_not_found": "未在[%s]处找到有效显示器方块",
-  "info.narutoloading.screen.created": "已创建%s",
-  "info.narutoloading.screen.destroy": "%s已被破坏",
+  "info.narutoloading.screen.invalid_size": "屏幕宽度无效：%s。",
+  "info.narutoloading.screen.displayer_not_found": "未在[%s]处找到有效显示器方块。",
+  "info.narutoloading.screen.created": "已创建%s。右击任意一个显示器方块设置视频与音频参数。",
+  "info.narutoloading.screen.destroy": "%s已被破坏。",
 
   "screen.narutoloading.arg": "屏幕：{左下角：[%s], 左上角：[%s], 右下角：[%s], 右上角：[%s], 维度：[%s]}"
 }

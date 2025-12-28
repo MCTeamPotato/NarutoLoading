@@ -12,9 +12,9 @@
   "info.narutoloading.set.first": "The first screen corner is set at [%s].",
   "info.narutoloading.set.second": "The second screen corner is set at [%s].",
   "info.narutoloading.screen": "Start to build screen...",
-  "info.narutoloading.screen.invalid_size": "Screen width not supported: %s",
-  "info.narutoloading.screen.displayer_not_found": "Failed to find valid displayer at [%s]",
-  "info.narutoloading.screen.created": "Created %s",
+  "info.narutoloading.screen.invalid_size": "Screen width not supported: %s.",
+  "info.narutoloading.screen.displayer_not_found": "Failed to find valid displayer at [%s].",
+  "info.narutoloading.screen.created": "Created %s. Right-click a displayer block to set video and audio.",
   "info.narutoloading.screen.destroy": "%s is destroyed.",
 
   "screen.narutoloading.arg": "Screen: {LeftBottom: [%s], LeftTop: [%s], RightBottom: [%s], RightTop: [%s], Dimension: [%s]}"

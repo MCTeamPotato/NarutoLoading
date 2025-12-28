@@ -2,7 +2,7 @@ package me.kall.narutoloading;
 
 import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import me.kall.narutoloading.inworld.init.NarutoItems;
-import me.kall.narutoloading.inworld.network.ScreenDelivery;
+import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -23,7 +23,7 @@ public final class NarutoLoading {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
         NarutoBlocks.BLOCKS.register(modBus);
         NarutoItems.ITEMS.register(modBus);
-        ScreenDelivery.register();
+        NarutoPackets.register();
 
         if (FMLLoader.getDist().isClient()) {
             forgeBus.addListener(NarutoLoadingClient::onBuildCreativeTab);

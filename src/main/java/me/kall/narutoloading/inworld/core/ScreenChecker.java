@@ -5,11 +5,11 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import me.kall.duplicationless.event.BlockChangeEvent;
 import me.kall.duplicationless.util.Executor;
-import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.init.NarutoBlocks;
+import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenDelivery;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -37,10 +37,6 @@ public class ScreenChecker {
         }
     }
 
-    private static boolean isDisplayer(ServerLevel level, long placement) {
-        return Displayers.get(level).has(level, Positions.toChunk(placement), placement);
-    }
-
     public static int dist(@NotNull BlockPos a, @NotNull BlockPos b) {
         if (a.getY() != b.getY()) return -1;
 
@@ -61,7 +57,7 @@ public class ScreenChecker {
             ResourceLocation dim = level.dimension().location();
             UUID playerID = player.getUUID();
 
-            if (isDisplayer(level, corner)) {
+            if (Displayers.isDisplayer(level, corner)) {
                 Object2LongMap<UUID> lastCorners = CORNERS.computeIfAbsent(dim, key -> new Object2LongOpenHashMap<>());
 
                 if (lastCorners.containsKey(playerID)) {
@@ -97,7 +93,7 @@ public class ScreenChecker {
                             mutable.set(minX, y, minZ + i);
                         }
 
-                        if (!isDisplayer(level, mutable.asLong())) {
+                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
                             player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
                             return;
                         }
@@ -112,7 +108,7 @@ public class ScreenChecker {
                             mutable.set(minX, topY, minZ + i);
                         }
 
-                        if (!isDisplayer(level, mutable.asLong())) {
+                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
                             player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
                             return;
                         }
@@ -120,7 +116,7 @@ public class ScreenChecker {
 
                     for (int j = 0; j < height; j++) {
                         mutable.set(minX, y + j, minZ);
-                        if (!isDisplayer(level, mutable.asLong())) {
+                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
                             player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
                             return;
                         }
@@ -131,7 +127,7 @@ public class ScreenChecker {
                             mutable.set(minX, y + j, maxZ);
                         }
 
-                        if (!isDisplayer(level, mutable.asLong())) {
+                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
                             player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
                             return;
                         }
@@ -142,9 +138,10 @@ public class ScreenChecker {
                     Screens screenData = Screens.get(level);
                     if (screenData.screens.computeIfAbsent(inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(inWorldScreen)) screenData.setDirty();
 
-                    ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenDelivery(inWorldScreen, false));
+                    NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenDelivery(inWorldScreen, false));
 
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
+
                 } else {
                     lastCorners.put(playerID, corner);
                     player.displayClientMessage(Component.translatable("info.narutoloading.set.first", currentCorner.toShortString()), false);
@@ -177,7 +174,7 @@ public class ScreenChecker {
                         for (ServerPlayer player : level.players()) {
                             player.displayClientMessage(component, false);
                         }
-                        ScreenDelivery.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenDelivery(copy, true));
+                        NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenDelivery(copy, true));
                     }
                 }
             });

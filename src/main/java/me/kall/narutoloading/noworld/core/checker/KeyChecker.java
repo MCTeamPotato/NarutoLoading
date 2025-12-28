@@ -33,7 +33,7 @@ public final class KeyChecker {
             return;
         }
 
-        if (SourcesSelectionScreen.screenTriggerable != 0) return;
+        if (SourcesSelectionScreen.Trigger.screenTriggerable != 0) return;
 
         long window = minecraft.getWindow().getWindow();
         int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);

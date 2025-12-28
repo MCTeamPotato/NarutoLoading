@@ -1,5 +1,6 @@
 package me.kall.narutoloading.util;
 
+import me.kall.narutoloading.NarutoLoading;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -24,6 +25,8 @@ public class VideoArgReader {
         String json = FFprobe.genJson(this.video, this.ffprobe);
         this.fps = FFprobe.getFps(json);
         this.duration = FFprobe.getDuration(json);
+        NarutoLoading.LOGGER.info("NarutoLoading video fps: {}", this.fps);
+        NarutoLoading.LOGGER.info("NarutoLoading video duration: {}", this.duration);
     }
 
     public int fps() {
@@ -64,9 +67,8 @@ public class VideoArgReader {
 
         public static @Nullable String genJson(String video, String ffprobe) {
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder(ffprobe, "-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", video);
+                ProcessBuilder processBuilder = new ProcessBuilder(ffprobe, "-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", video).redirectErrorStream(true);
 
-                processBuilder.redirectErrorStream(true);
                 Process process = processBuilder.start();
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));

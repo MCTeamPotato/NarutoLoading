@@ -82,6 +82,8 @@ public final class FFmpegProvider {
 
             this.ffmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
             this.ffprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
+            NarutoLoading.LOGGER.info("NarutoLoading ffmpeg file path: {}", this.ffmpeg);
+            NarutoLoading.LOGGER.info("NarutoLoading ffprobe file path: {}", this.ffprobe);
             onDone.run();
         });
     }

@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.data.ChunkData;
 import me.kall.duplicationless.event.BlockChangeEvent;
 import me.kall.duplicationless.util.Executor;
+import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import net.minecraft.resources.ResourceLocation;
@@ -25,6 +26,10 @@ import java.util.function.Predicate;
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class Displayers extends ChunkData.BlockData {
     private final Object2ObjectMap<ResourceLocation, Long2ObjectMap<Set<Long>>> data = new Object2ObjectOpenHashMap<>();
+
+    public static boolean isDisplayer(ServerLevel level, long position) {
+        return get(level).has(level, Positions.toChunk(position), position);
+    }
 
     @Override
     public @NotNull Object2ObjectMap<ResourceLocation, Long2ObjectMap<Set<Long>>> data() {
