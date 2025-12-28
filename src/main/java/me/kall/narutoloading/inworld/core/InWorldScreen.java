@@ -114,8 +114,8 @@ public final class InWorldScreen {
 
     public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
-        inWorldScreen.video = video;
-        inWorldScreen.audio = audio;
+        inWorldScreen.video = video == null ? "" : video;
+        inWorldScreen.audio = audio == null ? "" : audio;
         return inWorldScreen;
     }
 

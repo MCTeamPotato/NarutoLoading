@@ -138,10 +138,9 @@ public class ScreenChecker {
                     Screens screenData = Screens.get(level);
                     if (screenData.screens.computeIfAbsent(inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(inWorldScreen)) screenData.setDirty();
 
-                    NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenDelivery(inWorldScreen, false));
+                    NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new ScreenDelivery(inWorldScreen, false));
 
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
-
                 } else {
                     lastCorners.put(playerID, corner);
                     player.displayClientMessage(Component.translatable("info.narutoloading.set.first", currentCorner.toShortString()), false);
