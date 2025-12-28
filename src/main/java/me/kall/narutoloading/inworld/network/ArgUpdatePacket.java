@@ -36,8 +36,10 @@ public class ArgUpdatePacket {
                 ServerPlayer player = ctx.get().getSender();
                 if (player == null) return;
                 ServerLevel level = player.serverLevel();
-                if (!Screens.get(level).screens.computeIfAbsent(level.dimension().location(), key -> new ObjectOpenHashSet<>()).add(this.argSource)) {
-                    NarutoLoading.LOGGER.info("Successfully sync the video and audio arguments for {}", this.argSource.toString());
+                Screens screens = Screens.get(level);
+                if (!screens.screens.computeIfAbsent(level.dimension().location(), key -> new ObjectOpenHashSet<>()).add(this.argSource)) {
+                    screens.setDirty();
+                    NarutoLoading.LOGGER.info("Successfully sync the video and audio arguments for {}.", this.argSource.toString());
                 }
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ArgUpdatePacket", exception);

@@ -10,6 +10,7 @@ import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -19,6 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +38,18 @@ public class ClientScreens {
             }
         }
         return false;
+    }
+
+    @SubscribeEvent
+    public static void clearScreens(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof LocalPlayer) {
+            for (ObjectSet<ClientScreen> clientScreens : CLIENT_SCREENS.values()) {
+                for (ClientScreen clientScreen : clientScreens) {
+                    clientScreen.renderer().shutdown();
+                }
+            }
+            CLIENT_SCREENS.clear();
+        }
     }
 
     @SubscribeEvent

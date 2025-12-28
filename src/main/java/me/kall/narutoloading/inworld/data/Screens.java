@@ -48,7 +48,7 @@ public class Screens extends SavedData {
     public @NotNull CompoundTag save(@NotNull CompoundTag tag) {
         ListTag screensList = new ListTag();
 
-        for (Object2ObjectMap.Entry<ResourceLocation, ObjectSet<InWorldScreen>> entry : screens.object2ObjectEntrySet()) {
+        for (Object2ObjectMap.Entry<ResourceLocation, ObjectSet<InWorldScreen>> entry : this.screens.object2ObjectEntrySet()) {
             ResourceLocation dimension = entry.getKey();
 
             for (InWorldScreen inWorldScreen : entry.getValue()) {
@@ -57,6 +57,7 @@ public class Screens extends SavedData {
                 screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
                 screenTag.putString(VIDEO_KEY, inWorldScreen.video(""));
                 screenTag.putString(AUDIO_KEY, inWorldScreen.audio(""));
+                NarutoLoading.LOGGER.info("Saving {} successfully", inWorldScreen.toString());
                 screensList.add(screenTag);
             }
         }
