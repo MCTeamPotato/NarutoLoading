@@ -4,8 +4,9 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.duplicationless.network.Networker;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
+import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
+import me.kall.narutoloading.inworld.data.ClientScreens;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -42,12 +43,12 @@ public class ScreenDelivery {
     public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             if (!this.isRemoval) {
-                NarutoInWorldRenderer.INSTANCE.screens.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(this.inWorldScreen);
+                ClientScreens.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(new ClientScreens.ClientScreen(this.inWorldScreen, new NarutoInWorldRenderer(this.inWorldScreen)));
                 NarutoLoading.LOGGER.info("Delivered {} for addition.", this.inWorldScreen.toString());
             } else {
-                ObjectSet<InWorldScreen> inWorldScreens = NarutoInWorldRenderer.INSTANCE.screens.get(this.inWorldScreen.dimension());
+                ObjectSet<ClientScreens.ClientScreen> inWorldScreens = ClientScreens.CLIENT_SCREENS.get(this.inWorldScreen.dimension());
                 if (inWorldScreens != null) {
-                    inWorldScreens.remove(this.inWorldScreen);
+                    inWorldScreens.removeIf(clientScreen -> clientScreen.screen().equals(this.inWorldScreen));
                     NarutoLoading.LOGGER.info("Delivered {} for removal.", this.inWorldScreen.toString());
                 }
             }

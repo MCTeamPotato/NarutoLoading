@@ -21,13 +21,13 @@ public class NarutoRenderer {
     public @Nullable DynamicTexture dynamicTexture;
     public @Nullable ResourceLocation textureLocation;
 
-    public final NarutoAudioExecutor audioExecutor;
-    public final NarutoVideoExecutor videoExecutor;
+    public NarutoAudioExecutor audioExecutor;
+    public NarutoVideoExecutor videoExecutor;
 
-    public final LifetimeController lifetime;
+    public LifetimeController lifetime;
 
-    public @Nullable final WindowSizeChecker windowSizeChecker;
-    public @Nullable final KeyChecker keyChecker;
+    public @Nullable WindowSizeChecker windowSizeChecker;
+    public @Nullable KeyChecker keyChecker;
 
     public NarutoRenderer() {
         this.lifetime = new LifetimeController(this);
@@ -53,9 +53,7 @@ public class NarutoRenderer {
     }
 
     public ResourceLocation nextFrame() {
-        if (!this.isEnabled()) {
-            return this.textureLocation;
-        }
+        if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime.shouldUpdateFrame(BaseEnv.videoArgReader.fps())) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());

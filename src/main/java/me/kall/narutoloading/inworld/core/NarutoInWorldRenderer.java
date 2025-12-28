@@ -1,41 +1,63 @@
 package me.kall.narutoloading.inworld.core;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
+import com.mojang.blaze3d.platform.NativeImage;
+import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.common.LifetimeController;
+import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
+import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.BlockPos;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.TickEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
-    public static final NarutoInWorldRenderer INSTANCE = new NarutoInWorldRenderer();
+    private final InWorldScreen screen;
 
-    public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
+    public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
+        this.lifetime = new LifetimeController(this);
+
+        this.audioExecutor = new NarutoAudioExecutor(screen.video, screen.audio, BaseEnv.ffmpegProvider.ffmpeg);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime::detectLagSpike, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> screen.video, () -> 1280, () -> 720, () -> screen.fps);
+
+        this.windowSizeChecker = null;
+        this.keyChecker = null;
+        this.screen = screen;
+    }
 
     @Override
-    public void renderFrame(@Nullable GuiGraphics graphics) {
-        if (this.isEnabled()) {
-            this.lifetime.tick();
-            this.lifetime.lagSpikeRestart();
-            this.lifetime.endRestart();
-        } else {
-            this.shutdown();
+    public void setup() {
+        if (!this.isEnabled()) return;
+        if (this.dynamicTexture != null) return;
+        this.dynamicTexture = new DynamicTexture(1280, 720, false);
+        if (this.textureLocation == null) {
+            this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
+            NarutoLoading.LOGGER.info("NarutoInWorldRenderer texture location initialized: {}", this.textureLocation.toString());
         }
+        this.lifetime.start();
+        this.audioExecutor.setup();
+        this.videoExecutor.setup();
+    }
+
+    @Override
+    public ResourceLocation nextFrame() {
+        if (!this.isEnabled()) return this.textureLocation;
+        if (this.dynamicTexture == null) this.setup();
+        if (this.lifetime.shouldUpdateFrame(this.screen.fps)) {
+            NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
+            if (frame != null) {
+                this.dynamicTexture.setPixels(frame);
+                this.dynamicTexture.upload();
+                frame.close();
+            }
+        }
+        return this.textureLocation;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.screen.fps != 0 && !this.screen.video.isBlank() && !this.screen.audio.isBlank() && super.isEnabled();
     }
 
     @Override
@@ -43,6 +65,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         return true;
     }
 
+    @Override
     public boolean runInGenericScreen() {
         return false;
     }
@@ -50,106 +73,8 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     @Override
     public void shutdown() {
         super.shutdown();
-        this.screens.clear();
-    }
-
-    public void onRenderTick(TickEvent.@NotNull RenderTickEvent event) {
-        if (event.phase == TickEvent.Phase.START && this.isRunning()) {
-            this.renderFrame(null);
-            if (Minecraft.getInstance().level == null) this.shutdown();
-        }
-    }
-
-    public void onRenderLevel(@NotNull RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
-
-        Minecraft minecraft = Minecraft.getInstance();
-        ClientLevel level = minecraft.level;
-        if (level == null) return;
-
-        ResourceLocation dimension = level.dimension().location();
-        ObjectSet<InWorldScreen> inWorldScreens = this.screens.get(dimension);
-        if (inWorldScreens == null) return;
-
-        PoseStack poseStack = event.getPoseStack();
-        MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-        Vec3 cameraPos = event.getCamera().getPosition();
-
-        for (InWorldScreen inWorldScreen : inWorldScreens) {
-            poseStack.pushPose();
-            poseStack.translate(-cameraPos.x, - cameraPos.y, - cameraPos.z);
-            this.renderImage(poseStack, bufferSource, this.nextFrame(), inWorldScreen);
-            poseStack.popPose();
-        }
-    }
-
-    public void renderImage(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation, @NotNull InWorldScreen inWorldScreen) {
-        RenderType renderType = RenderType.entityTranslucentCull(textureLocation);
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
-
-        BlockPos leftBottomCorner = inWorldScreen.leftBottomCorner();
-        BlockPos leftTopCorner = inWorldScreen.leftTopCorner();
-        BlockPos rightBottomCorner = inWorldScreen.rightBottomCorner();
-        BlockPos rightTopCorner = inWorldScreen.rightTopCorner();
-
-        double leftBottomCornerX = leftBottomCorner.getX();
-        double leftBottomCornerY = leftBottomCorner.getY();
-        double leftBottomCornerZ = leftBottomCorner.getZ();
-
-        double leftTopCornerX = leftTopCorner.getX();
-        double leftTopCornerY = leftTopCorner.getY();
-        double leftTopCornerZ = leftTopCorner.getZ();
-
-        double rightBottomCornerX = rightBottomCorner.getX();
-        double rightBottomCornerY = rightBottomCorner.getY();
-        double rightBottomCornerZ = rightBottomCorner.getZ();
-
-        double rightTopCornerX = rightTopCorner.getX();
-        double rightTopCornerY = rightTopCorner.getY();
-        double rightTopCornerZ = rightTopCorner.getZ();
-
-        double leftCornerDistX = leftTopCornerX - leftBottomCornerX;
-        double leftCornerDistY = leftTopCornerY - leftBottomCornerY;
-        double leftCornerDistZ = leftTopCornerZ - leftBottomCornerZ;
-
-        double rightCornerDistX = rightBottomCornerX - leftBottomCornerX;
-        double rightCornerDistY = rightBottomCornerY - leftBottomCornerY;
-        double rightCornerDistZ = rightBottomCornerZ - leftBottomCornerZ;
-
-        double normalX = leftCornerDistY * rightCornerDistZ - leftCornerDistZ * rightCornerDistY;
-        double normalY = leftCornerDistZ * rightCornerDistX - leftCornerDistX * rightCornerDistZ;
-        double normalZ = leftCornerDistX * rightCornerDistY - leftCornerDistY * rightCornerDistX;
-
-        double length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
-
-        normalX /= length;
-        normalY /= length;
-        normalZ /= length;
-
-        double againstZFighting = 0.01;
-
-        leftBottomCornerX += normalX * againstZFighting;
-        leftBottomCornerY += normalY * againstZFighting;
-        leftBottomCornerZ += normalZ * againstZFighting;
-
-        leftTopCornerX += normalX * againstZFighting;
-        leftTopCornerY += normalY * againstZFighting;
-        leftTopCornerZ += normalZ * againstZFighting;
-
-        rightBottomCornerX += normalX * againstZFighting;
-        rightBottomCornerY += normalY * againstZFighting;
-        rightBottomCornerZ += normalZ * againstZFighting;
-
-        rightTopCornerX += normalX * againstZFighting;
-        rightTopCornerY += normalY * againstZFighting;
-        rightTopCornerZ += normalZ * againstZFighting;
-
-        Matrix4f pose = poseStack.last().pose();
-        Matrix3f normal = poseStack.last().normal();
-
-        vertexConsumer.vertex(pose, (float)leftBottomCornerX,   (float)leftBottomCornerY,  (float)leftBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-        vertexConsumer.vertex(pose, (float)leftTopCornerX,         (float)leftTopCornerY,     (float)leftTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-        vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-        vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+        this.screen.video = "";
+        this.screen.audio = "";
+        this.screen.fps = 0;
     }
 }

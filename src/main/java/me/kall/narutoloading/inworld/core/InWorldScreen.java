@@ -22,6 +22,7 @@ public final class InWorldScreen {
     private final int hashCode;
 
     public String video = "", audio = "";
+    public int fps = 0;
 
     public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
         this.leftBottomCorner = leftBottomCorner;
