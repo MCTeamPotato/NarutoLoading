@@ -2,12 +2,19 @@ package me.kall.narutoloading.util;
 
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraftforge.fml.loading.FMLLoader;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public final class FFmpegProvider {
     public volatile @Nullable String ffmpeg;
@@ -30,8 +37,8 @@ public final class FFmpegProvider {
     }
 
     public void setup(Runnable onDone) {
-        String ffprobePath = Files.validExe(this.ffprobePath);
-        String ffmpegPath = Files.validExe(this.ffmpegPath);
+        String ffprobePath = Executable.validExe(this.ffprobePath);
+        String ffmpegPath = Executable.validExe(this.ffmpegPath);
 
         if (!ffprobePath.isBlank() && !ffmpegPath.isBlank()) {
             this.ffprobe = ffprobePath;
@@ -70,8 +77,8 @@ public final class FFmpegProvider {
                 return;
             }
 
-            File ffmpegFile = Files.getExe(baseDir, ffmpegName);
-            File ffprobeFile = Files.getExe(baseDir, ffprobeName);
+            File ffmpegFile = Executable.getExe(baseDir, ffmpegName);
+            File ffprobeFile = Executable.getExe(baseDir, ffprobeName);
 
             this.ffmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
             this.ffprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
@@ -81,5 +88,100 @@ public final class FFmpegProvider {
 
     public void shutdown() {
         this.downloader.shutdownNow();
+    }
+
+    public static class Executable {
+        public static @NotNull String validExe(String path) {
+            if (path == null || path.isBlank()) return "";
+            File file = new File(path);
+            return file.exists() ? file.getAbsolutePath() : "";
+        }
+
+        public static @NotNull File getExe(String baseDir, String fileName) {
+            return FMLLoader.getGamePath().resolve(baseDir).resolve("bin").resolve(fileName).toFile();
+        }
+    }
+
+    public static class Downloader {
+        public static void download(@NotNull Path gamePath, @NotNull OSType os, String url) throws Exception {
+            Path tmp = gamePath.resolve("ffmpeg-download.tmp");
+            try (InputStream in = new URL(url).openStream()) {
+                Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            Path targetDir = gamePath.resolve("ffmpeg");
+
+            if (os == OSType.WINDOWS) {
+                Extractor.unzip(tmp, targetDir);
+            } else {
+                Extractor.untarXz(tmp, targetDir);
+            }
+
+            Files.deleteIfExists(tmp);
+        }
+    }
+
+    public static class Extractor {
+        public static void untarXz(@NotNull Path archive, Path targetDir) throws Exception {
+            Files.createDirectories(targetDir);
+
+            Process process = new ProcessBuilder("tar", "-xJf", archive.toAbsolutePath().toString(), "-C", targetDir.toAbsolutePath().toString(), "--strip-components=1").inheritIO().start();
+
+            int code = process.waitFor();
+            if (code != 0) {
+                throw new RuntimeException("tar failed with exit code " + code);
+            }
+        }
+
+        public static void unzip(Path zip, Path targetDir) throws Exception {
+            try (ZipInputStream zis = new ZipInputStream(java.nio.file.Files.newInputStream(zip))) {
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    String name = entry.getName();
+
+                    int firstSlash = name.indexOf('/');
+                    if (firstSlash < 0) continue;
+
+                    Path out = targetDir.resolve(name.substring(firstSlash + 1));
+                    if (entry.isDirectory()) {
+                        Files.createDirectories(out);
+                    } else {
+                        Files.createDirectories(out.getParent());
+                        Files.copy(zis, out, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            }
+        }
+    }
+
+    public enum OSType {
+        WINDOWS("ffmpeg-win"),
+        LINUX("ffmpeg-linux");
+
+        public static final OSType CURRENT = current();
+
+        public final String dirName;
+
+        OSType(String dirName) {
+            this.dirName = dirName;
+        }
+
+        static @Nullable FFmpegProvider.OSType current() {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) return WINDOWS;
+            if (os.contains("linux")) return LINUX;
+            return null;
+        }
+
+        public static @Nullable String getBase(Path gamePath, @Nullable FFmpegProvider.OSType os) {
+            if (os != null) {
+                Path osDir = gamePath.resolve(os.dirName);
+                if (osDir.toFile().exists()) {
+                    return os.dirName;
+                }
+            }
+
+            return gamePath.resolve("ffmpeg").toFile().exists() ? "ffmpeg" : null;
+        }
     }
 }
