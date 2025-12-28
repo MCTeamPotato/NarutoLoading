@@ -1,6 +1,7 @@
 package me.kall.narutoloading.inworld.network;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.data.Screens;
@@ -37,10 +38,14 @@ public class ArgUpdatePacket {
                 if (player == null) return;
                 ServerLevel level = player.serverLevel();
                 Screens screens = Screens.get(level);
-                if (!screens.screens.computeIfAbsent(level.dimension().location(), key -> new ObjectOpenHashSet<>()).add(this.argSource)) {
-                    screens.setDirty();
-                    NarutoLoading.LOGGER.info("Successfully sync the video and audio arguments for {}.", this.argSource.toString());
-                }
+
+                ObjectSet<InWorldScreen> inWorldScreens = screens.screens.computeIfAbsent(level.dimension().location(), key -> new ObjectOpenHashSet<>());
+
+                inWorldScreens.remove(this.argSource);
+                inWorldScreens.add(this.argSource);
+
+                screens.setDirty();
+                NarutoLoading.LOGGER.info("Successfully sync the video and audio arguments for {}.", this.argSource.toString());
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ArgUpdatePacket", exception);
             }
