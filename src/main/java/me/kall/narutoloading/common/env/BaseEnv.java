@@ -1,8 +1,6 @@
 package me.kall.narutoloading.common.env;
 
 import me.kall.narutoloading.common.env.config.NarutoConfig;
-import me.kall.narutoloading.util.FFmpegProvider;
-import me.kall.narutoloading.util.VideoArgReader;
 
 public final class BaseEnv {
     private BaseEnv() {}

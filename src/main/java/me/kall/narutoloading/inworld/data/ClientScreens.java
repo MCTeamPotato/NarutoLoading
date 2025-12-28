@@ -29,6 +29,15 @@ import org.joml.Matrix4f;
 public class ClientScreens {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<ClientScreen>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
 
+    public static boolean anyRunning() {
+        for (ObjectSet<ClientScreen> clientScreens : CLIENT_SCREENS.values()) {
+            for (ClientScreen clientScreen : clientScreens) {
+                if (clientScreen.renderer.isRunning()) return true;
+            }
+        }
+        return false;
+    }
+
     @SubscribeEvent
     public static void renderTick(TickEvent.@NotNull RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {

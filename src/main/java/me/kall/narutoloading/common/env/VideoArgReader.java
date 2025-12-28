@@ -1,4 +1,4 @@
-package me.kall.narutoloading.util;
+package me.kall.narutoloading.common.env;
 
 import me.kall.narutoloading.NarutoLoading;
 import org.jetbrains.annotations.Nullable;

@@ -10,7 +10,7 @@ import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
-import me.kall.narutoloading.inworld.network.ScreenDelivery;
+import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -138,7 +138,7 @@ public class ScreenChecker {
                     Screens screenData = Screens.get(level);
                     if (screenData.screens.computeIfAbsent(inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(inWorldScreen)) screenData.setDirty();
 
-                    NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new ScreenDelivery(inWorldScreen, false));
+                    NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(inWorldScreen, false));
 
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
                 } else {
@@ -173,7 +173,7 @@ public class ScreenChecker {
                         for (ServerPlayer player : level.players()) {
                             player.displayClientMessage(component, false);
                         }
-                        NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenDelivery(copy, true));
+                        NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(copy, true));
                     }
                 }
             });

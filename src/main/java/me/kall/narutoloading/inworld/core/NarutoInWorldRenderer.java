@@ -7,31 +7,31 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
-import me.kall.narutoloading.util.VideoArgReader;
+import me.kall.narutoloading.common.env.VideoArgReader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
+    private VideoArgReader videoArgReader;
     private final InWorldScreen screen;
-    private final VideoArgReader videoArgReader;
 
     public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
-        this.videoArgReader = new VideoArgReader(screen.video, BaseEnv.ffmpegProvider.ffprobe);
-        this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
-
-        this.audioExecutor = new NarutoAudioExecutor(screen.video, screen.audio, BaseEnv.ffmpegProvider.ffmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> screen.video, () -> 1280, () -> 720, videoArgReader::fps);
-
-        this.windowSizeChecker = null;
-        this.keyChecker = null;
         this.screen = screen;
     }
 
     @Override
     public void setup() {
         if (!this.isEnabled()) return;
+        this.videoArgReader = new VideoArgReader(this.screen.video(BaseEnv.narutoConfig.video), BaseEnv.ffmpegProvider.ffprobe);
+        this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
+
+        this.audioExecutor = new NarutoAudioExecutor(this.screen.video(BaseEnv.narutoConfig.video), this.screen.audio(BaseEnv.narutoConfig.audio), BaseEnv.ffmpegProvider.ffmpeg);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> this.screen.video(BaseEnv.narutoConfig.video), () -> 1280, () -> 720, videoArgReader::fps);
+
+        this.windowSizeChecker = null;
+        this.keyChecker = null;
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(1280, 720, false);
         if (this.textureLocation == null) {
@@ -59,11 +59,6 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     }
 
     @Override
-    public boolean isEnabled() {
-        return !this.screen.video.isBlank() && !this.screen.audio.isBlank() && super.isEnabled();
-    }
-
-    @Override
     public boolean runInLevel() {
         return true;
     }
@@ -71,12 +66,5 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     @Override
     public boolean runInGenericScreen() {
         return false;
-    }
-
-    @Override
-    public void shutdown() {
-        super.shutdown();
-        this.screen.video = "";
-        this.screen.audio = "";
     }
 }
