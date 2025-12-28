@@ -28,7 +28,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
 
         this.audioExecutor = new NarutoAudioExecutor(this.screen.video(BaseEnv.narutoConfig.video), this.screen.audio(BaseEnv.narutoConfig.audio), BaseEnv.ffmpegProvider.ffmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> this.screen.video(BaseEnv.narutoConfig.video), () -> 1280, () -> 720, videoArgReader::fps);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> this.screen.video(BaseEnv.narutoConfig.video), () -> 1280, () -> 720, this.videoArgReader::fps);
 
         this.windowSizeChecker = null;
         this.keyChecker = null;
