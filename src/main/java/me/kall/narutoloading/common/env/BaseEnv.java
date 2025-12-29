@@ -18,10 +18,10 @@ public final class BaseEnv {
     public static void setupEnv() {
         narutoConfig = new NarutoConfig();
 
-        ffmpegProvider = new FFmpegProvider(narutoConfig.ffprobePath, narutoConfig.ffmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl);
+        ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl);
         ffmpegProvider.setup(() -> {
-            if (ffmpegProvider.ffprobe == null) return;
-            noWorldVideoArgs = new VideoArgReader(narutoConfig.video, ffmpegProvider.ffprobe);
+            if (ffmpegProvider.absoluteFFprobe == null) return;
+            noWorldVideoArgs = new VideoArgReader(narutoConfig.absoluteVideoPath, ffmpegProvider.absoluteFFprobe);
             available = true;
         });
     }

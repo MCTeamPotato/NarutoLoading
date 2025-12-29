@@ -17,16 +17,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public final class FFmpegProvider {
-    public volatile @Nullable String ffmpeg;
-    public volatile @Nullable String ffprobe;
+    public volatile @Nullable String absoluteFFmpeg;
+    public volatile @Nullable String absoluteFFprobe;
 
-    private final String ffprobePath, ffmpegPath, winUrl, linuxUrl;
+    private final String uncheckedAbsoluteFFprobePath, uncheckedAbsoluteFFmpegPath, winUrl, linuxUrl;
 
     private final ExecutorService downloader;
 
-    public FFmpegProvider(String ffprobePath, String ffmpegPath, String winUrl, String linuxUrl) {
-        this.ffprobePath = ffprobePath;
-        this.ffmpegPath = ffmpegPath;
+    public FFmpegProvider(String uncheckedAbsoluteFFprobePath, String uncheckedAbsoluteFFmpegPath, String winUrl, String linuxUrl) {
+        this.uncheckedAbsoluteFFprobePath = uncheckedAbsoluteFFprobePath;
+        this.uncheckedAbsoluteFFmpegPath = uncheckedAbsoluteFFmpegPath;
         this.winUrl = winUrl;
         this.linuxUrl = linuxUrl;
         this.downloader = Executors.newSingleThreadExecutor(task -> {
@@ -37,12 +37,12 @@ public final class FFmpegProvider {
     }
 
     public void setup(Runnable onDone) {
-        String ffprobePath = Executable.validExe(this.ffprobePath);
-        String ffmpegPath = Executable.validExe(this.ffmpegPath);
+        String absoluteFFprobePath = Executable.validExe(this.uncheckedAbsoluteFFprobePath);
+        String absoluteFFmpegPath = Executable.validExe(this.uncheckedAbsoluteFFmpegPath);
 
-        if (!ffprobePath.isBlank() && !ffmpegPath.isBlank()) {
-            this.ffprobe = ffprobePath;
-            this.ffmpeg = ffmpegPath;
+        if (!absoluteFFprobePath.isBlank() && !absoluteFFmpegPath.isBlank()) {
+            this.absoluteFFprobe = absoluteFFprobePath;
+            this.absoluteFFmpeg = absoluteFFmpegPath;
             NarutoLoading.LOGGER.info("Using FFmpeg from config.");
             onDone.run();
             return;
@@ -71,8 +71,8 @@ public final class FFmpegProvider {
             }
 
             if (baseDir == null) {
-                this.ffmpeg = null;
-                this.ffprobe = null;
+                this.absoluteFFmpeg = null;
+                this.absoluteFFprobe = null;
                 onDone.run();
                 return;
             }
@@ -80,10 +80,10 @@ public final class FFmpegProvider {
             File ffmpegFile = Executable.getExe(baseDir, ffmpegName);
             File ffprobeFile = Executable.getExe(baseDir, ffprobeName);
 
-            this.ffmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
-            this.ffprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
-            NarutoLoading.LOGGER.info("NarutoLoading ffmpeg file path: {}", this.ffmpeg);
-            NarutoLoading.LOGGER.info("NarutoLoading ffprobe file path: {}", this.ffprobe);
+            this.absoluteFFmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
+            this.absoluteFFprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
+            NarutoLoading.LOGGER.info("NarutoLoading ffmpeg file path: {}", this.absoluteFFmpeg);
+            NarutoLoading.LOGGER.info("NarutoLoading ffprobe file path: {}", this.absoluteFFprobe);
             onDone.run();
         });
     }
@@ -92,20 +92,20 @@ public final class FFmpegProvider {
         this.downloader.shutdownNow();
     }
 
-    public static class Executable {
-        public static @NotNull String validExe(String path) {
+    static class Executable {
+        static @NotNull String validExe(String path) {
             if (path == null || path.isBlank()) return "";
             File file = new File(path);
             return file.exists() ? file.getAbsolutePath() : "";
         }
 
-        public static @NotNull File getExe(String baseDir, String fileName) {
+        static @NotNull File getExe(String baseDir, String fileName) {
             return FMLLoader.getGamePath().resolve(baseDir).resolve("bin").resolve(fileName).toFile();
         }
     }
 
-    public static class Downloader {
-        public static void download(@NotNull Path gamePath, @NotNull OSType os, String url) throws Exception {
+    static class Downloader {
+        static void download(@NotNull Path gamePath, @NotNull OSType os, String url) throws Exception {
             Path tmp = gamePath.resolve("ffmpeg-download.tmp");
             try (InputStream in = new URL(url).openStream()) {
                 Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
@@ -123,8 +123,8 @@ public final class FFmpegProvider {
         }
     }
 
-    public static class Extractor {
-        public static void untarXz(@NotNull Path archive, Path targetDir) throws Exception {
+    static class Extractor {
+        static void untarXz(@NotNull Path archive, Path targetDir) throws Exception {
             Files.createDirectories(targetDir);
 
             Process process = new ProcessBuilder("tar", "-xJf", archive.toAbsolutePath().toString(), "-C", targetDir.toAbsolutePath().toString(), "--strip-components=1").inheritIO().start();
@@ -135,7 +135,7 @@ public final class FFmpegProvider {
             }
         }
 
-        public static void unzip(Path zip, Path targetDir) throws Exception {
+        static void unzip(Path zip, Path targetDir) throws Exception {
             try (ZipInputStream zis = new ZipInputStream(java.nio.file.Files.newInputStream(zip))) {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
@@ -156,13 +156,13 @@ public final class FFmpegProvider {
         }
     }
 
-    public enum OSType {
+    enum OSType {
         WINDOWS("ffmpeg-win"),
         LINUX("ffmpeg-linux");
 
-        public static final OSType CURRENT = current();
+        static final OSType CURRENT = current();
 
-        public final String dirName;
+        final String dirName;
 
         OSType(String dirName) {
             this.dirName = dirName;
@@ -175,7 +175,7 @@ public final class FFmpegProvider {
             return null;
         }
 
-        public static @Nullable String getBase(Path gamePath, @Nullable FFmpegProvider.OSType os) {
+        static @Nullable String getBase(Path gamePath, @Nullable FFmpegProvider.OSType os) {
             if (os != null) {
                 Path osDir = gamePath.resolve(os.dirName);
                 if (osDir.toFile().exists()) {

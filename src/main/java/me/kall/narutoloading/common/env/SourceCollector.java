@@ -18,6 +18,7 @@ public class SourceCollector {
     public static final Set<Source> ABSOLUTE_SOURCES = new ObjectOpenHashSet<>();
 
     public static void scan() {
+        ABSOLUTE_SOURCES.clear();
         try (Stream<Path> stream = Files.list(SOURCE_DIRECTORY)) {
             List<Path> subDirs = stream.filter(Files::isDirectory).toList();
 
@@ -37,7 +38,9 @@ public class SourceCollector {
                     }
                 }
 
-                if (video != null && audio != null) ABSOLUTE_SOURCES.add(new Source(video.toAbsolutePath().toString(), audio.toAbsolutePath().toString()));
+                if (video != null && audio != null) {
+                    ABSOLUTE_SOURCES.add(new Source(video.toAbsolutePath().toString(), audio.toAbsolutePath().toString()));
+                }
             }
         } catch (Exception e) {
             NarutoLoading.LOGGER.error("Error scanning NarutoLoading sources", e);

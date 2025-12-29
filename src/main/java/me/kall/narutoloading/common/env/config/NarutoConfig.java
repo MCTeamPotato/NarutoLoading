@@ -16,14 +16,14 @@ public final class NarutoConfig {
 
     public int reload;
 
-    public String videoName;
-    public String audioName;
+    public String videoFileName;
+    public String audioFileName;
 
-    public String ffprobePath;
-    public String ffmpegPath;
+    public String absoluteFFprobePath;
+    public String absoluteFFmpegPath;
 
-    private int width;
-    private int height;
+    private int maxResolutionWidth;
+    private int maxResolutionHeight;
 
     public int bufferSize;
 
@@ -34,18 +34,18 @@ public final class NarutoConfig {
     public String winUrl;
     public String linuxUrl;
 
-    public String video;
-    public String audio;
+    public String absoluteVideoPath;
+    public String absoluteAudioPath;
 
     public int width() {
         int width = Minecraft.getInstance().getWindow().getScreenWidth();
-        if (width > this.width) width = this.width;
+        if (width > this.maxResolutionWidth) width = this.maxResolutionWidth;
         return width;
     }
 
     public int height() {
         int height = Minecraft.getInstance().getWindow().getScreenHeight();
-        if (height > this.height) height = this.height;
+        if (height > this.maxResolutionHeight) height = this.maxResolutionHeight;
         return height;
     }
 
@@ -79,17 +79,17 @@ public final class NarutoConfig {
 
         this.reload = this.config.getInt("reloadKey");
 
-        this.videoName = this.config.getString("videoFileName");
-        this.video = NarutoConfig.toPath(this.videoName);
+        this.videoFileName = this.config.getString("videoFileName");
+        this.absoluteVideoPath = NarutoConfig.toPath(this.videoFileName);
 
-        this.audioName = this.config.getString("audioFileName");
-        this.audio = this.audioName.isBlank() ? "" : NarutoConfig.toPath(this.audioName);
+        this.audioFileName = this.config.getString("audioFileName");
+        this.absoluteAudioPath = this.audioFileName.isBlank() ? "" : NarutoConfig.toPath(this.audioFileName);
 
-        this.ffprobePath = this.config.getString("ffprobeExePath");
-        this.ffmpegPath = this.config.getString("ffmpegExePath");
+        this.absoluteFFprobePath = this.config.getString("ffprobeExePath");
+        this.absoluteFFmpegPath = this.config.getString("ffmpegExePath");
 
-        this.width = this.config.getInt("maxResolutionWidth");
-        this.height = this.config.getInt("maxResolutionHeight");
+        this.maxResolutionWidth = this.config.getInt("maxResolutionWidth");
+        this.maxResolutionHeight = this.config.getInt("maxResolutionHeight");
 
         this.bufferSize = this.config.getInt("videoFrameStorageBufferSize");
 
@@ -106,14 +106,14 @@ public final class NarutoConfig {
     private void log() {
         LOGGER.info("Reload key in NarutoConfig: {}", this.reload);
 
-        LOGGER.info("Video path in NarutoConfig: {}", this.videoName);
-        LOGGER.info("Audio path in NarutoConfig: {}", this.audioName);
+        LOGGER.info("Video path in NarutoConfig: {}", this.videoFileName);
+        LOGGER.info("Audio path in NarutoConfig: {}", this.audioFileName);
 
-        LOGGER.info("FFprobe path in NarutoConfig: {}", this.ffprobePath);
-        LOGGER.info("FFmpeg path in NarutoConfig: {}", this.ffmpegPath);
+        LOGGER.info("FFprobe path in NarutoConfig: {}", this.absoluteFFprobePath);
+        LOGGER.info("FFmpeg path in NarutoConfig: {}", this.absoluteFFmpegPath);
 
-        LOGGER.info("Max resolution width in NarutoConfig: {}", this.width);
-        LOGGER.info("Max resolution height in NarutoConfig: {}", this.height);
+        LOGGER.info("Max resolution width in NarutoConfig: {}", this.maxResolutionWidth);
+        LOGGER.info("Max resolution height in NarutoConfig: {}", this.maxResolutionHeight);
 
         LOGGER.info("Video frame storage buffer size in NarutoConfig: {}", this.bufferSize);
 

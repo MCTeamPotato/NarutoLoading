@@ -37,8 +37,8 @@ public class NarutoRenderer {
     public void setup() {
         if (!this.isEnabled()) return;
         this.lifetime = new LifetimeController(this, BaseEnv.noWorldVideoArgs.duration());
-        this.audioExecutor = new NarutoAudioExecutor(BaseEnv.narutoConfig.video, BaseEnv.narutoConfig.audio, BaseEnv.ffmpegProvider.ffmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.video, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.noWorldVideoArgs.fps());
+        this.audioExecutor = new NarutoAudioExecutor(BaseEnv.narutoConfig.absoluteVideoPath, BaseEnv.narutoConfig.absoluteAudioPath, BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.noWorldVideoArgs.fps());
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
         if (this.textureLocation == null) {

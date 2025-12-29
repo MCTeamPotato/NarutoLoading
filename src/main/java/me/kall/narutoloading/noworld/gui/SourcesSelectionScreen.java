@@ -44,12 +44,12 @@ public class SourcesSelectionScreen extends Screen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(256);
-        this.videoBox.setValue(BaseEnv.narutoConfig.videoName);
+        this.videoBox.setValue(BaseEnv.narutoConfig.videoFileName);
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY + spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(256);
-        this.audioBox.setValue(BaseEnv.narutoConfig.audioName);
+        this.audioBox.setValue(BaseEnv.narutoConfig.audioFileName);
         this.addRenderableWidget(this.audioBox);
 
         int buttonWidth = 80;

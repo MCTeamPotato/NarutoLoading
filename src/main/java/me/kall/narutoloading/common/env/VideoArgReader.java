@@ -15,9 +15,9 @@ public class VideoArgReader {
     private final String video;
     private final String ffprobe;
 
-    public VideoArgReader(String video, String ffprobe) {
-        this.video = video;
-        this.ffprobe = ffprobe;
+    public VideoArgReader(String absoluteVideoPath, String absoluteFFprobePath) {
+        this.video = absoluteVideoPath;
+        this.ffprobe = absoluteFFprobePath;
         this.setup();
     }
 
@@ -38,10 +38,10 @@ public class VideoArgReader {
     }
 
     static class FFprobe {
-        private static final Pattern FPS = Pattern.compile("\"avg_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
-        private static final Pattern DURATION = Pattern.compile("\"duration\"\\s*:\\s*\"([0-9.]+)\"");
+        static final Pattern FPS = Pattern.compile("\"avg_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
+        static final Pattern DURATION = Pattern.compile("\"duration\"\\s*:\\s*\"([0-9.]+)\"");
 
-        public static int getFps(String json) {
+        static int getFps(String json) {
             if (json != null) {
                 Matcher matcher = FPS.matcher(json);
 
@@ -56,7 +56,7 @@ public class VideoArgReader {
             throw new RuntimeException("Failed to read video frame rate");
         }
 
-        public static long getDuration(String json) {
+        static long getDuration(String json) {
             if (json != null) {
                 Matcher matcher = DURATION.matcher(json);
 
@@ -65,7 +65,7 @@ public class VideoArgReader {
             throw new RuntimeException("Failed to read video duration");
         }
 
-        public static @Nullable String genJson(String video, String ffprobe) {
+        static @Nullable String genJson(String video, String ffprobe) {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(ffprobe, "-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", video).redirectErrorStream(true);
 

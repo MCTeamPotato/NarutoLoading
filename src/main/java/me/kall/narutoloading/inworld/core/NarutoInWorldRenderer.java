@@ -24,11 +24,11 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     @Override
     public void setup() {
         if (!this.isEnabled()) return;
-        this.videoArgReader = new VideoArgReader(this.screen.video(BaseEnv.narutoConfig.video), BaseEnv.ffmpegProvider.ffprobe);
+        this.videoArgReader = new VideoArgReader(this.screen.video(BaseEnv.narutoConfig.absoluteVideoPath), BaseEnv.ffmpegProvider.absoluteFFprobe);
         this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
 
-        this.audioExecutor = new NarutoAudioExecutor(this.screen.video(BaseEnv.narutoConfig.video), this.screen.audio(BaseEnv.narutoConfig.audio), BaseEnv.ffmpegProvider.ffmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.ffmpeg, () -> "1280", () -> "720", () -> this.screen.video(BaseEnv.narutoConfig.video), () -> 1280, () -> 720, this.videoArgReader::fps);
+        this.audioExecutor = new NarutoAudioExecutor(this.screen.video(BaseEnv.narutoConfig.absoluteVideoPath), this.screen.audio(BaseEnv.narutoConfig.absoluteAudioPath), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> this.screen.video(BaseEnv.narutoConfig.absoluteVideoPath), () -> 1280, () -> 720, this.videoArgReader::fps);
 
         this.windowSizeChecker = null;
         this.keyChecker = null;
