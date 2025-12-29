@@ -11,9 +11,11 @@ import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -24,6 +26,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private final ClientScreensRenderer.ClientScreen clientScreen;
+    private Checkbox cullableCheckbox;
+
+    public static final Component CULLABLE = Component.translatable("box.narutoloading.cullable");
 
     public InWorldSelectionScreen(Screen lastScreen, ClientScreensRenderer.ClientScreen clientScreen) {
         super(lastScreen);
@@ -39,15 +44,18 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         int boxHeight = 20;
         int spacing = 28;
 
-        this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing - boxHeight, boxWidth, boxHeight, VIDEO);
+        this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing * 2 - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);
         this.videoBox.setValue(NarutoConfig.relative(this.clientScreen.screen().absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)));
         this.addRenderableWidget(this.videoBox);
 
-        this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY + spacing, boxWidth, boxHeight, AUDIO);
+        this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(1024);
         this.audioBox.setValue(NarutoConfig.relative(this.clientScreen.screen().absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
         this.addRenderableWidget(this.audioBox);
+
+        this.cullableCheckbox = new Checkbox(centerX - boxWidth / 2, centerY + spacing / 2, boxWidth, boxHeight, CULLABLE, this.clientScreen.screen().isCullable());
+        this.addRenderableWidget(this.cullableCheckbox);
 
         int buttonWidth = 80;
         int buttonHeight = 20;
@@ -67,6 +75,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         String videoFilename = NarutoConfig.absolute(this.videoBox.getValue());
         String audioFileName = NarutoConfig.absolute(this.audioBox.getValue());
         this.clientScreen.screen().set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
+        this.clientScreen.screen().setCullable(this.cullableCheckbox.selected());
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.clientScreen.screen()));
         this.clientScreen.renderer().shutdown();
         this.clientScreen.renderer().setup();

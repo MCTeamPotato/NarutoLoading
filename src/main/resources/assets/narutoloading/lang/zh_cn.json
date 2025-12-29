@@ -1,4 +1,5 @@
 {
+  "box.narutoloading.cullable": "单面渲染",
   "screen.narutoloading.selection": "来源选择",
   "button.narutoloading.done": "完成",
   "button.narutoloading.cancel": "取消",

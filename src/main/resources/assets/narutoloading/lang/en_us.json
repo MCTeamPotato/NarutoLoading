@@ -1,4 +1,5 @@
 {
+  "box.narutoloading.cullable": "Single-Sided Rendering",
   "screen.narutoloading.selection": "Sources Selection",
   "button.narutoloading.done": "Done",
   "button.narutoloading.cancel": "Cancel",

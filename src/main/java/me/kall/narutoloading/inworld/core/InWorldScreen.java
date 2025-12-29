@@ -23,7 +23,7 @@ public final class InWorldScreen {
 
     private String absoluteVideoPath = "", absoluteAudioPath = "";
 
-    private boolean cullable;
+    private boolean cullable = true;
 
     public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
         this.leftBottomCorner = leftBottomCorner;
