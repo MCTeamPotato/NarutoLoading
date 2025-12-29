@@ -16,7 +16,6 @@ public final class BaseEnv {
     }
 
     public static void setupEnv() {
-        SourceCollector.scan();
         narutoConfig = new NarutoConfig();
 
         ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl);
@@ -24,6 +23,7 @@ public final class BaseEnv {
             if (ffmpegProvider.absoluteFFprobe == null) return;
             noWorldVideoArgs = new VideoArgReader(narutoConfig.absoluteVideoPath, ffmpegProvider.absoluteFFprobe);
             available = true;
+            ffmpegProvider.shutdown();
         });
     }
 }

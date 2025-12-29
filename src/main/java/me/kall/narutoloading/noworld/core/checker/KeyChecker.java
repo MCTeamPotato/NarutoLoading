@@ -10,7 +10,7 @@ import org.lwjgl.glfw.GLFW;
 
 public final class KeyChecker {
     private boolean reloadable = false;
-    private int reloadCooldown = 0;
+    private int interval = 0;
     private final NarutoRenderer renderer;
 
     public KeyChecker(NarutoRenderer renderer) {
@@ -27,25 +27,25 @@ public final class KeyChecker {
             return;
         }
 
-        if (this.reloadCooldown > 0) {
-            this.reloadCooldown--;
+        if (this.interval > 0) {
+            this.interval--;
             return;
         }
 
-        if (SourcesSelectionScreen.Trigger.screenTriggerable != 0) return;
+        if (SourcesSelectionScreen.Trigger.interval != 0) return;
 
         long window = minecraft.getWindow().getWindow();
         int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
 
         if (state == GLFW.GLFW_PRESS) {
-            this.reloadCooldown = 20;
+            this.interval = 20;
             this.reloadable = true;
         }
     }
 
     private void reset() {
         this.reloadable = false;
-        this.reloadCooldown = 0;
+        this.interval = 0;
     }
 
     public void reload() {

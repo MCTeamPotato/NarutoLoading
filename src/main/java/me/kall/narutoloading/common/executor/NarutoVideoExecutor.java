@@ -138,9 +138,19 @@ public final class NarutoVideoExecutor {
         return frame == null ? null : frame.image();
     }
 
-    public void shutdown(long frameElapsed) {
+    public void shutdown() {
         if (this.canceled) return;
         this.canceled = true;
+
+        if (this.process != null) {
+            this.process.destroyForcibly();
+            this.process = null;
+        }
+
+        if (this.executor != null) {
+            this.executor.shutdownNow();
+            this.executor = null;
+        }
 
         try {
             if (this.inputStream != null) {
@@ -156,26 +166,12 @@ public final class NarutoVideoExecutor {
             NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor resources cleanup during shutdown", exception);
         }
 
-        if (this.process != null) {
-            this.process.destroyForcibly();
-            this.process = null;
-        }
-
-        if (this.executor != null) {
-            this.executor.shutdownNow();
-            this.executor = null;
-        }
-
         if (this.frameQueue != null) {
             for (Frame frame : this.frameQueue) {
                 frame.image.close();
             }
             this.frameQueue = null;
         }
-    }
-
-    public void shutdown() {
-        this.shutdown(this.baseFrameOffset + this.frameIndex);
     }
 
     private record Frame(long frameIndex, NativeImage image) {}

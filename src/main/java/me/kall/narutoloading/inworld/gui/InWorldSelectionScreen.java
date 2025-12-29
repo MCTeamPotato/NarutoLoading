@@ -40,13 +40,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         int spacing = 28;
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing - boxHeight, boxWidth, boxHeight, VIDEO);
-        this.videoBox.setMaxLength(256);
-        this.videoBox.setValue(this.clientScreen.screen().absoluteVideoPath(BaseEnv.narutoConfig.videoFileName));
+        this.videoBox.setMaxLength(1024);
+        this.videoBox.setValue(NarutoConfig.relative(this.clientScreen.screen().absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)));
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY + spacing, boxWidth, boxHeight, AUDIO);
-        this.audioBox.setMaxLength(256);
-        this.audioBox.setValue(this.clientScreen.screen().absoluteAudioPath(BaseEnv.narutoConfig.audioFileName));
+        this.audioBox.setMaxLength(1024);
+        this.audioBox.setValue(NarutoConfig.relative(this.clientScreen.screen().absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
         this.addRenderableWidget(this.audioBox);
 
         int buttonWidth = 80;
@@ -64,9 +64,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     @Override
     protected void onDone() {
-        String videoFilename = this.videoBox.getValue();
-        String audioFileName = this.audioBox.getValue();
-        this.clientScreen.screen().set(NarutoConfig.toPath(videoFilename), NarutoConfig.toPath(audioFileName));
+        String videoFilename = NarutoConfig.absolute(this.videoBox.getValue());
+        String audioFileName = NarutoConfig.absolute(this.audioBox.getValue());
+        this.clientScreen.screen().set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.clientScreen.screen()));
         this.clientScreen.renderer().shutdown();
         this.clientScreen.renderer().setup();

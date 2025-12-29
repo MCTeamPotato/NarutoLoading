@@ -10,6 +10,8 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
+import java.nio.file.Path;
+
 public final class NarutoConfig {
     private static final Logger LOGGER = LogManager.getLogger(NarutoConfig.class);
 
@@ -59,10 +61,10 @@ public final class NarutoConfig {
     }
 
     public NarutoConfig() {
-        this.init();
+        this.init(true);
     }
 
-    public void init() {
+    public void init(boolean roll) {
         this.config = JsonConfig.create(NarutoLoading.MOD_ID, "5")
                 .put("ffmpegExePath", "D:\\your\\ffmpeg\\file.exe")
                 .put("ffprobeExePath", "D:\\your\\ffprobe\\file.exe")
@@ -81,10 +83,10 @@ public final class NarutoConfig {
         this.reload = this.config.getInt("reloadKey");
 
         this.videoFileName = this.config.getString("videoFileName");
-        this.absoluteVideoPath = NarutoConfig.toPath(this.videoFileName);
+        this.absoluteVideoPath = NarutoConfig.absolute(this.videoFileName);
 
         this.audioFileName = this.config.getString("audioFileName");
-        this.absoluteAudioPath = this.audioFileName.isBlank() ? "" : NarutoConfig.toPath(this.audioFileName);
+        this.absoluteAudioPath = this.audioFileName.isBlank() ? "" : NarutoConfig.absolute(this.audioFileName);
 
         this.absoluteFFprobePath = this.config.getString("ffprobeExePath");
         this.absoluteFFmpegPath = this.config.getString("ffmpegExePath");
@@ -101,39 +103,53 @@ public final class NarutoConfig {
         this.winUrl = this.config.getString("ffmpegWindowsDownloadLink");
         this.linuxUrl = this.config.getString("ffmpegLinuxDownloadLink");
 
-        SourceCollector.Source source = SourceCollector.roll();
-        if (source != null) {
-            this.absoluteVideoPath = source.absoluteVideoPath();
-            this.absoluteAudioPath = source.absoluteAudioPath();
-        }
+        if (roll) this.roll();
 
         this.log();
     }
 
-    private void log() {
-        LOGGER.info("Reload key in NarutoConfig: {}", this.reload);
+    public void roll() {
+        SourceCollector.Source source = SourceCollector.roll();
+        if (source != null) {
+            this.absoluteVideoPath = source.absoluteVideoPath();
+            this.videoFileName = relative(this.absoluteVideoPath);
 
-        LOGGER.info("Video path in NarutoConfig: {}", this.videoFileName);
-        LOGGER.info("Audio path in NarutoConfig: {}", this.audioFileName);
+            this.absoluteAudioPath = source.absoluteAudioPath();
+            this.audioFileName = relative(this.absoluteAudioPath);
 
-        LOGGER.info("FFprobe path in NarutoConfig: {}", this.absoluteFFprobePath);
-        LOGGER.info("FFmpeg path in NarutoConfig: {}", this.absoluteFFmpegPath);
-
-        LOGGER.info("Max resolution width in NarutoConfig: {}", this.maxResolutionWidth);
-        LOGGER.info("Max resolution height in NarutoConfig: {}", this.maxResolutionHeight);
-
-        LOGGER.info("Video frame storage buffer size in NarutoConfig: {}", this.bufferSize);
-
-        LOGGER.info("Audio volume in NarutoConfig: {}", this.volume);
-
-        LOGGER.info("Log errors in NarutoConfig: {}", this.debug);
-
-        LOGGER.info("FFmpeg Windows download link in NarutoConfig: {}", this.winUrl);
-        LOGGER.info("FFmpeg Linux download link in NarutoConfig: {}", this.linuxUrl);
+            this.config.put("videoFileName", this.videoFileName).put("audioFileName", this.audioFileName).saveToFile();
+        }
     }
 
-    public static @NotNull String toPath(@NotNull String name) {
-        if (name.isBlank()) return "";
-        return FMLLoader.getGamePath().resolve("config").resolve(name).toAbsolutePath().toString();
+    private void log() {
+        LOGGER.info(this.toString());
+    }
+
+    public String toString() {
+        return "NarutoConfig Arguments: {[Reload key: " + this.reload +
+                "], [Video Path: " + this.videoFileName +
+                "], [Audio Path: " + this.audioFileName +
+                "], [FFprobe Path: " + this.absoluteFFprobePath +
+                "], [FFmpeg Path:" + this.absoluteFFmpegPath +
+                "], [Max Resolution Width: " + this.maxResolutionWidth +
+                "], [Max Resolution Height: " + this.maxResolutionHeight +
+                "], [Video Frame Storage Buffer Size: " + this.bufferSize +
+                "], [Audio Volume: " + this.volume +
+                "], [Log Errors Or Not: " + this.debug +
+                "], [FFmpeg Windows Download Link: " + this.winUrl +
+                "], [FFmpeg Linux Download Link:" + this.linuxUrl + "]}";
+    }
+
+    public static @NotNull String absolute(@NotNull String relativeFilePath) {
+        if (relativeFilePath.isBlank()) return "";
+        return FMLLoader.getGamePath().resolve("config").resolve(relativeFilePath).toAbsolutePath().toString();
+    }
+
+    public static @NotNull String relative(@NotNull String absolutePath) {
+        if (absolutePath.isBlank()) return "";
+        Path configPath = FMLLoader.getGamePath().resolve("config").toAbsolutePath().normalize();
+        Path targetPath = Path.of(absolutePath).toAbsolutePath().normalize();
+        if (!targetPath.startsWith(configPath)) return "";
+        return configPath.relativize(targetPath).toString();
     }
 }

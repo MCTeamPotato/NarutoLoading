@@ -11,6 +11,7 @@ public final class LifetimeController {
     private boolean running = false;
 
     public volatile boolean lagSpikeDetected = false;
+    private long lastLagSpikeRestart = -1;
 
     public volatile boolean syncSoundEngine = false;
 
@@ -66,10 +67,17 @@ public final class LifetimeController {
     public void lagSpikeRestart() {
         if (this.lagSpikeDetected) {
             this.lagSpikeDetected = false;
+            long current = System.currentTimeMillis();
+            if (this.lastLagSpikeRestart == -1) {
+                this.lastLagSpikeRestart = current;
+                return;
+            }
+            if (current - this.lastLagSpikeRestart < 5000) return;
             String sec = String.valueOf(this.elapsedSeconds());
             NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
-            this.renderer.videoExecutor.shutdown((long) (this.elapsedSeconds() * this.duration));
+            this.renderer.videoExecutor.shutdown();
             this.renderer.videoExecutor.setup(sec);
+            this.lastLagSpikeRestart = System.currentTimeMillis();
         }
     }
 

@@ -73,6 +73,7 @@ public class SourcesSelectionScreen extends Screen {
         String video = this.videoBox.getValue();
         String audio = this.audioBox.getValue();
         BaseEnv.narutoConfig.config.put("videoFileName", video).put("audioFileName", audio).saveToFile();
+        BaseEnv.narutoConfig.init(false);
         NarutoRenderer.INSTANCE.shutdown();
         NarutoRenderer.INSTANCE.setup();
         Minecraft.getInstance().setScreen(this.lastScreen);
@@ -110,7 +111,7 @@ public class SourcesSelectionScreen extends Screen {
 
     @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
     public static final class Trigger {
-        public static int screenTriggerable = 0;
+        public static int interval = 0;
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
@@ -118,17 +119,18 @@ public class SourcesSelectionScreen extends Screen {
 
             Minecraft mc = Minecraft.getInstance();
 
-            if (screenTriggerable > 0) {
-                screenTriggerable--;
+            if (interval > 0) {
+                interval--;
                 return;
             }
 
             long window = mc.getWindow().getWindow();
             int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
-            int stateCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
+            int stateLeftCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
+            int stateRightCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
 
-            if (state == GLFW.GLFW_PRESS && stateCtrl == GLFW.GLFW_PRESS && !(mc.screen instanceof SourcesSelectionScreen)) {
-                screenTriggerable = 20;
+            if (state == GLFW.GLFW_PRESS && (stateLeftCtrl == GLFW.GLFW_PRESS || stateRightCtrl == GLFW.GLFW_PRESS) && !(mc.screen instanceof SourcesSelectionScreen)) {
+                interval = 20;
                 mc.setScreen(new SourcesSelectionScreen(mc.screen));
             }
         }
