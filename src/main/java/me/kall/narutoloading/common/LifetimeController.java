@@ -58,7 +58,6 @@ public final class LifetimeController {
 
     public void endRestart() {
         if (this.elapsedTime >= this.duration) {
-            NarutoLoading.LOGGER.info("Video finished, rolling to a new random source...");
             this.renderer.shutdown();
             this.renderer.setup();
         }

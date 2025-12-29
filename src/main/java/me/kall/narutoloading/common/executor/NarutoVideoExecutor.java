@@ -95,7 +95,6 @@ public final class NarutoVideoExecutor {
                 if (BaseEnv.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
             }
         });
-        NarutoLoading.LOGGER.info("NarutoVideoExecutor sets up successfully from second {} (frame offset: {})", sec, this.baseFrameOffset);
     }
 
     private @NotNull NativeImage buildImage(byte @NotNull [] buffer) {
@@ -173,8 +172,6 @@ public final class NarutoVideoExecutor {
             }
             this.frameQueue = null;
         }
-
-        NarutoLoading.LOGGER.info("NarutoVideoExecutor shuts down successfully (was at frame {})", frameElapsed);
     }
 
     public void shutdown() {

@@ -95,7 +95,6 @@ public final class NarutoAudioExecutor {
                 if (BaseEnv.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
             }
         });
-        NarutoLoading.LOGGER.info("NarutoAudioExecutor sets up successfully");
     }
 
     public void shutdown() {
@@ -135,9 +134,6 @@ public final class NarutoAudioExecutor {
                 this.device = 0;
             }
 
-            NarutoLoading.LOGGER.info("Cleaning NarutoAudioExecutor's own OpenAL context.");
         }
-
-        NarutoLoading.LOGGER.info("NarutoAudioExecutor shuts down successfully");
     }
 }

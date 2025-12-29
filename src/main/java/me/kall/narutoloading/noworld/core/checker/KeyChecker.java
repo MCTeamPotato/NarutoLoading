@@ -1,8 +1,7 @@
 package me.kall.narutoloading.noworld.core.checker;
 
-import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.event.TickEvent;
@@ -54,6 +53,5 @@ public final class KeyChecker {
         this.reloadable = false;
         this.renderer.shutdown();
         this.renderer.setup();
-        NarutoLoading.LOGGER.info("NarutoRenderer reloads successfully.");
     }
 }

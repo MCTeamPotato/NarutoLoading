@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.ext.IFrustum;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import net.minecraft.client.Minecraft;
@@ -13,6 +14,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -79,20 +81,24 @@ public class ClientScreens {
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
         Vec3 camera = event.getCamera().getPosition();
+        Frustum frustum = minecraft.levelRenderer.getFrustum();
 
         for (ClientScreen clientScreen : clientScreens) {
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
 
-            ClientScreens.renderScreen(poseStack, bufferSource, clientScreen.renderer.nextFrame(), clientScreen.screen);
+            ClientScreens.renderScreen(poseStack, bufferSource, clientScreen, frustum);
 
             poseStack.popPose();
         }
     }
 
-    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, ResourceLocation textureLocation, @NotNull InWorldScreen inWorldScreen) {
-        RenderType renderType = RenderType.entityTranslucentCull(textureLocation);
+    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull ClientScreen clientScreen, Frustum frustum) {
+        InWorldScreen inWorldScreen = clientScreen.screen;
+
+        RenderType renderType = RenderType.entityTranslucentCull(clientScreen.renderer.nextFrame());
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+        if (!IFrustum.isVisible(frustum, inWorldScreen)) return;
 
         BlockPos leftBottomCorner = inWorldScreen.leftBottomCorner();
         BlockPos leftTopCorner = inWorldScreen.leftTopCorner();

@@ -22,6 +22,7 @@
     "noworld.impl.screen.MixinScrollPanel",
     "noworld.impl.screen.MixinTitleScreen",
     "sound.MixinOptions",
-    "sound.MixinSoundEngine"
+    "sound.MixinSoundEngine",
+    "util.FrustumMixin"
   ]
 }
