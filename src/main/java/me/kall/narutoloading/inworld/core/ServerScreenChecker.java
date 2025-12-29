@@ -27,12 +27,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
-public class ScreenChecker {
+public class ServerScreenChecker {
     private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
+
     private static final Int2IntMap SCREEN_SIZES = new Int2IntOpenHashMap();
 
     static {
-        for (int i = 1; i < 30; i++) {
+        for (int i = 1; i < 4096; i++) {
             SCREEN_SIZES.put(16 * i, 9 * i);
         }
     }

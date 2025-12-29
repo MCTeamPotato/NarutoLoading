@@ -3,7 +3,7 @@ package me.kall.narutoloading.inworld.gui;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
-import me.kall.narutoloading.inworld.data.ClientScreens;
+import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
@@ -23,9 +23,9 @@ import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
-    private final ClientScreens.ClientScreen clientScreen;
+    private final ClientScreensRenderer.ClientScreen clientScreen;
 
-    public InWorldSelectionScreen(Screen lastScreen, ClientScreens.ClientScreen clientScreen) {
+    public InWorldSelectionScreen(Screen lastScreen, ClientScreensRenderer.ClientScreen clientScreen) {
         super(lastScreen);
         this.clientScreen = clientScreen;
     }

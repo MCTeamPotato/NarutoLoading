@@ -13,7 +13,7 @@ import java.util.Set;
 public class EarlySetup implements IMixinConfigPlugin {
     @Override
     public void onLoad(String s) {
-        if (FMLLoader.getDist().isClient()) BaseEnv.setupEnv();
+        if (FMLLoader.getDist().isClient()) BaseEnv.setupEnv(true);
     }
 
     @Override

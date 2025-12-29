@@ -15,8 +15,8 @@ public final class BaseEnv {
         return available;
     }
 
-    public static void setupEnv() {
-        narutoConfig = new NarutoConfig();
+    public static void setupEnv(boolean roll) {
+        narutoConfig = new NarutoConfig(roll);
 
         ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl);
         ffmpegProvider.setup(() -> {

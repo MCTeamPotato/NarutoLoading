@@ -1,4 +1,4 @@
-package me.kall.narutoloading.inworld.data;
+package me.kall.narutoloading.inworld.core;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -7,8 +7,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.ext.IFrustum;
-import me.kall.narutoloading.inworld.core.InWorldScreen;
-import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -30,7 +28,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
-public class ClientScreens {
+public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<ClientScreen>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
 
     public static boolean anyRunning() {
@@ -68,7 +66,7 @@ public class ClientScreens {
 
     @SubscribeEvent
     public static void renderLevel(@NotNull RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS) return;
 
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
@@ -87,13 +85,13 @@ public class ClientScreens {
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
 
-            ClientScreens.renderScreen(poseStack, bufferSource, clientScreen, frustum);
+            ClientScreensRenderer.renderScreen(poseStack, bufferSource, clientScreen, frustum, camera);
 
             poseStack.popPose();
         }
     }
 
-    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull ClientScreen clientScreen, Frustum frustum) {
+    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull ClientScreen clientScreen, Frustum frustum, Vec3 camera) {
         InWorldScreen inWorldScreen = clientScreen.screen;
 
         RenderType renderType = RenderType.entityTranslucentCull(clientScreen.renderer.nextFrame());
@@ -110,7 +108,7 @@ public class ClientScreens {
         double leftBottomCornerZ = leftBottomCorner.getZ();
 
         double leftTopCornerX = leftTopCorner.getX();
-        double leftTopCornerY = leftTopCorner.getY();
+        double leftTopCornerY = leftTopCorner.getY() + 1.0;
         double leftTopCornerZ = leftTopCorner.getZ();
 
         double rightBottomCornerX = rightBottomCorner.getX();
@@ -118,8 +116,18 @@ public class ClientScreens {
         double rightBottomCornerZ = rightBottomCorner.getZ();
 
         double rightTopCornerX = rightTopCorner.getX();
-        double rightTopCornerY = rightTopCorner.getY();
+        double rightTopCornerY = rightTopCorner.getY() + 1.0;
         double rightTopCornerZ = rightTopCorner.getZ();
+
+        boolean isXAxis = leftBottomCornerX != rightBottomCornerX;
+
+        if (isXAxis) {
+            rightBottomCornerX += 1.0;
+            rightTopCornerX += 1.0;
+        } else {
+            rightBottomCornerZ += 1.0;
+            rightTopCornerZ += 1.0;
+        }
 
         double leftCornerDistX = leftTopCornerX - leftBottomCornerX;
         double leftCornerDistY = leftTopCornerY - leftBottomCornerY;
@@ -139,7 +147,15 @@ public class ClientScreens {
         normalY /= length;
         normalZ /= length;
 
-        double againstZFighting = 0.01;
+        double centerX = (leftBottomCornerX + rightTopCornerX) / 2.0;
+        double centerY = (leftBottomCornerY + rightTopCornerY) / 2.0;
+        double centerZ = (leftBottomCornerZ + rightTopCornerZ) / 2.0;
+
+        double distanceX = camera.x - centerX;
+        double distanceY = camera.y - centerY;
+        double distanceZ = camera.z - centerZ;
+
+        double againstZFighting = 0.05 + Math.sqrt(distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ) * 0.01;
 
         leftBottomCornerX += normalX * againstZFighting;
         leftBottomCornerY += normalY * againstZFighting;

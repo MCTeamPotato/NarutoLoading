@@ -2,7 +2,6 @@ package me.kall.narutoloading.common.env.config;
 
 import me.kall.duplicationless.config.JsonConfig;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.env.SourceCollector;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
@@ -60,8 +59,8 @@ public final class NarutoConfig {
         return String.valueOf(height());
     }
 
-    public NarutoConfig() {
-        this.init(true);
+    public NarutoConfig(boolean roll) {
+        this.init(roll);
     }
 
     public void init(boolean roll) {

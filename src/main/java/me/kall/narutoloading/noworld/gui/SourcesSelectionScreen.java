@@ -73,7 +73,7 @@ public class SourcesSelectionScreen extends Screen {
         String video = this.videoBox.getValue();
         String audio = this.audioBox.getValue();
         BaseEnv.narutoConfig.config.put("videoFileName", video).put("audioFileName", audio).saveToFile();
-        BaseEnv.narutoConfig.init(false);
+        BaseEnv.setupEnv(false);
         NarutoRenderer.INSTANCE.shutdown();
         NarutoRenderer.INSTANCE.setup();
         Minecraft.getInstance().setScreen(this.lastScreen);

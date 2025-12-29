@@ -1,7 +1,8 @@
-package me.kall.narutoloading.common.env;
+package me.kall.narutoloading.common.env.config;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.common.env.BaseEnv;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -30,7 +31,7 @@ public class SourceCollector {
     public static @Nullable Source roll() {
         scan();
         if (ABSOLUTE_SOURCES.isEmpty()) return null;
-        NarutoLoading.LOGGER.info("Start to roll source from {}", ABSOLUTE_SOURCES.stream().map(source -> "<Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + ">").toList());
+        NarutoLoading.LOGGER.info("Start to roll source from {}", ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").toList());
         Source source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
         if (ABSOLUTE_SOURCES.size() > 1) {
             while (source.equals(lastSource)) {
@@ -91,7 +92,7 @@ public class SourceCollector {
             int stateRightShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
 
             if (state == GLFW.GLFW_PRESS && (stateLeftShift == GLFW.GLFW_PRESS || stateRightShift == GLFW.GLFW_PRESS)) {
-                BaseEnv.setupEnv();
+                BaseEnv.setupEnv(true);
                 interval = 20;
             }
         }

@@ -23,6 +23,8 @@ public final class InWorldScreen {
 
     private String absoluteVideoPath = "", absoluteAudioPath = "";
 
+    private boolean cullable;
+
     public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
         this.leftBottomCorner = leftBottomCorner;
         this.leftTopCorner = leftTopCorner;
@@ -44,6 +46,10 @@ public final class InWorldScreen {
     public void set(String absoluteVideoPath, String absoluteAudioPath) {
         this.absoluteVideoPath = absoluteVideoPath;
         this.absoluteAudioPath = absoluteAudioPath;
+    }
+
+    public void setCullable(boolean cullable) {
+        this.cullable = cullable;
     }
 
     public BlockPos leftBottomCorner() {
@@ -69,6 +75,10 @@ public final class InWorldScreen {
     public LongSet involved() {
         if (this.involved == null) this.involved = LongSets.unmodifiable(InWorldScreen.genInvolved(leftBottomCorner(), leftTopCorner(), rightBottomCorner(), rightTopCorner()));
         return this.involved;
+    }
+
+    public boolean isCullable() {
+        return this.cullable;
     }
 
     @Contract(" -> new")
