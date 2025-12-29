@@ -140,9 +140,9 @@ public final class NarutoConfig {
                 "], [FFmpeg Linux Download Link:" + this.linuxUrl + "]}";
     }
 
-    public static @NotNull String absolute(@NotNull String relativeFilePath) {
-        if (relativeFilePath.isBlank()) return "";
-        return FMLLoader.getGamePath().resolve("config").resolve(relativeFilePath).toAbsolutePath().toString();
+    public static @NotNull String absolute(@NotNull String relativePath) {
+        if (relativePath.isBlank()) return "";
+        return FMLLoader.getGamePath().resolve("config").resolve(relativePath).toAbsolutePath().toString();
     }
 
     public static @NotNull String relative(@NotNull String absolutePath) {
