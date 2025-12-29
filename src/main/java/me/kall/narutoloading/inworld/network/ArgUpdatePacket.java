@@ -21,7 +21,7 @@ public class ArgUpdatePacket {
     }
 
     public ArgUpdatePacket(@NotNull FriendlyByteBuf buf) {
-        this.argSource = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf());
+        this.argSource = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readBoolean());
     }
 
     public void encode(@NotNull FriendlyByteBuf buf) {
@@ -29,6 +29,7 @@ public class ArgUpdatePacket {
         buf.writeResourceLocation(this.argSource.dimension());
         buf.writeUtf(this.argSource.absoluteVideoPath(""));
         buf.writeUtf(this.argSource.absoluteAudioPath(""));
+        buf.writeBoolean(this.argSource.isCullable());
     }
 
     public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {

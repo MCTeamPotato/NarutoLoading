@@ -93,8 +93,9 @@ public class ClientScreensRenderer {
 
     private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull ClientScreen clientScreen, Frustum frustum, Vec3 camera) {
         InWorldScreen inWorldScreen = clientScreen.screen;
+        ResourceLocation nextFrame = clientScreen.renderer.nextFrame();
+        RenderType renderType = inWorldScreen.isCullable() ? RenderType.entityTranslucentCull(nextFrame) : RenderType.entityTranslucent(nextFrame);
 
-        RenderType renderType = RenderType.entityTranslucentCull(clientScreen.renderer.nextFrame());
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
         if (!IFrustum.isVisible(frustum, inWorldScreen)) return;
 

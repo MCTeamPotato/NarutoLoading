@@ -28,6 +28,7 @@ public class Screens extends SavedData {
     private static final String CORNERS_KEY = "Corners";
     private static final String VIDEO_KEY = "Video";
     private static final String AUDIO_KEY = "Audio";
+    private static final String CULLABLE_KEY = "Cullable";
 
     public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
 
@@ -38,7 +39,7 @@ public class Screens extends SavedData {
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY)));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), screenTag.getBoolean(CULLABLE_KEY)));
         }
 
         return screens;
@@ -57,6 +58,7 @@ public class Screens extends SavedData {
                 screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
                 screenTag.putString(VIDEO_KEY, inWorldScreen.absoluteVideoPath(""));
                 screenTag.putString(AUDIO_KEY, inWorldScreen.absoluteAudioPath(""));
+                screenTag.putBoolean(CULLABLE_KEY, inWorldScreen.isCullable());
                 NarutoLoading.LOGGER.info("Saving {} successfully", inWorldScreen.toString());
                 screensList.add(screenTag);
             }

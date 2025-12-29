@@ -115,12 +115,13 @@ public final class InWorldScreen {
 
     @Override
     public @NotNull String toString() {
-        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "]}";
+        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "], Cullable: " + this.isCullable() + "}";
     }
 
-    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio) {
+    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, @Nullable Boolean cullable) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
         inWorldScreen.set(video == null ? "" : video, audio == null ? "" : audio);
+        inWorldScreen.setCullable(cullable != null && cullable);
         return inWorldScreen;
     }
 
