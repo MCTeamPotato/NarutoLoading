@@ -21,7 +21,7 @@ public final class InWorldScreen {
 
     private final int hashCode;
 
-    private String video = "", audio = "";
+    private String absoluteVideoPath = "", absoluteAudioPath = "";
 
     public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
         this.leftBottomCorner = leftBottomCorner;
@@ -33,17 +33,17 @@ public final class InWorldScreen {
         this.hashCode = Objects.hash(this.leftBottomCorner, this.leftTopCorner, this.rightBottomCorner, this.rightTopCorner, this.dimension);
     }
 
-    public String video(String fallback) {
-        return this.video.isBlank() ? fallback : this.video;
+    public String absoluteVideoPath(String fallback) {
+        return this.absoluteVideoPath.isBlank() ? fallback : this.absoluteVideoPath;
     }
 
-    public String audio(String fallback) {
-        return this.audio.isBlank() ? fallback : this.audio;
+    public String absoluteAudioPath(String fallback) {
+        return this.absoluteAudioPath.isBlank() ? fallback : this.absoluteAudioPath;
     }
 
-    public void set(String video, String audio) {
-        this.video = video;
-        this.audio = audio;
+    public void set(String absoluteVideoPath, String absoluteAudioPath) {
+        this.absoluteVideoPath = absoluteVideoPath;
+        this.absoluteAudioPath = absoluteAudioPath;
     }
 
     public BlockPos leftBottomCorner() {
@@ -74,8 +74,8 @@ public final class InWorldScreen {
     @Contract(" -> new")
     public @NotNull InWorldScreen copy() {
         InWorldScreen inWorldScreen = new InWorldScreen(this.leftBottomCorner(), this.leftTopCorner(), this.rightBottomCorner(), this.rightTopCorner(), this.dimension());
-        inWorldScreen.video = this.video;
-        inWorldScreen.audio = this.audio;
+        inWorldScreen.absoluteVideoPath = this.absoluteVideoPath;
+        inWorldScreen.absoluteAudioPath = this.absoluteAudioPath;
         return inWorldScreen;
     }
 
@@ -105,7 +105,7 @@ public final class InWorldScreen {
 
     @Override
     public @NotNull String toString() {
-        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.video + "], Audio: [" + this.audio + "]}";
+        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "]}";
     }
 
     public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio) {

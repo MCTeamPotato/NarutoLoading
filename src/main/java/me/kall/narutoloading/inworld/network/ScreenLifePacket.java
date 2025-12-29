@@ -31,8 +31,8 @@ public class ScreenLifePacket {
     public void encode(@NotNull FriendlyByteBuf buf) {
         buf.writeLongArray(this.inWorldScreen.toLongArray());
         buf.writeResourceLocation(this.inWorldScreen.dimension());
-        buf.writeUtf(this.inWorldScreen.video(""));
-        buf.writeUtf(this.inWorldScreen.audio(""));
+        buf.writeUtf(this.inWorldScreen.absoluteVideoPath(""));
+        buf.writeUtf(this.inWorldScreen.absoluteAudioPath(""));
         buf.writeBoolean(this.isRemoval);
     }
 

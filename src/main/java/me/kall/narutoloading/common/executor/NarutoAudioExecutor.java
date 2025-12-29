@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 public final class NarutoAudioExecutor {
     private volatile boolean canceled;
@@ -22,9 +23,9 @@ public final class NarutoAudioExecutor {
     private @Nullable Process process;
     private boolean selfContext = false;
 
-    private final String video, audio, ffmpeg;
+    private final Supplier<String> video, audio, ffmpeg;
 
-    public NarutoAudioExecutor(String video, String audio, String ffmpeg) {
+    public NarutoAudioExecutor(Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg) {
         this.video = video;
         this.audio = audio;
         this.ffmpeg = ffmpeg;
@@ -65,9 +66,9 @@ public final class NarutoAudioExecutor {
         this.executor.submit(() -> {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(
-                        this.ffmpeg,
+                        this.ffmpeg.get(),
                         "-ss", sec,
-                        "-i", this.audio.isEmpty() ? this.video : this.audio,
+                        "-i", this.audio.get().isEmpty() ? this.video.get() : this.audio.get(),
                         "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"
                 );
                 this.process = processBuilder.start();

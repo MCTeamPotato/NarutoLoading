@@ -27,8 +27,8 @@ public class ArgUpdatePacket {
     public void encode(@NotNull FriendlyByteBuf buf) {
         buf.writeLongArray(this.argSource.toLongArray());
         buf.writeResourceLocation(this.argSource.dimension());
-        buf.writeUtf(this.argSource.video(""));
-        buf.writeUtf(this.argSource.audio(""));
+        buf.writeUtf(this.argSource.absoluteVideoPath(""));
+        buf.writeUtf(this.argSource.absoluteAudioPath(""));
     }
 
     public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {

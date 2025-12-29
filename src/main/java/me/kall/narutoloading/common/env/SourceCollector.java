@@ -1,13 +1,14 @@
 package me.kall.narutoloading.common.env;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraftforge.fml.loading.FMLLoader;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 public class SourceCollector {
@@ -15,7 +16,21 @@ public class SourceCollector {
     private static final String VIDEO_FILE_NAME = "video";
     private static final String AUDIO_FILE_NAME = "audio";
 
-    public static final Set<Source> ABSOLUTE_SOURCES = new ObjectOpenHashSet<>();
+    public static final List<Source> ABSOLUTE_SOURCES = new ObjectArrayList<>();
+
+    private static Source lastSource;
+
+    public static @Nullable Source roll() {
+        if (ABSOLUTE_SOURCES.isEmpty()) return null;
+        Source source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
+        if (ABSOLUTE_SOURCES.size() > 1) {
+            while (source == lastSource) {
+                source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
+            }
+        }
+        lastSource = source;
+        return source;
+    }
 
     public static void scan() {
         ABSOLUTE_SOURCES.clear();
@@ -47,5 +62,5 @@ public class SourceCollector {
         }
     }
 
-    public record Source(String video, String audio) {}
+    public record Source(String absoluteVideoPath, String absoluteAudioPath) {}
 }

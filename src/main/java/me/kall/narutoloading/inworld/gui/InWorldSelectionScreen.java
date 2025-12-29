@@ -41,12 +41,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(256);
-        this.videoBox.setValue(this.clientScreen.screen().video(BaseEnv.narutoConfig.videoFileName));
+        this.videoBox.setValue(this.clientScreen.screen().absoluteVideoPath(BaseEnv.narutoConfig.videoFileName));
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY + spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(256);
-        this.audioBox.setValue(this.clientScreen.screen().audio(BaseEnv.narutoConfig.audioFileName));
+        this.audioBox.setValue(this.clientScreen.screen().absoluteAudioPath(BaseEnv.narutoConfig.audioFileName));
         this.addRenderableWidget(this.audioBox);
 
         int buttonWidth = 80;

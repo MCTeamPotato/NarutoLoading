@@ -55,8 +55,8 @@ public class Screens extends SavedData {
                 CompoundTag screenTag = new CompoundTag();
                 screenTag.putString(DIMENSION_KEY, dimension.toString());
                 screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
-                screenTag.putString(VIDEO_KEY, inWorldScreen.video(""));
-                screenTag.putString(AUDIO_KEY, inWorldScreen.audio(""));
+                screenTag.putString(VIDEO_KEY, inWorldScreen.absoluteVideoPath(""));
+                screenTag.putString(AUDIO_KEY, inWorldScreen.absoluteAudioPath(""));
                 NarutoLoading.LOGGER.info("Saving {} successfully", inWorldScreen.toString());
                 screensList.add(screenTag);
             }

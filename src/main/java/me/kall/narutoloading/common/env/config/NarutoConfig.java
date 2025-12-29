@@ -2,6 +2,7 @@ package me.kall.narutoloading.common.env.config;
 
 import me.kall.duplicationless.config.JsonConfig;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.common.env.SourceCollector;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
@@ -100,6 +101,12 @@ public final class NarutoConfig {
         this.winUrl = this.config.getString("ffmpegWindowsDownloadLink");
         this.linuxUrl = this.config.getString("ffmpegLinuxDownloadLink");
 
+        SourceCollector.Source source = SourceCollector.roll();
+        if (source != null) {
+            this.absoluteVideoPath = source.absoluteVideoPath();
+            this.absoluteAudioPath = source.absoluteAudioPath();
+        }
+
         this.log();
     }
 
@@ -125,7 +132,8 @@ public final class NarutoConfig {
         LOGGER.info("FFmpeg Linux download link in NarutoConfig: {}", this.linuxUrl);
     }
 
-    public static @NotNull String toPath(String name) {
+    public static @NotNull String toPath(@NotNull String name) {
+        if (name.isBlank()) return "";
         return FMLLoader.getGamePath().resolve("config").resolve(name).toAbsolutePath().toString();
     }
 }
