@@ -3,11 +3,11 @@ package me.kall.narutoloading.noworld.core;
 import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.LifetimeController;
-import me.kall.narutoloading.noworld.core.checker.KeyChecker;
-import me.kall.narutoloading.noworld.core.checker.WindowSizeChecker;
+import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
-import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.checker.KeyChecker;
+import me.kall.narutoloading.noworld.core.checker.WindowSizeChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
@@ -73,6 +73,7 @@ public class NarutoRenderer {
     public void renderFrame(@Nullable GuiGraphics graphics) {
         if (this.isEnabled()) {
             ResourceLocation texture = this.nextFrame();
+            if (texture == null) return;
 
             if (graphics != null){
                 int w = graphics.guiWidth();
@@ -95,6 +96,7 @@ public class NarutoRenderer {
         if (!BaseEnv.available()) return false;
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen instanceof GenericDirtMessageScreen && this.runInGenericScreen()) return true;
+        if (minecraft.isPaused()) return false;
         if (BaseEnv.narutoConfig.width() == 0 || BaseEnv.narutoConfig.height() == 0) return false;
         if (this.runInLevel()) {
             if (!this.hasLevel()) {

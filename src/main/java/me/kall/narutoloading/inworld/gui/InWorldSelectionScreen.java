@@ -16,8 +16,11 @@ import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
@@ -111,15 +114,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();
-                resourceZipGenerator.addToResourcePackList();
-
-                Minecraft mc = Minecraft.getInstance();
-                mc.execute(() -> {
-                    ClientLevel level = mc.level;
-                    if (level != null) {
-                        level.playSound(null, new BlockPos((int) inWorldScreen.centerX(), (int) inWorldScreen.centerY(), (int) inWorldScreen.centerZ()), SoundEvent.createVariableRangeEvent(), SoundSource.MUSIC);
-                    }
-                });
+                resourceZipGenerator.reload(inWorldScreen);
             });
         } else {
             this.clientScreen.screen().setLocalSound(false);
@@ -156,12 +151,14 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private static final class ResourceZipGenerator {
         private final String convertedAudioPath;
         private final String packName;
+        public final String id;
 
         private static final String RESOURCE_PACKS = FMLLoader.getGamePath().resolve("resourcepacks").toAbsolutePath().toString();
 
         private ResourceZipGenerator(String convertedAudioPath) {
             this.convertedAudioPath = convertedAudioPath;
-            this.packName = "NarutoLoadingAudioSource-" + Paths.get(this.convertedAudioPath).getParent().getFileName() + ".zip";
+            this.id = Paths.get(this.convertedAudioPath).getParent().getFileName().toString();
+            this.packName = "NarutoLoadingAudioSource-" + this.id + ".zip";
         }
 
         @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -184,15 +181,17 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             }
         }
 
-        private void addToResourcePackList() {
+        private void reload(InWorldScreen inWorldScreen) {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.execute(() -> {
                 try {
+                    LocalPlayer player = minecraft.player;
+                    if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.start", this.packName), false);
                     PackRepository repository = minecraft.getResourcePackRepository();
 
                     repository.reload();
 
-                    String packId = "file/" + packName;
+                    String packId = "file/" + this.packName;
 
                     Pack pack = repository.getPack(packId);
                     if (pack == null) {
@@ -213,9 +212,20 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     minecraft.options.resourcePacks = new ArrayList<>(selected);
                     minecraft.options.save();
 
-                    minecraft.reloadResourcePacks();
-
-                    NarutoLoading.LOGGER.info("Successfully activated resource pack: {}", packId);
+                    minecraft.reloadResourcePacks().thenRun(() -> {
+                        Minecraft mc = Minecraft.getInstance();
+                        mc.execute(() -> {
+                            NarutoLoading.LOGGER.info("Successfully activated resource pack: {}", packId);
+                            if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
+                            ClientLevel level = mc.level;
+                            if (level != null && player != null) {
+                                ResourceLocation audioLocation = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id);
+                                Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(audioLocation));
+                                level.playSeededSound(player, inWorldScreen.centerX(), inWorldScreen.centerY(), inWorldScreen.centerZ(), soundEvent, SoundSource.MUSIC, 1.0F, 1.0F, level.getRandom().nextLong());
+                                NarutoLoading.LOGGER.info("Playing local sound at [{}, {}, {}] with ResourceLocation: {}", inWorldScreen.centerX(), inWorldScreen.centerY(), inWorldScreen.centerZ(), audioLocation);
+                            }
+                        });
+                    });
 
                 } catch (Exception e) {
                     NarutoLoading.LOGGER.error("Error activating resource pack", e);
@@ -243,7 +253,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             File audioFile = new File(this.convertedAudioPath);
             if (!audioFile.exists() || !audioFile.isFile()) return;
 
-            String entryPath = String.format("assets/%s/sounds/audio.ogg", NarutoLoading.MOD_ID);
+            String entryPath = String.format("assets/%s/sounds/%s.ogg", NarutoLoading.MOD_ID, this.id);
             ZipEntry entry = new ZipEntry(entryPath);
             zos.putNextEntry(entry);
 
@@ -267,12 +277,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
             String json = String.format("""
                 {
-                  "audio": {
+                  "%s": {
                     "sounds": [
-                      "%s:audio"
+                      "%s:%s"
                     ]
                   }
-                }""", NarutoLoading.MOD_ID);
+                }""", this.id, NarutoLoading.MOD_ID, this.id);
 
             zos.write(json.getBytes(StandardCharsets.UTF_8));
             zos.closeEntry();

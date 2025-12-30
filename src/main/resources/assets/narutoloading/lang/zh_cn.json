@@ -19,5 +19,8 @@
   "info.narutoloading.screen.created": "已创建%s。右击任意一个显示器方块设置视频与音频参数。",
   "info.narutoloading.screen.destroy": "%s已被破坏。",
 
+  "info.narutoloading.local_sound.start": "将音频[%s]加入MC音源并重载客户端资源中……",
+  "info.narutoloading.local_sound.end": "完成！",
+
   "screen.narutoloading.arg": "屏幕：{左下角：[%s], 左上角：[%s], 右下角：[%s], 右上角：[%s], 维度：[%s]}"
 }

@@ -19,5 +19,8 @@
   "info.narutoloading.screen.created": "Created %s. Right-click a displayer block to set video and audio.",
   "info.narutoloading.screen.destroy": "%s is destroyed.",
 
+  "info.narutoloading.local_sound.start": "Add audio [%s] to music sound source and reload client resources...",
+  "info.narutoloading.local_sound.end": "Complete!",
+
   "screen.narutoloading.arg": "Screen: {LeftBottom: [%s], LeftTop: [%s], RightBottom: [%s], RightTop: [%s], Dimension: [%s]}"
 }

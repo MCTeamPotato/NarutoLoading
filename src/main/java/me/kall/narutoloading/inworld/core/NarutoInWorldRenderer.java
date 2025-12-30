@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
     private VideoArgReader videoArgReader;
@@ -44,7 +45,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     }
 
     @Override
-    public ResourceLocation nextFrame() {
+    public @Nullable ResourceLocation nextFrame() {
         if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime.shouldUpdateFrame(this.videoArgReader.fps())) {
