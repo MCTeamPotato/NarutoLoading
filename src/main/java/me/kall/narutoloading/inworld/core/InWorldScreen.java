@@ -24,6 +24,7 @@ public final class InWorldScreen {
     private String absoluteVideoPath = "", absoluteAudioPath = "";
 
     private boolean cullable = true;
+    private boolean localSound = false;
 
     public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
         this.leftBottomCorner = leftBottomCorner;
@@ -50,6 +51,10 @@ public final class InWorldScreen {
 
     public void setCullable(boolean cullable) {
         this.cullable = cullable;
+    }
+
+    public void setLocalSound(boolean localSound) {
+        this.localSound = localSound;
     }
 
     public BlockPos leftBottomCorner() {
@@ -79,6 +84,10 @@ public final class InWorldScreen {
 
     public boolean isCullable() {
         return this.cullable;
+    }
+
+    public boolean isLocalSound() {
+        return this.localSound;
     }
 
     @Contract(" -> new")
@@ -118,10 +127,11 @@ public final class InWorldScreen {
         return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "], Cullable: " + this.isCullable() + "}";
     }
 
-    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, @Nullable Boolean cullable) {
+    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, boolean cullable, boolean localSound) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
         inWorldScreen.set(video == null ? "" : video, audio == null ? "" : audio);
-        inWorldScreen.setCullable(cullable != null && cullable);
+        inWorldScreen.setCullable(cullable);
+        inWorldScreen.setLocalSound(localSound);
         return inWorldScreen;
     }
 

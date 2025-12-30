@@ -21,7 +21,7 @@ public class NarutoRenderer {
     public @Nullable DynamicTexture dynamicTexture;
     public @Nullable ResourceLocation textureLocation;
 
-    public NarutoAudioExecutor audioExecutor;
+    public @Nullable NarutoAudioExecutor audioExecutor;
     public NarutoVideoExecutor videoExecutor;
 
     public LifetimeController lifetime;
@@ -37,8 +37,10 @@ public class NarutoRenderer {
     public void setup() {
         if (!this.isEnabled()) return;
         this.lifetime = new LifetimeController(this, BaseEnv.noWorldVideoArgs.duration());
+
         this.audioExecutor = new NarutoAudioExecutor(() -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.absoluteAudioPath, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.noWorldVideoArgs.fps());
+
         if (this.dynamicTexture != null) return;
         this.dynamicTexture = new DynamicTexture(BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
         if (this.textureLocation == null) {
@@ -65,7 +67,7 @@ public class NarutoRenderer {
     }
 
     public boolean isRunning() {
-        return this.lifetime.isRunning();
+        return this.lifetime != null && this.lifetime.isRunning();
     }
 
     public void renderFrame(@Nullable GuiGraphics graphics) {
@@ -121,7 +123,7 @@ public class NarutoRenderer {
     }
 
     public void shutdown() {
-        this.audioExecutor.shutdown();
+        if (this.audioExecutor != null) this.audioExecutor.shutdown();
         this.videoExecutor.shutdown();
 
         if (this.dynamicTexture != null) {

@@ -1,5 +1,6 @@
 {
   "box.narutoloading.cullable": "Single-Sided Rendering",
+  "box.narutoloading.local_sound": "Local Sound",
   "screen.narutoloading.selection": "Sources Selection",
   "button.narutoloading.done": "Done",
   "button.narutoloading.cancel": "Cancel",

@@ -27,7 +27,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         this.videoArgReader = new VideoArgReader(this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), BaseEnv.ffmpegProvider.absoluteFFprobe);
         this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
 
-        this.audioExecutor = new NarutoAudioExecutor(() -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> this.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        this.audioExecutor = this.screen.isLocalSound() ? null : new NarutoAudioExecutor(() -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> this.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> 1280, () -> 720, this.videoArgReader::fps);
 
         this.windowSizeChecker = null;
@@ -39,7 +39,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             NarutoLoading.LOGGER.info("NarutoInWorldRenderer texture location initialized: {}", this.textureLocation.toString());
         }
         this.lifetime.start();
-        this.audioExecutor.setup();
+        if (this.audioExecutor != null) this.audioExecutor.setup();
         this.videoExecutor.setup();
     }
 
