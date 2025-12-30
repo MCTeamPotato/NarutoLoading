@@ -5,6 +5,7 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
+import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
@@ -15,7 +16,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -110,7 +110,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();
-                resourceZipGenerator.reload(this.clientScreen);
+                resourceZipGenerator.reload(this.clientScreen.renderer());
             });
         } else {
             this.clientScreen.screen().setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
@@ -144,14 +144,14 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         }
     }
 
-    private static final class ResourceZipGenerator {
+    public static final class ResourceZipGenerator {
         private final String convertedAudioPath;
         private final String packName;
         public final String id;
 
         private static final String RESOURCE_PACKS = FMLLoader.getGamePath().resolve("resourcepacks").toAbsolutePath().toString();
 
-        private ResourceZipGenerator(String convertedAudioPath) {
+        public ResourceZipGenerator(String convertedAudioPath) {
             this.convertedAudioPath = convertedAudioPath;
             this.id = Paths.get(this.convertedAudioPath).getParent().getFileName().toString();
             this.packName = "NarutoLoadingAudioSource-" + this.id + ".zip";
@@ -177,16 +177,15 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             }
         }
 
-        private void reload(ClientScreensRenderer.ClientScreen clientScreen) {
+        public void reload(NarutoInWorldRenderer renderer) {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.execute(() -> {
                 try {
                     LocalPlayer player = minecraft.player;
                     if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.start", this.packName), false);
+
                     PackRepository repository = minecraft.getResourcePackRepository();
-
                     repository.reload();
-
                     String packId = "file/" + this.packName;
 
                     Pack pack = repository.getPack(packId);
@@ -196,12 +195,8 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     }
 
                     Collection<String> selected = new ArrayList<>(repository.getSelectedIds());
-
-                    selected.removeIf(s -> s.startsWith("file/NarutoLoadingAudioSource-"));
-
-                    if (!selected.contains(packId)) {
-                        selected.add(packId);
-                    }
+                    selected.removeIf(s -> s.equals("file/NarutoLoadingAudioSource-" + this.id + ".zip"));
+                    if (!selected.contains(packId)) selected.add(packId);
 
                     repository.setSelected(selected);
 
@@ -212,12 +207,11 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                         Minecraft mc = Minecraft.getInstance();
                         mc.execute(() -> {
                             NarutoLoading.LOGGER.info("Successfully activated resource pack: {}", packId);
-                            if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
-                            ClientLevel level = mc.level;
-                            if (level != null && player != null) {
-                                clientScreen.screen().setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
-                                clientScreen.renderer().shutdown();
-                                clientScreen.renderer().setup();
+                            if (player != null) {
+                                player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
+                                renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                                renderer.shutdown();
+                                renderer.setup();
                             }
                         });
                     });
@@ -284,7 +278,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         }
     }
 
-    private static class AudioConverter {
+    public static class AudioConverter {
         private final String absoluteSourcePath;
         private final String absoluteFFmpegPath;
         private final ExecutorService converter = Executors.newSingleThreadExecutor(task -> {

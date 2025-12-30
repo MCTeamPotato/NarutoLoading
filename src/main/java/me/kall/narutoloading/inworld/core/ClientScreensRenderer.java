@@ -172,5 +172,6 @@ public class ClientScreensRenderer {
         return dx * dx + dy * dy + dz * dz;
     }
 
+    //TODO: only store NarutoInWorldRenderer as it includes InWorldScreen
     public record ClientScreen(InWorldScreen screen, NarutoInWorldRenderer renderer) {}
 }

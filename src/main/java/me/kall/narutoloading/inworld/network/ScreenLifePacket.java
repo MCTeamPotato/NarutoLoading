@@ -4,9 +4,11 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
-import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
+import me.kall.narutoloading.inworld.gui.InWorldSelectionScreen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +69,7 @@ public class ScreenLifePacket {
                             }
                         }
                     });
-                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(new ClientScreensRenderer.ClientScreen(this.inWorldScreen, new NarutoInWorldRenderer(this.inWorldScreen)));
+                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(new ClientScreensRenderer.ClientScreen(this.inWorldScreen, renderer()));
                     NarutoLoading.LOGGER.info("Delivered {} for addition.", this.inWorldScreen.toString());
                 }
             } catch (Exception exception) {
@@ -75,5 +77,16 @@ public class ScreenLifePacket {
             }
         });
         ctx.get().setPacketHandled(true);
+    }
+
+    private @NotNull NarutoInWorldRenderer renderer() {
+        NarutoInWorldRenderer renderer = new NarutoInWorldRenderer(this.inWorldScreen);
+        InWorldSelectionScreen.AudioConverter audioConverter = new InWorldSelectionScreen.AudioConverter(this.inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        audioConverter.setup(() -> {
+            InWorldSelectionScreen.ResourceZipGenerator resourceZipGenerator = new InWorldSelectionScreen.ResourceZipGenerator(audioConverter.converted);
+            resourceZipGenerator.generate();
+            resourceZipGenerator.reload(renderer);
+        });
+        return renderer;
     }
 }

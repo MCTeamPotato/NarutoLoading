@@ -21,9 +21,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
     private @Nullable VideoArgReader videoArgReader;
-    private final InWorldScreen screen;
     private @Nullable Runnable soundSetup;
     private @Nullable Runnable soundShutdown;
+
+    public final InWorldScreen screen;
 
     public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
         this.screen = screen;
@@ -50,16 +51,15 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (this.audioExecutor != null) {
             this.audioExecutor.setup();
         } else {
-            Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound()));
-            Minecraft minecraft = Minecraft.getInstance();
-            ClientLevel level = minecraft.level;
-            LocalPlayer player = minecraft.player;
             this.soundSetup = () -> {
+                ClientLevel level = Minecraft.getInstance().level;
+                LocalPlayer player = Minecraft.getInstance().player;
                 if (level != null && player != null) {
-                    level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), soundEvent, SoundSource.MUSIC, 1.0F, 1.0F, level.getRandom().nextLong());
+                    level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound())), SoundSource.MUSIC, 1.0F, 1.0F, level.getRandom().nextLong());
+                    NarutoLoading.LOGGER.info("Sound {} played at [{}, {}, {}]", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
-            this.soundShutdown = () -> minecraft.getSoundManager().stop(this.screen.getLocalSound(), SoundSource.MUSIC);
+            this.soundShutdown = () -> Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.MUSIC);
         }
         this.videoExecutor.setup();
     }
