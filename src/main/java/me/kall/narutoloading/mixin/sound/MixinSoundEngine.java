@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinSoundEngine {
     @Inject(method = "reload", at = @At("HEAD"))
     private void shutdown(CallbackInfo ci) {
-        if (BaseEnv.available()) {
+        if (BaseEnv.available() && NarutoRenderer.INSTANCE.audioExecutor != null) {
             NarutoRenderer.INSTANCE.audioExecutor.shutdown();
             NarutoLoading.LOGGER.info("Minecraft SoundEngine starts to load. Shutting down NarutoAudioExecutor for the OpenAL context synchronization.");
         }
@@ -21,7 +21,7 @@ public abstract class MixinSoundEngine {
 
     @Inject(method = "reload", at = @At("TAIL"))
     private void setup(CallbackInfo ci) {
-        if (BaseEnv.available()) {
+        if (BaseEnv.available() && NarutoRenderer.INSTANCE.lifetime != null) {
             NarutoRenderer.INSTANCE.lifetime.syncSoundEngine = true;
         }
     }

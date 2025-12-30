@@ -24,7 +24,7 @@ public class ScreenLifePacket {
     }
 
     public ScreenLifePacket(@NotNull FriendlyByteBuf buf) {
-        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readBoolean(), buf.readBoolean());
+        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readBoolean(), buf.readBoolean(), buf.readResourceLocation());
         this.isRemoval = buf.readBoolean();
     }
 
@@ -35,6 +35,7 @@ public class ScreenLifePacket {
         buf.writeUtf(this.inWorldScreen.absoluteAudioPath(""));
         buf.writeBoolean(this.inWorldScreen.isCullable());
         buf.writeBoolean(this.inWorldScreen.isLocalSound());
+        buf.writeResourceLocation(this.inWorldScreen.getLocalSoundLocation());
         buf.writeBoolean(this.isRemoval);
     }
 

@@ -22,9 +22,9 @@ public class NarutoRenderer {
     public @Nullable ResourceLocation textureLocation;
 
     public @Nullable NarutoAudioExecutor audioExecutor;
-    public NarutoVideoExecutor videoExecutor;
+    public @Nullable NarutoVideoExecutor videoExecutor;
 
-    public LifetimeController lifetime;
+    public @Nullable LifetimeController lifetime;
 
     public @Nullable WindowSizeChecker windowSizeChecker;
     public @Nullable KeyChecker keyChecker;
@@ -55,7 +55,7 @@ public class NarutoRenderer {
     public ResourceLocation nextFrame() {
         if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
-        if (this.lifetime.shouldUpdateFrame(BaseEnv.noWorldVideoArgs.fps())) {
+        if (this.lifetime != null && this.lifetime.shouldUpdateFrame(BaseEnv.noWorldVideoArgs.fps()) && this.videoExecutor != null) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
@@ -72,6 +72,7 @@ public class NarutoRenderer {
 
     public void renderFrame(@Nullable GuiGraphics graphics) {
         if (this.isEnabled()) {
+
             ResourceLocation texture = this.nextFrame();
             if (texture == null) return;
 
@@ -85,10 +86,17 @@ public class NarutoRenderer {
 
             if (this.keyChecker != null) this.keyChecker.reload();
             if (this.windowSizeChecker != null) this.windowSizeChecker.resize();
-            this.lifetime.tick();
-            this.lifetime.syncSoundEngine();
-            this.lifetime.lagSpikeRestart();
-            this.lifetime.endRestart();
+            if (this.lifetime != null) {
+                if (Minecraft.getInstance().isPaused()) {
+                    this.lifetime.pause();
+                } else {
+                    this.lifetime.resume();
+                }
+                this.lifetime.tick();
+                this.lifetime.syncSoundEngine();
+                this.lifetime.lagSpikeRestart();
+                this.lifetime.endRestart();
+            }
         }
     }
 
@@ -126,7 +134,7 @@ public class NarutoRenderer {
 
     public void shutdown() {
         if (this.audioExecutor != null) this.audioExecutor.shutdown();
-        this.videoExecutor.shutdown();
+        if (this.videoExecutor != null) this.videoExecutor.shutdown();
 
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();
@@ -138,6 +146,6 @@ public class NarutoRenderer {
             this.textureLocation = null;
         }
 
-        this.lifetime.stop();
+        if (this.lifetime != null) this.lifetime.stop();
     }
 }

@@ -3,19 +3,21 @@ package me.kall.narutoloading.common;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 
-public final class LifetimeController {
+public class LifetimeController {
     private long lastFrameTime = 0L;
     private long startTime = -1L;
     private long elapsedTime = 0L;
+    private long pausedAt = 0L;
 
     private boolean running = false;
+    private boolean paused = false;
 
     public volatile boolean lagSpikeDetected = false;
-    private long lastLagSpikeRestart = -1;
+    protected long lastLagSpikeRestart = -1;
 
     public volatile boolean syncSoundEngine = false;
 
-    private final NarutoRenderer renderer;
+    protected NarutoRenderer renderer;
     private final long duration;
 
     public LifetimeController(NarutoRenderer renderer, long duration) {
@@ -24,12 +26,29 @@ public final class LifetimeController {
     }
 
     public void tick() {
+        if (this.paused) return;
         long now = System.currentTimeMillis();
         if (this.startTime == -1L) this.startTime = now;
         this.elapsedTime = now - this.startTime;
     }
+    public void pause() {
+        if (!this.paused && this.running) {
+            this.paused = true;
+            this.pausedAt = System.currentTimeMillis();
+        }
+    }
+
+    public void resume() {
+        if (this.paused && this.running) {
+            this.paused = false;
+            long pauseDuration = System.currentTimeMillis() - pausedAt;
+            this.startTime += pauseDuration;
+        }
+    }
 
     public boolean shouldUpdateFrame(int fps) {
+        if (this.paused) return false;
+
         long now = System.currentTimeMillis();
         if (now - this.lastFrameTime >= 1000L / fps) {
             this.lastFrameTime = now;
@@ -75,8 +94,10 @@ public final class LifetimeController {
             if (current - this.lastLagSpikeRestart < 5000) return;
             String sec = String.valueOf(this.elapsedSeconds());
             NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
-            this.renderer.videoExecutor.shutdown();
-            this.renderer.videoExecutor.setup(sec);
+            if (this.renderer.videoExecutor != null){
+                this.renderer.videoExecutor.shutdown();
+                this.renderer.videoExecutor.setup(sec);
+            }
             this.lastLagSpikeRestart = System.currentTimeMillis();
         }
     }
@@ -84,7 +105,7 @@ public final class LifetimeController {
     public void syncSoundEngine() {
         if (this.syncSoundEngine) {
             this.syncSoundEngine = false;
-            this.renderer.audioExecutor.setup(String.valueOf(this.elapsedSeconds()));
+            if (this.renderer.audioExecutor != null) this.renderer.audioExecutor.setup(String.valueOf(this.elapsedSeconds()));
         }
     }
 }

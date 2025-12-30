@@ -18,14 +18,11 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -109,12 +106,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         inWorldScreen.setCullable(this.cullableCheck.selected());
 
         if (this.localSoundCheck.selected()) {
-            inWorldScreen.setLocalSound(true);
+            this.clientScreen.screen().setLocalSound(true);
             AudioConverter audioConverter = new AudioConverter(inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();
-                resourceZipGenerator.reload(inWorldScreen);
+                resourceZipGenerator.reload(this.clientScreen);
             });
         } else {
             this.clientScreen.screen().setLocalSound(false);
@@ -181,7 +178,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             }
         }
 
-        private void reload(InWorldScreen inWorldScreen) {
+        private void reload(ClientScreensRenderer.ClientScreen clientScreen) {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.execute(() -> {
                 try {
@@ -219,10 +216,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                             if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
                             ClientLevel level = mc.level;
                             if (level != null && player != null) {
-                                ResourceLocation audioLocation = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id);
-                                Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(audioLocation));
-                                level.playSeededSound(player, inWorldScreen.centerX(), inWorldScreen.centerY(), inWorldScreen.centerZ(), soundEvent, SoundSource.MUSIC, 1.0F, 1.0F, level.getRandom().nextLong());
-                                NarutoLoading.LOGGER.info("Playing local sound at [{}, {}, {}] with ResourceLocation: {}", inWorldScreen.centerX(), inWorldScreen.centerY(), inWorldScreen.centerZ(), audioLocation);
+                                clientScreen.screen().setLocalSoundLocation(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                                clientScreen.renderer().shutdown();
+                                clientScreen.renderer().setup();
                             }
                         });
                     });

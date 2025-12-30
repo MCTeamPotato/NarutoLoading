@@ -31,15 +31,6 @@ import org.joml.Matrix4f;
 public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<ClientScreen>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
 
-    public static boolean anyRunning() {
-        for (ObjectSet<ClientScreen> clientScreens : CLIENT_SCREENS.values()) {
-            for (ClientScreen clientScreen : clientScreens) {
-                if (clientScreen.renderer.isRunning()) return true;
-            }
-        }
-        return false;
-    }
-
     @SubscribeEvent
     public static void clearScreens(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof LocalPlayer) {
@@ -85,7 +76,7 @@ public class ClientScreensRenderer {
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
 
-            ClientScreensRenderer.renderScreen(poseStack, bufferSource, clientScreen, frustum, camera);
+            renderScreen(poseStack, bufferSource, clientScreen, frustum, camera);
 
             poseStack.popPose();
         }
