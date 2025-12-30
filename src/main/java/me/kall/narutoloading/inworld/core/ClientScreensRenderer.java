@@ -44,7 +44,7 @@ public class ClientScreensRenderer {
     }
 
     @SubscribeEvent
-    public static void renderTick(TickEvent.@NotNull RenderTickEvent event) {
+    public static void renderTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             if (CLIENT_SCREENS.isEmpty()) return;
             for (ObjectSet<ClientScreen> clientScreens : CLIENT_SCREENS.values()) {
