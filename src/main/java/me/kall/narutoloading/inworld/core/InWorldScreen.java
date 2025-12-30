@@ -103,6 +103,18 @@ public final class InWorldScreen {
         return new long[]{this.leftBottomCorner().asLong(), this.leftTopCorner().asLong(), this.rightBottomCorner().asLong(), this.rightTopCorner().asLong()};
     }
 
+    public double centerX() {
+        return (double) (this.leftBottomCorner.getX() + this.rightTopCorner.getX()) / 2;
+    }
+
+    public double centerY() {
+        return (double) (this.leftBottomCorner.getY() + this.rightTopCorner.getY()) / 2;
+    }
+
+    public double centerZ() {
+        return (double) (this.leftBottomCorner.getZ() + this.rightTopCorner.getZ()) / 2;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof InWorldScreen inWorldScreen) {
