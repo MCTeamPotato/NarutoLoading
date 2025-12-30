@@ -55,6 +55,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 ClientLevel level = Minecraft.getInstance().level;
                 LocalPlayer player = Minecraft.getInstance().player;
                 if (level != null && player != null) {
+                    //TODO: it runs, but sound is still not present in world... investigate more
                     level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound())), SoundSource.MUSIC, 1.0F, 1.0F, level.getRandom().nextLong());
                     NarutoLoading.LOGGER.info("Sound {} played at [{}, {}, {}]", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
