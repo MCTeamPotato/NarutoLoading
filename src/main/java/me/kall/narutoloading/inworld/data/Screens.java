@@ -32,7 +32,6 @@ public class Screens extends SavedData {
     private static final String AUDIO_KEY = "Audio";
     private static final String CULLABLE_KEY = "Cullable";
     private static final String LOCAL_SOUND_KEY = "LocalSound";
-    private static final String LOCAL_SOUND_LOCATION_KEY = "LocalSoundLocation";
 
     public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
 
@@ -43,7 +42,7 @@ public class Screens extends SavedData {
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), screenTag.getBoolean(CULLABLE_KEY), screenTag.getBoolean(LOCAL_SOUND_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_LOCATION_KEY))));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), screenTag.getBoolean(CULLABLE_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY))));
         }
 
         return screens;
@@ -63,8 +62,7 @@ public class Screens extends SavedData {
                 screenTag.putString(VIDEO_KEY, inWorldScreen.absoluteVideoPath(""));
                 screenTag.putString(AUDIO_KEY, inWorldScreen.absoluteAudioPath(""));
                 screenTag.putBoolean(CULLABLE_KEY, inWorldScreen.isCullable());
-                screenTag.putBoolean(LOCAL_SOUND_KEY, inWorldScreen.isLocalSound());
-                screenTag.putString(LOCAL_SOUND_LOCATION_KEY, Optional.ofNullable(inWorldScreen.getLocalSoundLocation()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
+                screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.getLocalSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
                 NarutoLoading.LOGGER.info("Saving {} successfully", inWorldScreen.toString());
                 screensList.add(screenTag);
             }

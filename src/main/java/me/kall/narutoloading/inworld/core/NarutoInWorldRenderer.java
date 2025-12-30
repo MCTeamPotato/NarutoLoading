@@ -22,7 +22,8 @@ import org.jetbrains.annotations.Nullable;
 public class NarutoInWorldRenderer extends NarutoRenderer {
     private @Nullable VideoArgReader videoArgReader;
     private final InWorldScreen screen;
-    private @Nullable Runnable sound;
+    private @Nullable Runnable soundSetup;
+    private @Nullable Runnable soundShutdown;
 
     public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
         this.screen = screen;
@@ -34,7 +35,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         this.videoArgReader = new VideoArgReader(this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), BaseEnv.ffmpegProvider.absoluteFFprobe);
         this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
 
-        this.audioExecutor = this.screen.getLocalSoundLocation() != null ? null : new NarutoAudioExecutor(() -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> this.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        this.audioExecutor = this.screen.isLocalSound() ? null : new NarutoAudioExecutor(() -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> this.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> 1280, () -> 720, this.videoArgReader::fps);
 
         this.windowSizeChecker = null;
@@ -49,15 +50,16 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (this.audioExecutor != null) {
             this.audioExecutor.setup();
         } else {
-            this.sound = () -> {
-                Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSoundLocation()));
-                Minecraft minecraft = Minecraft.getInstance();
-                ClientLevel level = minecraft.level;
-                LocalPlayer player = minecraft.player;
+            Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound()));
+            Minecraft minecraft = Minecraft.getInstance();
+            ClientLevel level = minecraft.level;
+            LocalPlayer player = minecraft.player;
+            this.soundSetup = () -> {
                 if (level != null && player != null) {
                     level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), soundEvent, SoundSource.MUSIC, 1.0F, 1.0F, level.getRandom().nextLong());
                 }
             };
+            this.soundShutdown = () -> minecraft.getSoundManager().stop(this.screen.getLocalSound(), SoundSource.MUSIC);
         }
         this.videoExecutor.setup();
     }
@@ -68,9 +70,9 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime != null && this.videoArgReader != null && this.lifetime.shouldUpdateFrame(this.videoArgReader.fps()) && this.videoExecutor != null) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
-            if (this.sound != null) {
-                this.sound.run();
-                this.sound = null;
+            if (this.soundSetup != null) {
+                this.soundSetup.run();
+                this.soundSetup = null;
             }
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
@@ -89,5 +91,14 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     @Override
     public boolean runInGenericScreen() {
         return false;
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+        if (this.soundShutdown != null) {
+            this.soundShutdown.run();
+            this.soundShutdown = null;
+        }
     }
 }

@@ -17,18 +17,11 @@ public final class InWorldScreen {
     private final BlockPos rightBottomCorner;
     private final BlockPos rightTopCorner;
     private final ResourceLocation dimension;
-
     private LongSet involved;
-
     private final int hashCode;
-
     private String absoluteVideoPath = "", absoluteAudioPath = "";
-
     private boolean cullable = true;
-
-    private boolean localSound = false;
-
-    private ResourceLocation localSoundLocation = NO_LOCAL_SOUND;
+    private ResourceLocation localSound = NO_LOCAL_SOUND;
 
     public static final ResourceLocation NO_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "empty");
 
@@ -59,12 +52,8 @@ public final class InWorldScreen {
         this.cullable = cullable;
     }
 
-    public void setLocalSound(boolean localSound) {
+    public void setLocalSound(ResourceLocation localSound) {
         this.localSound = localSound;
-    }
-
-    public void setLocalSoundLocation(ResourceLocation localSoundLocation) {
-        this.localSoundLocation = localSoundLocation;
     }
 
     public BlockPos leftBottomCorner() {
@@ -97,11 +86,11 @@ public final class InWorldScreen {
     }
 
     public boolean isLocalSound() {
-        return this.localSound;
+        return !this.localSound.equals(NO_LOCAL_SOUND);
     }
 
-    public ResourceLocation getLocalSoundLocation() {
-        return this.localSoundLocation;
+    public ResourceLocation getLocalSound() {
+        return this.localSound;
     }
 
     @Contract(" -> new")
@@ -153,12 +142,11 @@ public final class InWorldScreen {
         return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "], Cullable: " + this.isCullable() + "}";
     }
 
-    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, boolean cullable, boolean localSound, ResourceLocation localSoundLocation) {
+    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, boolean cullable, ResourceLocation localSound) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
         inWorldScreen.set(video == null ? "" : video, audio == null ? "" : audio);
         inWorldScreen.setCullable(cullable);
         inWorldScreen.setLocalSound(localSound);
-        inWorldScreen.setLocalSoundLocation(localSoundLocation);
         return inWorldScreen;
     }
 

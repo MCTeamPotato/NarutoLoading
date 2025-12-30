@@ -106,7 +106,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         inWorldScreen.setCullable(this.cullableCheck.selected());
 
         if (this.localSoundCheck.selected()) {
-            this.clientScreen.screen().setLocalSound(true);
             AudioConverter audioConverter = new AudioConverter(inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
@@ -114,7 +113,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                 resourceZipGenerator.reload(this.clientScreen);
             });
         } else {
-            this.clientScreen.screen().setLocalSound(false);
+            this.clientScreen.screen().setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.clientScreen.screen()));
@@ -216,7 +215,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                             if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
                             ClientLevel level = mc.level;
                             if (level != null && player != null) {
-                                clientScreen.screen().setLocalSoundLocation(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                                clientScreen.screen().setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
                                 clientScreen.renderer().shutdown();
                                 clientScreen.renderer().setup();
                             }
