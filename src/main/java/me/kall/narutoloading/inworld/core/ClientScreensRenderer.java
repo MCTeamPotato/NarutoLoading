@@ -9,7 +9,6 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.ext.IFrustum;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -20,7 +19,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -30,18 +28,6 @@ import org.joml.Matrix4f;
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<ClientScreen>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
-
-    @SubscribeEvent
-    public static void clearScreens(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (event.getEntity() instanceof LocalPlayer) {
-            for (ObjectSet<ClientScreen> clientScreens : CLIENT_SCREENS.values()) {
-                for (ClientScreen clientScreen : clientScreens) {
-                    clientScreen.renderer().shutdown();
-                }
-            }
-            CLIENT_SCREENS.clear();
-        }
-    }
 
     @SubscribeEvent
     public static void renderTick(TickEvent.ClientTickEvent event) {
