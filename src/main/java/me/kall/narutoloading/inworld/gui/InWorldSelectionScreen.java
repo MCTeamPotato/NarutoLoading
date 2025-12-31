@@ -147,11 +147,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         private final String convertedAudioPath;
         private final String packName;
         public final String id;
-        private final ExecutorService waiter = Executors.newSingleThreadExecutor(task -> {
-            Thread thread = new Thread(task , "NarutoResourceReloadWaiter");
-            thread.setDaemon(true);
-            return thread;
-        });
 
         private static final String RESOURCE_PACKS = FMLLoader.getGamePath().resolve("resourcepacks").toAbsolutePath().toString();
 
