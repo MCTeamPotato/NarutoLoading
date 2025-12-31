@@ -22,6 +22,7 @@ public class VideoArgReader {
     }
 
     public void setup() {
+        NarutoLoading.LOGGER.info("Start to use [{}] to read video [{}] arguments", this.ffprobe, this.video);
         String json = FFprobe.genJson(this.video, this.ffprobe);
         this.fps = FFprobe.getFps(json);
         this.duration = FFprobe.getDuration(json);
