@@ -3,6 +3,7 @@ package me.kall.narutoloading.inworld.network;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
+import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.gui.InWorldSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -37,11 +38,11 @@ public class SourceSelectionPacket {
                 ClientLevel level = minecraft.level;
                 if (player == null || level == null) return;
                 ResourceLocation dimension = level.dimension().location();
-                ObjectSet<ClientScreensRenderer.ClientScreen> clientScreens = ClientScreensRenderer.CLIENT_SCREENS.get(dimension);
-                if (clientScreens == null) return;
-                for (ClientScreensRenderer.ClientScreen clientScreen : clientScreens) {
-                    if (clientScreen.screen().involved().contains(this.position)) {
-                        minecraft.setScreen(new InWorldSelectionScreen(minecraft.screen, clientScreen));
+                ObjectSet<NarutoInWorldRenderer> renderers = ClientScreensRenderer.CLIENT_SCREENS.get(dimension);
+                if (renderers == null) return;
+                for (NarutoInWorldRenderer renderer : renderers) {
+                    if (renderer.screen.involved().contains(this.position)) {
+                        minecraft.setScreen(new InWorldSelectionScreen(minecraft.screen, renderer));
                         break;
                     }
                 }

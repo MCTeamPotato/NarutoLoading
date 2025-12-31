@@ -3,7 +3,6 @@ package me.kall.narutoloading.inworld.gui;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
-import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
@@ -43,16 +42,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
-    private final ClientScreensRenderer.ClientScreen clientScreen;
+    private final NarutoInWorldRenderer renderer;
     private Checkbox cullableCheck;
     private Checkbox localSoundCheck;
 
     public static final Component CULLABLE = Component.translatable("box.narutoloading.cullable");
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
 
-    public InWorldSelectionScreen(Screen lastScreen, ClientScreensRenderer.ClientScreen clientScreen) {
+    public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
         super(lastScreen);
-        this.clientScreen = clientScreen;
+        this.renderer = renderer;
     }
 
     @Override
@@ -66,22 +65,22 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing * 2 - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);
-        this.videoBox.setValue(NarutoConfig.relative(this.clientScreen.screen().absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)));
+        this.videoBox.setValue(NarutoConfig.relative(this.renderer.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)));
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(1024);
-        this.audioBox.setValue(NarutoConfig.relative(this.clientScreen.screen().absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
+        this.audioBox.setValue(NarutoConfig.relative(this.renderer.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
         this.addRenderableWidget(this.audioBox);
 
         int checkY = centerY + spacing / 2;
         int checkWidth = 98;
         int checkGap = 4;
 
-        this.cullableCheck = new Checkbox(centerX - checkWidth - checkGap / 2, checkY, checkWidth, boxHeight, CULLABLE, this.clientScreen.screen().isCullable());
+        this.cullableCheck = new Checkbox(centerX - checkWidth - checkGap / 2, checkY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
         this.addRenderableWidget(this.cullableCheck);
 
-        this.localSoundCheck = new Checkbox(centerX + checkGap / 2, checkY, checkWidth, boxHeight, LOCAL_SOUND, this.clientScreen.screen().isLocalSound());
+        this.localSoundCheck = new Checkbox(centerX + checkGap / 2, checkY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
         this.addRenderableWidget(this.localSoundCheck);
 
         int buttonWidth = 80;
@@ -101,7 +100,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     protected void onDone() {
         String videoFilename = NarutoConfig.absolute(this.videoBox.getValue());
         String audioFileName = NarutoConfig.absolute(this.audioBox.getValue());
-        InWorldScreen inWorldScreen = this.clientScreen.screen();
+        InWorldScreen inWorldScreen = this.renderer.screen;
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
         inWorldScreen.setCullable(this.cullableCheck.selected());
 
@@ -110,15 +109,15 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();
-                resourceZipGenerator.reload(this.clientScreen.renderer());
+                resourceZipGenerator.reload(this.renderer);
             });
         } else {
-            this.clientScreen.screen().setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
+            this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
-        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.clientScreen.screen()));
-        this.clientScreen.renderer().shutdown();
-        this.clientScreen.renderer().setup();
+        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
+        this.renderer.shutdown();
+        this.renderer.setup();
         Minecraft.getInstance().setScreen(this.lastScreen);
     }
 
@@ -210,6 +209,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                             if (player != null) {
                                 player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
                                 renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                                NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
                                 renderer.shutdown();
                                 renderer.setup();
                             }

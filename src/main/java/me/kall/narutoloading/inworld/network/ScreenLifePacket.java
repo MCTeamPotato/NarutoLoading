@@ -44,32 +44,32 @@ public class ScreenLifePacket {
         ctx.get().enqueueWork(() -> {
             try {
                 if (this.isRemoval) {
-                    ObjectSet<ClientScreensRenderer.ClientScreen> clientScreens = ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension());
-                    if (clientScreens != null) {
-                        ObjectIterator<ClientScreensRenderer.ClientScreen> clientScreenIterator = clientScreens.iterator();
-                        while (clientScreenIterator.hasNext()) {
-                            ClientScreensRenderer.ClientScreen clientScreen = clientScreenIterator.next();
-                            if (clientScreen.screen().equals(this.inWorldScreen)) {
-                                clientScreenIterator.remove();
-                                clientScreen.renderer().shutdown();
+                    ObjectSet<NarutoInWorldRenderer> renderers = ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension());
+                    if (renderers != null) {
+                        ObjectIterator<NarutoInWorldRenderer> renderersIterator = renderers.iterator();
+                        while (renderersIterator.hasNext()) {
+                            NarutoInWorldRenderer renderer = renderersIterator.next();
+                            if (renderer.screen.equals(this.inWorldScreen)) {
+                                renderersIterator.remove();
+                                renderer.shutdown();
                                 break;
                             }
                         }
                         NarutoLoading.LOGGER.info("Delivered {} for removal.", this.inWorldScreen.toString());
                     }
                 } else {
-                    Optional.ofNullable(ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension())).ifPresent(clientScreens -> {
-                        ObjectIterator<ClientScreensRenderer.ClientScreen> clientScreenIterator = clientScreens.iterator();
-                        while (clientScreenIterator.hasNext()) {
-                            ClientScreensRenderer.ClientScreen clientScreen = clientScreenIterator.next();
-                            if (clientScreen.screen().equals(this.inWorldScreen)) {
-                                clientScreenIterator.remove();
-                                clientScreen.renderer().shutdown();
+                    Optional.ofNullable(ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension())).ifPresent(renderers -> {
+                        ObjectIterator<NarutoInWorldRenderer> renderersIterator = renderers.iterator();
+                        while (renderersIterator.hasNext()) {
+                            NarutoInWorldRenderer renderer = renderersIterator.next();
+                            if (renderer.screen.equals(this.inWorldScreen)) {
+                                renderersIterator.remove();
+                                renderer.shutdown();
                                 break;
                             }
                         }
                     });
-                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(new ClientScreensRenderer.ClientScreen(this.inWorldScreen, renderer()));
+                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(renderer());
                     NarutoLoading.LOGGER.info("Delivered {} for addition.", this.inWorldScreen.toString());
                 }
             } catch (Exception exception) {

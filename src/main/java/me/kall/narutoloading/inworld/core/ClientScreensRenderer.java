@@ -27,15 +27,15 @@ import org.joml.Matrix4f;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class ClientScreensRenderer {
-    public static final Object2ObjectMap<ResourceLocation, ObjectSet<ClientScreen>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectMap<ResourceLocation, ObjectSet<NarutoInWorldRenderer>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
 
     @SubscribeEvent
-    public static void renderTick(TickEvent.ClientTickEvent event) {
+    public static void renderTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             if (CLIENT_SCREENS.isEmpty()) return;
-            for (ObjectSet<ClientScreen> clientScreens : CLIENT_SCREENS.values()) {
-                for (ClientScreen clientScreen : clientScreens) {
-                    clientScreen.renderer.renderFrame(null);
+            for (ObjectSet<NarutoInWorldRenderer> renderers : CLIENT_SCREENS.values()) {
+                for (NarutoInWorldRenderer renderer : renderers) {
+                    renderer.renderFrame(null);
                 }
             }
         }
@@ -50,27 +50,27 @@ public class ClientScreensRenderer {
         if (level == null) return;
 
         ResourceLocation dimension = level.dimension().location();
-        ObjectSet<ClientScreen> clientScreens = CLIENT_SCREENS.get(dimension);
-        if (clientScreens == null || clientScreens.isEmpty()) return;
+        ObjectSet<NarutoInWorldRenderer> renderers = CLIENT_SCREENS.get(dimension);
+        if (renderers == null || renderers.isEmpty()) return;
 
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
         Vec3 camera = event.getCamera().getPosition();
         Frustum frustum = minecraft.levelRenderer.getFrustum();
 
-        for (ClientScreen clientScreen : clientScreens) {
+        for (NarutoInWorldRenderer renderer : renderers) {
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
 
-            renderScreen(poseStack, bufferSource, clientScreen, frustum, camera);
+            renderScreen(poseStack, bufferSource, renderer, frustum, camera);
 
             poseStack.popPose();
         }
     }
 
-    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull ClientScreen clientScreen, Frustum frustum, Vec3 camera) {
-        InWorldScreen inWorldScreen = clientScreen.screen;
-        ResourceLocation nextFrame = clientScreen.renderer.nextFrame();
+    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull NarutoInWorldRenderer renderer, Frustum frustum, Vec3 camera) {
+        InWorldScreen inWorldScreen = renderer.screen;
+        ResourceLocation nextFrame = renderer.nextFrame();
         if (nextFrame == null) return;
         RenderType renderType = inWorldScreen.isCullable() ? RenderType.entityTranslucentCull(nextFrame) : RenderType.entityTranslucent(nextFrame);
 
@@ -171,7 +171,4 @@ public class ClientScreensRenderer {
         double dz = z1 - z2;
         return dx * dx + dy * dy + dz * dz;
     }
-
-    //TODO: only store NarutoInWorldRenderer as it includes InWorldScreen
-    public record ClientScreen(InWorldScreen screen, NarutoInWorldRenderer renderer) {}
 }

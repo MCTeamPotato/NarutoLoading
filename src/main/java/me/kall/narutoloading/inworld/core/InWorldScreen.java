@@ -139,7 +139,7 @@ public final class InWorldScreen {
 
     @Override
     public @NotNull String toString() {
-        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "], Cullable: " + this.isCullable() + "}";
+        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "], Cullable: " + this.isCullable() + ", LocalSound: [" + this.getLocalSound().toString() +"]}";
     }
 
     public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, boolean cullable, ResourceLocation localSound) {
