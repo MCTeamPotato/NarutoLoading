@@ -3,6 +3,8 @@ package me.kall.narutoloading.common;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 
+import java.util.function.BooleanSupplier;
+
 public class LifetimeController {
     private long lastFrameTime = 0L;
     private long startTime = -1L;
@@ -19,6 +21,7 @@ public class LifetimeController {
 
     protected NarutoRenderer renderer;
     private final long duration;
+    private final BooleanSupplier unlocalizedSound = () -> this.renderer.audioExecutor != null;
 
     public LifetimeController(NarutoRenderer renderer, long duration) {
         this.renderer = renderer;
@@ -26,21 +29,21 @@ public class LifetimeController {
     }
 
     public void tick() {
-        if (this.paused) return;
+        if (this.paused && this.unlocalizedSound.getAsBoolean()) return;
         long now = System.currentTimeMillis();
         if (this.startTime == -1L) this.startTime = now;
         this.elapsedTime = now - this.startTime;
     }
 
     public void pause() {
-        if (!this.paused && this.running) {
+        if (!this.paused && this.running && this.unlocalizedSound.getAsBoolean()) {
             this.paused = true;
             this.pausedAt = System.currentTimeMillis();
         }
     }
 
     public void resume() {
-        if (this.paused && this.running) {
+        if (this.paused && this.running && this.unlocalizedSound.getAsBoolean()) {
             this.paused = false;
             long pauseDuration = System.currentTimeMillis() - pausedAt;
             this.startTime += pauseDuration;
@@ -48,7 +51,7 @@ public class LifetimeController {
     }
 
     public boolean shouldUpdateFrame(int fps) {
-        if (this.paused) return false;
+        if (this.paused && this.unlocalizedSound.getAsBoolean()) return false;
 
         long now = System.currentTimeMillis();
         if (now - this.lastFrameTime >= 1000L / fps) {
