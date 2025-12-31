@@ -16,13 +16,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinTitleScreen {
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PanoramaRenderer;render(FF)V"))
     private void panoramaByeBye(PanoramaRenderer instance, float f, float deltaT) {
-        if (BaseEnv.available()) return;
+        if (BaseEnv.available() && NarutoRenderer.INSTANCE.isRunning()) return;
         instance.render(f, deltaT);
     }
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
     private void panoramaByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
-        if (BaseEnv.available()) return;
+        if (BaseEnv.available() && NarutoRenderer.INSTANCE.isRunning()) return;
         instance.blit(atlasLocation, x, y, width, height, uOffset, vOffset, uWidth, vHeight, textureWidth, textureHeight);
     }
 

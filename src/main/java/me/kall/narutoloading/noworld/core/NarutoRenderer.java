@@ -84,7 +84,6 @@ public class NarutoRenderer {
                 if (!this.runInLevel()) graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
             }
 
-
             if (this.keyChecker != null) this.keyChecker.reload();
             if (this.windowSizeChecker != null) this.windowSizeChecker.resize();
             if (this.lifetime != null) {

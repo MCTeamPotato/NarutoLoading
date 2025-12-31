@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinForgeLoadingOverlay {
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/fml/earlydisplay/DisplayWindow;render(I)V", remap = false))
     private void windowByeBye(DisplayWindow instance, int alpha) {
-        if (BaseEnv.available()) return;
+        if (BaseEnv.available() && NarutoRenderer.INSTANCE.isRunning()) return;
         instance.render(alpha);
     }
 
