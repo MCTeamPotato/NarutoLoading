@@ -10,7 +10,7 @@ public class LifetimeController {
     private long pausedAt = 0L;
 
     private boolean running = false;
-    public volatile boolean paused = false;
+    private boolean paused = false;
 
     public volatile boolean lagSpikeDetected = false;
     protected long lastLagSpikeRestart = -1;
@@ -33,7 +33,7 @@ public class LifetimeController {
     }
 
     public void pause() {
-        if (!this.paused && this.running) {
+        if (!this.paused && this.running && this.renderer.audioExecutor == null) {
             this.paused = true;
             this.pausedAt = System.currentTimeMillis();
         }

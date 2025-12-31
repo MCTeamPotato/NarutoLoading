@@ -86,11 +86,7 @@ public class NarutoRenderer {
             if (this.keyChecker != null) this.keyChecker.reload();
             if (this.windowSizeChecker != null) this.windowSizeChecker.resize();
             if (this.lifetime != null) {
-                if (Minecraft.getInstance().isPaused()) {
-                    this.lifetime.pause();
-                } else {
-                    this.lifetime.resume();
-                }
+                this.lifetime.resume();
                 this.lifetime.tick();
                 this.lifetime.syncSoundEngine();
                 this.lifetime.lagSpikeRestart();
