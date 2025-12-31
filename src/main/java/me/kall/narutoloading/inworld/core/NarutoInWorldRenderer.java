@@ -34,8 +34,6 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (!this.isEnabled()) return;
 
         this.videoArgReader = new VideoArgReader(this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), BaseEnv.ffmpegProvider.absoluteFFprobe);
-        this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
-
         if (!this.screen.isLocalSound()) {
             this.audioExecutor = new NarutoAudioExecutor(() -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> this.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         } else {
@@ -55,6 +53,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 }
             };
         }
+        this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
 
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> 1280, () -> 720, this.videoArgReader::fps);
 

@@ -104,6 +104,8 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
         inWorldScreen.setCullable(this.cullableCheck.selected());
 
+        this.renderer.shutdown();
+
         if (this.localSoundCheck.selected()) {
             this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
             AudioConverter audioConverter = new AudioConverter(inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
@@ -116,7 +118,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
-        this.renderer.shutdown();
         this.renderer.setup();
 
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));

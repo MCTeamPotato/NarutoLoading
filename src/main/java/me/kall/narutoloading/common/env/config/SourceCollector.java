@@ -56,7 +56,7 @@ public class SourceCollector {
                     for (Path file : files.filter(Files::isRegularFile).toList()) {
                         String name = file.getFileName().toString();
 
-                        if (name.startsWith(VIDEO_FILE_NAME)) {
+                        if (name.startsWith(VIDEO_FILE_NAME) && !name.endsWith(".ogg")) {
                             video = file;
                         } else if (name.startsWith(AUDIO_FILE_NAME)) {
                             audio = file;
