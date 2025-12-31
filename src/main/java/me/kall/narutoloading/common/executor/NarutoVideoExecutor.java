@@ -125,6 +125,7 @@ public final class NarutoVideoExecutor {
 
         while (frame != null && frame.frameIndex() < expectedFrameIndex) {
             frame.image.close();
+            NarutoLoading.LOGGER.info("Skipping frame at {}", frame.frameIndex);
             frame = this.frameQueue.poll();
             hasSkipping = true;
         }
