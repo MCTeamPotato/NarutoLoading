@@ -26,37 +26,29 @@ public class LifetimeController {
     }
 
     public void tick() {
-        if (this.renderer.audioExecutor == null) {
-            if (this.paused) return;
-        }
+        if (this.paused) return;
         long now = System.currentTimeMillis();
         if (this.startTime == -1L) this.startTime = now;
         this.elapsedTime = now - this.startTime;
     }
 
     public void pause() {
-        if (this.renderer.audioExecutor == null) {
-            if (!this.paused && this.running) {
-                this.paused = true;
-                this.pausedAt = System.currentTimeMillis();
-            }
+        if (!this.paused && this.running) {
+            this.paused = true;
+            this.pausedAt = System.currentTimeMillis();
         }
     }
 
     public void resume() {
-        if (this.renderer.audioExecutor == null) {
-            if (this.paused && this.running) {
-                this.paused = false;
-                long pauseDuration = System.currentTimeMillis() - pausedAt;
-                this.startTime += pauseDuration;
-            }
+        if (this.paused && this.running) {
+            this.paused = false;
+            long pauseDuration = System.currentTimeMillis() - pausedAt;
+            this.startTime += pauseDuration;
         }
     }
 
     public boolean shouldUpdateFrame(int fps) {
-        if (this.renderer.audioExecutor == null) {
-            if (this.paused) return false;
-        }
+        if (this.paused) return false;
 
         long now = System.currentTimeMillis();
         if (now - this.lastFrameTime >= 1000L / fps) {

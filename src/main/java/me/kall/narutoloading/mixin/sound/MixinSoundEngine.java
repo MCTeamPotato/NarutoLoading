@@ -1,8 +1,8 @@
 package me.kall.narutoloading.mixin.sound;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.sounds.SoundEngine;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

@@ -105,6 +105,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         inWorldScreen.setCullable(this.cullableCheck.selected());
 
         if (this.localSoundCheck.selected()) {
+            this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
             AudioConverter audioConverter = new AudioConverter(inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
@@ -115,20 +116,21 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
-        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
         this.renderer.shutdown();
         this.renderer.setup();
+
+        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
         Minecraft.getInstance().setScreen(this.lastScreen);
     }
 
     @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
     public static final class Trigger {
-        private static int screenTriggerable = 0;
+        private static int interval = 0;
 
         @SubscribeEvent
         public static void serverTick(TickEvent.@NotNull ServerTickEvent event) {
             if (event.phase == TickEvent.Phase.START) {
-                if (screenTriggerable > 0) screenTriggerable--;
+                if (interval > 0) interval--;
             }
         }
 
@@ -136,9 +138,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         public static void rightClickScreen(PlayerInteractEvent.@NotNull RightClickBlock event) {
             BlockPos pos = event.getPos();
             if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong())) {
-                if (screenTriggerable > 0) return;
+                if (interval > 0) return;
                 NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
-                screenTriggerable = 20;
+                interval = 20;
             }
         }
     }
@@ -206,11 +208,16 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                         Minecraft mc = Minecraft.getInstance();
                         mc.execute(() -> {
                             NarutoLoading.LOGGER.info("Successfully activated resource pack: {}", packId);
-                            if (player != null) {
-                                player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
+                            LocalPlayer p = mc.player;
+                            if (p != null) {
+                                p.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
+
                                 renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+
                                 NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
-                                renderer.shutdown();
+
+                                boolean wasRunning = renderer.isRunning();
+                                if (wasRunning) renderer.shutdown();
                                 renderer.setup();
                             }
                         });

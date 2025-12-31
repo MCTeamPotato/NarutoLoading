@@ -81,12 +81,18 @@ public class ScreenLifePacket {
 
     private @NotNull NarutoInWorldRenderer renderer() {
         NarutoInWorldRenderer renderer = new NarutoInWorldRenderer(this.inWorldScreen);
-        InWorldSelectionScreen.AudioConverter audioConverter = new InWorldSelectionScreen.AudioConverter(this.inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
-        audioConverter.setup(() -> {
-            InWorldSelectionScreen.ResourceZipGenerator resourceZipGenerator = new InWorldSelectionScreen.ResourceZipGenerator(audioConverter.converted);
-            resourceZipGenerator.generate();
-            resourceZipGenerator.reload(renderer);
-        });
+
+        if (this.inWorldScreen.isLocalSound()) {
+            InWorldSelectionScreen.AudioConverter audioConverter = new InWorldSelectionScreen.AudioConverter(this.inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            audioConverter.setup(() -> {
+                InWorldSelectionScreen.ResourceZipGenerator resourceZipGenerator = new InWorldSelectionScreen.ResourceZipGenerator(audioConverter.converted);
+                resourceZipGenerator.generate();
+                resourceZipGenerator.reload(renderer);
+            });
+        } else {
+            if (BaseEnv.available()) renderer.setup();
+        }
+
         return renderer;
     }
 }
