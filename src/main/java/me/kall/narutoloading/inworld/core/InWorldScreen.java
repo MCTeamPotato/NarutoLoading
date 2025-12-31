@@ -5,6 +5,7 @@ import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,6 +118,11 @@ public final class InWorldScreen {
 
     public double centerZ() {
         return (double) (this.leftBottomCorner.getZ() + this.rightTopCorner.getZ()) / 2;
+    }
+
+    @Contract(" -> new")
+    public @NotNull Vec3 centerVec() {
+        return new Vec3(this.centerX(), this.centerY(), this.centerZ());
     }
 
     @Override

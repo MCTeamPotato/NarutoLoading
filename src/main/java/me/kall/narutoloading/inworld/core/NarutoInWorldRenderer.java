@@ -9,8 +9,10 @@ import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -39,8 +41,10 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.audioExecutor = null;
             this.soundSetup = () -> {
                 LocalPlayer player = Minecraft.getInstance().player;
-                if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
-                    player.level().playLocalSound(this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), SoundEvent.createVariableRangeEvent(this.screen.getLocalSound()), SoundSource.RECORDS, 1.0F, 1.0F, true);
+                ClientLevel level = Minecraft.getInstance().level;
+                if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND && level != null) {
+                    Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(screen.getLocalSound()));
+                    level.playSeededSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), soundEvent, SoundSource.RECORDS, 1.0F, 1.0F, level.random.nextLong());
                     NarutoLoading.LOGGER.info("Local sound {} played at [{}, {}, {}]", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
@@ -85,7 +89,6 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 this.soundSetup.run();
                 this.soundSetup = null;
             }
-
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
