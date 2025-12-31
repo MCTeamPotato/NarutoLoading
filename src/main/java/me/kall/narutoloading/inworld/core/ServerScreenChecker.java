@@ -52,7 +52,7 @@ public class ServerScreenChecker {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void rightClick(PlayerInteractEvent.@NotNull RightClickBlock event) {
-        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level && event.getItemStack().is(Items.STICK)) {
+        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level && player.isShiftKeyDown() && event.getItemStack().is(Items.STICK)) {
             BlockPos currentCorner = event.getPos();
             long corner = event.getPos().asLong();
             ResourceLocation dim = level.dimension().location();

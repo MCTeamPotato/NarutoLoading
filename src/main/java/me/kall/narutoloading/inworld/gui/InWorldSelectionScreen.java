@@ -117,8 +117,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
-        this.renderer.setup();
-
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
         Minecraft.getInstance().setScreen(this.lastScreen);
     }

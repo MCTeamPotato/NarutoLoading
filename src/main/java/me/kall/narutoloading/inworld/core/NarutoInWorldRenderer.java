@@ -11,9 +11,9 @@ import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,8 +41,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.soundSetup = () -> {
                 LocalPlayer player = Minecraft.getInstance().player;
                 if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
-                    SimpleSoundInstance soundInstance = new SimpleSoundInstance(this.screen.getLocalSound(), SoundSource.MUSIC, BaseEnv.narutoConfig.volume, 1.0F, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.LINEAR, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), false);
-                    Minecraft.getInstance().getSoundManager().play(soundInstance);
+                    player.level().playLocalSound(this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound())).value(), SoundSource.MUSIC, BaseEnv.narutoConfig.volume, 1.0F, false);
                     NarutoLoading.LOGGER.info("Local sound {} played at [{}, {}, {}]", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
@@ -55,9 +54,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         }
 
         this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
-
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> 1280, () -> 720, this.videoArgReader::fps);
-
         this.windowSizeChecker = null;
         this.keyChecker = null;
 

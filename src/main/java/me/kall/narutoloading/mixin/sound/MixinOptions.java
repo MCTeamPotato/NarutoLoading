@@ -2,6 +2,7 @@ package me.kall.narutoloading.mixin.sound;
 
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.sounds.SoundSource;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinOptions {
     @Inject(method = "getSoundSourceVolume", at = @At("HEAD"), cancellable = true)
     private void sound(SoundSource category, CallbackInfoReturnable<Float> cir) {
-        if (category.equals(SoundSource.MUSIC) && NarutoRenderer.INSTANCE.isRunning() && BaseEnv.available()) {
+        if (category.equals(SoundSource.MUSIC) && NarutoRenderer.INSTANCE.isRunning() && Minecraft.getInstance().level == null && BaseEnv.available()) {
             cir.setReturnValue(0.0F);
         }
     }
