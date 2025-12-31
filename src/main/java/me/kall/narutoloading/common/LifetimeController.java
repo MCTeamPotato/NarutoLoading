@@ -31,6 +31,7 @@ public class LifetimeController {
         if (this.startTime == -1L) this.startTime = now;
         this.elapsedTime = now - this.startTime;
     }
+
     public void pause() {
         if (!this.paused && this.running) {
             this.paused = true;

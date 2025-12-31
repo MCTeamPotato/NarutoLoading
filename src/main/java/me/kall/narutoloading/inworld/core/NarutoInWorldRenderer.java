@@ -9,7 +9,6 @@ import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.Holder;
@@ -52,11 +51,9 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.audioExecutor.setup();
         } else {
             this.soundSetup = () -> {
-                ClientLevel level = Minecraft.getInstance().level;
                 LocalPlayer player = Minecraft.getInstance().player;
-                if (level != null && player != null) {
-                    //TODO: it runs, but sound is still not present in world... investigate more
-                    level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound())), SoundSource.MUSIC, 1.0F, 1.0F, level.getRandom().nextLong());
+                if (player != null) {
+                    player.level().playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound())).value(), SoundSource.MUSIC, 1.0F, 1.0F, player.level().getRandom().nextLong());
                     NarutoLoading.LOGGER.info("Sound {} played at [{}, {}, {}]", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };

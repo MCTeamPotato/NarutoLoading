@@ -134,7 +134,6 @@ public final class NarutoAudioExecutor {
                 ALC10.alcCloseDevice(this.device);
                 this.device = 0;
             }
-
         }
     }
 }
