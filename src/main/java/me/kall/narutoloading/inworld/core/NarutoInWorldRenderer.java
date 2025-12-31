@@ -11,7 +11,6 @@ import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -41,13 +40,13 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.soundSetup = () -> {
                 LocalPlayer player = Minecraft.getInstance().player;
                 if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
-                    player.level().playLocalSound(this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound())).value(), SoundSource.MUSIC, BaseEnv.narutoConfig.volume, 1.0F, false);
+                    player.level().playLocalSound(this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), SoundEvent.createVariableRangeEvent(this.screen.getLocalSound()), SoundSource.AMBIENT, BaseEnv.narutoConfig.volume, 1.0F, false);
                     NarutoLoading.LOGGER.info("Local sound {} played at [{}, {}, {}]", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
             this.soundShutdown = () -> {
                 if (this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
-                    Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.MUSIC);
+                    Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.AMBIENT);
                     NarutoLoading.LOGGER.info("Local sound {} playing at [{}, {}, {}] is stopped", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
