@@ -15,7 +15,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -150,6 +149,11 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         private final String convertedAudioPath;
         private final String packName;
         public final String id;
+        private final ExecutorService waiter = Executors.newSingleThreadExecutor(task -> {
+            Thread thread = new Thread(task , "NarutoResourceReloadWaiter");
+            thread.setDaemon(true);
+            return thread;
+        });
 
         private static final String RESOURCE_PACKS = FMLLoader.getGamePath().resolve("resourcepacks").toAbsolutePath().toString();
 
@@ -183,9 +187,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.execute(() -> {
                 try {
-                    LocalPlayer player = minecraft.player;
-                    if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.local_sound.start", this.packName), false);
-
                     PackRepository repository = minecraft.getResourcePackRepository();
                     repository.reload();
                     String packId = "file/" + this.packName;
@@ -205,25 +206,10 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     minecraft.options.resourcePacks = new ArrayList<>(selected);
                     minecraft.options.save();
 
-                    minecraft.reloadResourcePacks().thenRun(() -> {
-                        Minecraft mc = Minecraft.getInstance();
-                        mc.execute(() -> {
-                            NarutoLoading.LOGGER.info("Successfully activated resource pack: {}", packId);
-                            LocalPlayer p = mc.player;
-                            if (p != null) {
-                                p.displayClientMessage(Component.translatable("info.narutoloading.local_sound.end"), false);
-
-                                renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
-
-                                NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
-
-                                boolean wasRunning = renderer.isRunning();
-                                if (wasRunning) renderer.shutdown();
-                                renderer.setup();
-                            }
-                        });
-                    });
-
+                    minecraft.reloadResourcePacks();
+                    NarutoLoading.LOGGER.info("Successfully activated resource pack: {}", packId);
+                    renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                    NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
                 } catch (Exception e) {
                     NarutoLoading.LOGGER.error("Error activating resource pack", e);
                 }

@@ -19,13 +19,13 @@ public class MixinAbstractSelectionList {
 
     @Redirect(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderBackground:Z"))
     private boolean dirtScreenByeBye1(AbstractSelectionList<?> instance) {
-        if (BaseEnv.available() && NarutoRenderer.INSTANCE.isRunning()) return false;
+        if (BaseEnv.available()) return false;
         return this.renderBackground;
     }
 
     @Redirect(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderTopAndBottom:Z"))
     private boolean dirtScreenByeBye2(AbstractSelectionList<?> instance) {
-        if (BaseEnv.available() && NarutoRenderer.INSTANCE.isRunning()) return false;
+        if (BaseEnv.available()) return false;
         return this.renderTopAndBottom;
     }
 

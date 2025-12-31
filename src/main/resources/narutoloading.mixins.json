@@ -21,9 +21,10 @@
     "noworld.impl.screen.MixinScreen",
     "noworld.impl.screen.MixinScrollPanel",
     "noworld.impl.screen.MixinTitleScreen",
-    "sound.MixinMinecraft",
     "sound.MixinOptions",
     "sound.MixinSoundEngine",
-    "util.FrustumMixin"
+    "sync.MixinResourceLoadStateTracker",
+    "sync.MixinMinecraft",
+    "util.MixinFrustum"
   ]
 }

@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Frustum.class)
-public abstract class FrustumMixin implements IFrustum {
+public abstract class MixinFrustum implements IFrustum {
     @Shadow protected abstract boolean cubeInFrustum(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 
     @Override

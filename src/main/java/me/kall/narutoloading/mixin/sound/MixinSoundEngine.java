@@ -1,10 +1,20 @@
 package me.kall.narutoloading.mixin.sound;
 
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
+import me.kall.narutoloading.inworld.core.InWorldScreen;
+import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundEngine;
+import net.minecraft.sounds.SoundSource;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,8 +31,33 @@ public abstract class MixinSoundEngine {
 
     @Inject(method = "reload", at = @At("TAIL"))
     private void setup(CallbackInfo ci) {
-        if (BaseEnv.available() && NarutoRenderer.INSTANCE.lifetime != null) {
-            NarutoRenderer.INSTANCE.lifetime.syncSoundEngine = true;
+        if (BaseEnv.available()) {
+            if (NarutoRenderer.INSTANCE.lifetime != null) {
+                NarutoRenderer.INSTANCE.lifetime.syncSoundEngine = true;
+            }
+
+            Minecraft.getInstance().execute(() -> {
+                for (ObjectSet<NarutoInWorldRenderer> renderers : ClientScreensRenderer.CLIENT_SCREENS.values()) {
+                    for (NarutoInWorldRenderer renderer : renderers) {
+                        if (renderer.screen.isLocalSound() && renderer.isRunning()) {
+                            naruto$replayLocalSound(renderer);
+                        }
+                    }
+                }
+            });
         }
+    }
+
+    @Unique
+    private static void naruto$replayLocalSound(NarutoInWorldRenderer renderer) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+
+        InWorldScreen screen = renderer.screen;
+        if (screen.getLocalSound() == InWorldScreen.NO_LOCAL_SOUND) return;
+
+        SimpleSoundInstance soundInstance = new SimpleSoundInstance(screen.getLocalSound(), SoundSource.MUSIC, BaseEnv.narutoConfig.volume, 1.0F, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.LINEAR, screen.centerX(), screen.centerY(), screen.centerZ(), false);
+        Minecraft.getInstance().getSoundManager().play(soundInstance);
+        NarutoLoading.LOGGER.info("Replayed local sound {} at [{}, {}, {}] after sound engine reload", screen.getLocalSound().toString(), screen.centerX(), screen.centerY(), screen.centerZ());
     }
 }
