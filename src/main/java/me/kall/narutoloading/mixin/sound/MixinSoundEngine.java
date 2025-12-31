@@ -55,7 +55,7 @@ public abstract class MixinSoundEngine {
         InWorldScreen screen = renderer.screen;
         if (screen.getLocalSound() == InWorldScreen.NO_LOCAL_SOUND) return;
 
-        player.level().playLocalSound(screen.centerX(), screen.centerY(), screen.centerZ(), SoundEvent.createVariableRangeEvent(screen.getLocalSound()), SoundSource.AMBIENT, BaseEnv.narutoConfig.volume, 1.0F, false);
+        player.level().playLocalSound(screen.centerX(), screen.centerY(), screen.centerZ(), SoundEvent.createVariableRangeEvent(screen.getLocalSound()), SoundSource.RECORDS, 1.0F, 1.0F, true);
         NarutoLoading.LOGGER.info("Replayed local sound {} at [{}, {}, {}] after sound engine reload", screen.getLocalSound().toString(), screen.centerX(), screen.centerY(), screen.centerZ());
     }
 }

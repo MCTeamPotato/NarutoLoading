@@ -40,13 +40,13 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.soundSetup = () -> {
                 LocalPlayer player = Minecraft.getInstance().player;
                 if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
-                    player.level().playLocalSound(this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), SoundEvent.createVariableRangeEvent(this.screen.getLocalSound()), SoundSource.AMBIENT, BaseEnv.narutoConfig.volume, 1.0F, false);
+                    player.level().playLocalSound(this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), SoundEvent.createVariableRangeEvent(this.screen.getLocalSound()), SoundSource.RECORDS, 1.0F, 1.0F, true);
                     NarutoLoading.LOGGER.info("Local sound {} played at [{}, {}, {}]", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
             this.soundShutdown = () -> {
                 if (this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
-                    Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.AMBIENT);
+                    Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.RECORDS);
                     NarutoLoading.LOGGER.info("Local sound {} playing at [{}, {}, {}] is stopped", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
