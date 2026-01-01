@@ -1,10 +1,14 @@
 package me.kall.narutoloading.inworld.core;
 
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,11 +21,16 @@ public final class InWorldScreen {
     private final BlockPos rightBottomCorner;
     private final BlockPos rightTopCorner;
     private final ResourceLocation dimension;
-    private LongSet involved;
-    private final int hashCode;
+
     private String absoluteVideoPath = "", absoluteAudioPath = "";
-    private boolean cullable = true;
+    private boolean cullable = true, hideInner = false;
     private ResourceLocation localSound = NO_LOCAL_SOUND;
+
+    private LongSet areaInvolved;
+    private LongSet borderInvolved;
+
+    private int hashCode;
+    private boolean genHash = true;
 
     public static final ResourceLocation NO_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "empty");
     public static final ResourceLocation HAS_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "pending");
@@ -32,8 +41,6 @@ public final class InWorldScreen {
         this.rightBottomCorner = rightBottomCorner;
         this.rightTopCorner = rightTopCorner;
         this.dimension = dimension;
-
-        this.hashCode = Objects.hash(this.leftBottomCorner, this.leftTopCorner, this.rightBottomCorner, this.rightTopCorner, this.dimension);
     }
 
     public String absoluteVideoPath(String fallback) {
@@ -57,6 +64,10 @@ public final class InWorldScreen {
         this.localSound = localSound;
     }
 
+    public void setHideInner(boolean hideInner) {
+        this.hideInner = hideInner;
+    }
+
     public BlockPos leftBottomCorner() {
         return this.leftBottomCorner;
     }
@@ -77,9 +88,14 @@ public final class InWorldScreen {
         return this.dimension;
     }
 
-    public LongSet involved() {
-        if (this.involved == null) this.involved = LongSets.unmodifiable(InWorldScreen.genInvolved(leftBottomCorner(), leftTopCorner(), rightBottomCorner(), rightTopCorner()));
-        return this.involved;
+    public LongSet borderInvolved() {
+        if (this.borderInvolved == null) this.borderInvolved = InWorldScreen.borderInvolved(leftBottomCorner(), leftTopCorner(), rightBottomCorner(), rightTopCorner());
+        return this.borderInvolved;
+    }
+
+    public @NotNull LongSet areaInvolved() {
+        if (this.areaInvolved == null) this.areaInvolved = InWorldScreen.areaInvolved(this.area());
+        return this.areaInvolved;
     }
 
     public boolean isCullable() {
@@ -94,12 +110,22 @@ public final class InWorldScreen {
         return this.localSound;
     }
 
+    public boolean hideInner() {
+        return this.hideInner;
+    }
+
     @Contract(" -> new")
-    public @NotNull InWorldScreen copy() {
-        InWorldScreen inWorldScreen = new InWorldScreen(this.leftBottomCorner(), this.leftTopCorner(), this.rightBottomCorner(), this.rightTopCorner(), this.dimension());
-        inWorldScreen.absoluteVideoPath = this.absoluteVideoPath;
-        inWorldScreen.absoluteAudioPath = this.absoluteAudioPath;
-        return inWorldScreen;
+    public @NotNull InWorldScreen finalCopy() {
+        return new InWorldScreen(this.leftBottomCorner(), this.leftTopCorner(), this.rightBottomCorner(), this.rightTopCorner(), this.dimension());
+    }
+
+    public @NotNull InWorldScreen fullCopy() {
+        InWorldScreen screen = this.finalCopy();
+        screen.set(this.absoluteVideoPath, this.absoluteAudioPath);
+        screen.setHideInner(this.hideInner());
+        screen.setLocalSound(this.getLocalSound());
+        screen.setCullable(this.isCullable());
+        return screen;
     }
 
     @Contract(" -> new")
@@ -122,7 +148,7 @@ public final class InWorldScreen {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof InWorldScreen inWorldScreen) {
-            if (inWorldScreen.hashCode != this.hashCode) return false;
+            if (inWorldScreen.hashCode() != this.hashCode()) return false;
             return inWorldScreen.leftBottomCorner().equals(this.leftBottomCorner()) && inWorldScreen.leftTopCorner().equals(this.leftTopCorner()) && inWorldScreen.rightTopCorner().equals(this.rightTopCorner()) && inWorldScreen.rightBottomCorner().equals(this.rightBottomCorner()) && inWorldScreen.dimension().equals(this.dimension());
         }
 
@@ -131,6 +157,10 @@ public final class InWorldScreen {
 
     @Override
     public int hashCode() {
+        if (this.genHash) {
+            this.genHash = false;
+            this.hashCode = Objects.hash(this.leftBottomCorner, this.leftTopCorner, this.rightBottomCorner, this.rightTopCorner, this.dimension);
+        }
         return this.hashCode;
     }
 
@@ -143,11 +173,40 @@ public final class InWorldScreen {
         return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "], Cullable: " + this.isCullable() + ", LocalSound: [" + this.getLocalSound().toString() +"]}";
     }
 
-    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, boolean cullable, ResourceLocation localSound) {
+    private @NotNull AABB area() {
+        double leftBottomCornerX = this.leftBottomCorner.getX();
+        double leftBottomCornerY = this.leftBottomCorner.getY();
+        double leftBottomCornerZ = this.leftBottomCorner.getZ();
+
+        double leftTopCornerX = this.leftTopCorner.getX();
+        double leftTopCornerY = this.leftTopCorner.getY();
+        double leftTopCornerZ = this.leftTopCorner.getZ();
+
+        double rightBottomCornerX = this.rightBottomCorner.getX();
+        double rightBottomCornerY = this.rightBottomCorner.getY();
+        double rightBottomCornerZ = this.rightBottomCorner.getZ();
+
+        double rightTopCornerX = this.rightTopCorner.getX();
+        double rightTopCornerY = this.rightTopCorner.getY();
+        double rightTopCornerZ = this.rightTopCorner.getZ();
+
+        double minX = Math.min(Math.min(leftBottomCornerX, leftTopCornerX), Math.min(rightBottomCornerX, rightTopCornerX));
+        double minY = Math.min(Math.min(leftBottomCornerY, leftTopCornerY), Math.min(rightBottomCornerY, rightTopCornerY));
+        double minZ = Math.min(Math.min(leftBottomCornerZ, leftTopCornerZ), Math.min(rightBottomCornerZ, rightTopCornerZ));
+
+        double maxX = Math.max(Math.max(leftBottomCornerX, leftTopCornerX), Math.max(rightBottomCornerX, rightTopCornerX));
+        double maxY = Math.max(Math.max(leftBottomCornerY, leftTopCornerY), Math.max(rightBottomCornerY, rightTopCornerY));
+        double maxZ = Math.max(Math.max(leftBottomCornerZ, leftTopCornerZ), Math.max(rightBottomCornerZ, rightTopCornerZ));
+
+        return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
+    }
+
+    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, boolean cullable, ResourceLocation localSound, boolean hideInner) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
         inWorldScreen.set(video == null ? "" : video, audio == null ? "" : audio);
         inWorldScreen.setCullable(cullable);
         inWorldScreen.setLocalSound(localSound);
+        inWorldScreen.setHideInner(hideInner);
         return inWorldScreen;
     }
 
@@ -177,7 +236,7 @@ public final class InWorldScreen {
         return involved;
     }
 
-    private static @NotNull LongSet genInvolved(BlockPos leftBottom, BlockPos leftTop, BlockPos rightBottom, BlockPos rightTop) {
+    private static @NotNull LongSet borderInvolved(BlockPos leftBottom, BlockPos leftTop, BlockPos rightBottom, BlockPos rightTop) {
         LongList leftY = getLine(leftBottom, leftTop);
         LongList rightY = getLine(rightBottom, rightTop);
         LongList bottom = getLine(leftBottom, rightBottom);
@@ -190,5 +249,22 @@ public final class InWorldScreen {
         borders.addAll(top);
 
         return borders;
+    }
+
+    private static @NotNull LongSet areaInvolved(@NotNull AABB aabb) {
+        LongSet blocks = new LongOpenHashSet();
+
+        int minX = (int) Math.floor(aabb.minX);
+        int minY = (int) Math.floor(aabb.minY);
+        int minZ = (int) Math.floor(aabb.minZ);
+        int maxX = (int) Math.floor(aabb.maxX) - 1;
+        int maxY = (int) Math.floor(aabb.maxY) - 1;
+        int maxZ = (int) Math.floor(aabb.maxZ) - 1;
+
+        for (BlockPos pos : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
+            blocks.add(pos.asLong());
+        }
+
+        return blocks;
     }
 }

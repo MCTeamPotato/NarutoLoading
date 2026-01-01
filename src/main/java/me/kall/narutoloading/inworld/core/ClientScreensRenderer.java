@@ -2,6 +2,7 @@ package me.kall.narutoloading.inworld.core;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -28,6 +29,7 @@ import org.joml.Matrix4f;
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<NarutoInWorldRenderer>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectMap<ResourceLocation, LongSet> HIDDEN_DISPLAYERS = new Object2ObjectOpenHashMap<>();
 
     @SubscribeEvent
     public static void renderTick(TickEvent.@NotNull ClientTickEvent event) {

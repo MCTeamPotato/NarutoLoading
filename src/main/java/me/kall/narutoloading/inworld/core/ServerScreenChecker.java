@@ -166,8 +166,8 @@ public class ServerScreenChecker {
                 ObjectIterator<InWorldScreen> screenIterator = inWorldScreens.iterator();
                 while (screenIterator.hasNext()) {
                     InWorldScreen nextInWorldScreen = screenIterator.next();
-                    if (nextInWorldScreen.involved().contains(block)) {
-                        InWorldScreen copy = nextInWorldScreen.copy();
+                    if (nextInWorldScreen.borderInvolved().contains(block)) {
+                        InWorldScreen copy = nextInWorldScreen.finalCopy();
 
                         screenIterator.remove();
                         screenData.setDirty();

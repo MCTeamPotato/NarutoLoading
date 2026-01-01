@@ -1,4 +1,4 @@
-package me.kall.narutoloading.mixin.util;
+package me.kall.narutoloading.mixin.inworld;
 
 import me.kall.narutoloading.ext.IFrustum;
 import net.minecraft.client.renderer.culling.Frustum;

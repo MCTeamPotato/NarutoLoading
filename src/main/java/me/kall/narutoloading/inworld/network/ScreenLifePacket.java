@@ -1,5 +1,6 @@
 package me.kall.narutoloading.inworld.network;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -8,7 +9,8 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
-import me.kall.narutoloading.inworld.gui.InWorldSelectionScreen;
+import me.kall.narutoloading.inworld.gui.util.AudioConverter;
+import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +28,7 @@ public class ScreenLifePacket {
     }
 
     public ScreenLifePacket(@NotNull FriendlyByteBuf buf) {
-        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readBoolean(), buf.readResourceLocation());
+        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readBoolean(), buf.readResourceLocation(), buf.readBoolean());
         this.isRemoval = buf.readBoolean();
     }
 
@@ -37,6 +39,7 @@ public class ScreenLifePacket {
         buf.writeUtf(this.inWorldScreen.absoluteAudioPath(""));
         buf.writeBoolean(this.inWorldScreen.isCullable());
         buf.writeResourceLocation(this.inWorldScreen.getLocalSound());
+        buf.writeBoolean(this.inWorldScreen.hideInner());
         buf.writeBoolean(this.isRemoval);
     }
 
@@ -69,7 +72,11 @@ public class ScreenLifePacket {
                             }
                         }
                     });
-                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(renderer());
+                    NarutoInWorldRenderer renderer = renderer();
+                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(renderer);
+                    if (this.inWorldScreen.hideInner()) {
+                        ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new LongOpenHashSet()).addAll(this.inWorldScreen.areaInvolved());
+                    }
                     NarutoLoading.LOGGER.info("{}Delivered {} for addition.", NarutoLoading.info(), this.inWorldScreen.toString());
                 }
             } catch (Exception exception) {
@@ -83,9 +90,9 @@ public class ScreenLifePacket {
         NarutoInWorldRenderer renderer = new NarutoInWorldRenderer(this.inWorldScreen);
 
         if (this.inWorldScreen.isLocalSound()) {
-            InWorldSelectionScreen.AudioConverter audioConverter = new InWorldSelectionScreen.AudioConverter(this.inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            AudioConverter audioConverter = new AudioConverter(this.inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
             audioConverter.setup(() -> {
-                InWorldSelectionScreen.ResourceZipGenerator resourceZipGenerator = new InWorldSelectionScreen.ResourceZipGenerator(audioConverter.converted);
+                ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();
                 resourceZipGenerator.reload(renderer);
             });

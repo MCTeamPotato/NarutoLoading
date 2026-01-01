@@ -1,11 +1,16 @@
 package me.kall.narutoloading.inworld.gui;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
+import me.kall.narutoloading.inworld.gui.util.AudioConverter;
+import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
@@ -17,36 +22,23 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.packs.repository.Pack;
-import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private final NarutoInWorldRenderer renderer;
     private Checkbox cullableCheck;
     private Checkbox localSoundCheck;
+    private Checkbox hideInnerCheck;
 
     public static final Component CULLABLE = Component.translatable("box.narutoloading.cullable");
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
+    public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
         super(lastScreen);
@@ -72,19 +64,22 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.audioBox.setValue(NarutoConfig.relative(this.renderer.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
         this.addRenderableWidget(this.audioBox);
 
-        int checkY = centerY + spacing / 2;
-        int checkWidth = 98;
-        int checkGap = 4;
+        int firstCheckY = centerY + spacing / 2;
+        int checkBoxSpacing = 25;
+        int checkWidth = 200;
 
-        this.cullableCheck = new Checkbox(centerX - checkWidth - checkGap / 2, checkY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
+        this.cullableCheck = new Checkbox(centerX - checkWidth / 2, firstCheckY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
         this.addRenderableWidget(this.cullableCheck);
 
-        this.localSoundCheck = new Checkbox(centerX + checkGap / 2, checkY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
+        this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, firstCheckY + checkBoxSpacing, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
         this.addRenderableWidget(this.localSoundCheck);
+
+        this.hideInnerCheck = new Checkbox(centerX - checkWidth / 2, firstCheckY + checkBoxSpacing * 2, checkWidth, boxHeight, HIDE_INNER, this.renderer.screen.hideInner());
+        this.addRenderableWidget(this.hideInnerCheck);
 
         int buttonWidth = 80;
         int buttonHeight = 20;
-        int buttonY = centerY + spacing * 2 + 10;
+        int buttonY = centerY + spacing * 2 + 50;
 
         Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, buttonY, buttonWidth, buttonHeight).build();
         Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, buttonY, buttonWidth, buttonHeight).build();
@@ -102,6 +97,16 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         InWorldScreen inWorldScreen = this.renderer.screen;
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
         inWorldScreen.setCullable(this.cullableCheck.selected());
+        inWorldScreen.setHideInner(this.hideInnerCheck.selected());
+
+        if (inWorldScreen.hideInner()) {
+            ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(inWorldScreen.dimension(), key -> new LongOpenHashSet()).addAll(inWorldScreen.areaInvolved());
+        } else {
+            LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(inWorldScreen.dimension());
+            if (hiddenAreas != null) {
+                hiddenAreas.removeAll(inWorldScreen.areaInvolved());
+            }
+        }
 
         this.renderer.shutdown();
 
@@ -140,198 +145,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                 NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
                 interval = 20;
             }
-        }
-    }
-
-    public static final class ResourceZipGenerator {
-        private final String convertedAudioPath;
-        private final String packName;
-        public final String id;
-
-        private static final String RESOURCE_PACKS = FMLLoader.getGamePath().resolve("resourcepacks").toAbsolutePath().toString();
-
-        public ResourceZipGenerator(String convertedAudioPath) {
-            this.convertedAudioPath = convertedAudioPath;
-            this.id = Paths.get(this.convertedAudioPath).getParent().getFileName().toString();
-            this.packName = "NarutoLoadingAudioSource-" + this.id + ".zip";
-        }
-
-        @SuppressWarnings("ResultOfMethodCallIgnored")
-        public void generate() {
-            try {
-                File resourcePacksDir = new File(RESOURCE_PACKS);
-                if (!resourcePacksDir.exists()) resourcePacksDir.mkdirs();
-
-                File zipFile = new File(resourcePacksDir, packName);
-                if (zipFile.exists()) zipFile.delete();
-
-                try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
-                    addPackMcmeta(zos);
-                    addAudioFiles(zos);
-                    NarutoLoading.LOGGER.info("{}Successfully created resource pack: {}", NarutoLoading.info(), zipFile.getAbsolutePath());
-                }
-
-            } catch (Exception e) {
-                NarutoLoading.LOGGER.error("Failed to generate resource pack", e);
-            }
-        }
-
-        public void reload(NarutoInWorldRenderer renderer) {
-            Minecraft minecraft = Minecraft.getInstance();
-            minecraft.execute(() -> {
-                try {
-                    PackRepository repository = minecraft.getResourcePackRepository();
-                    repository.reload();
-                    String packId = "file/" + this.packName;
-
-                    Pack pack = repository.getPack(packId);
-                    if (pack == null) {
-                        NarutoLoading.LOGGER.warn("Could not find pack: {}", packId);
-                        return;
-                    }
-
-                    Collection<String> selected = new ArrayList<>(repository.getSelectedIds());
-                    selected.removeIf(s -> s.equals("file/NarutoLoadingAudioSource-" + this.id + ".zip"));
-                    if (!selected.contains(packId)) selected.add(packId);
-
-                    repository.setSelected(selected);
-
-                    minecraft.options.resourcePacks = new ArrayList<>(selected);
-                    minecraft.options.save();
-
-                    renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
-                    minecraft.reloadResourcePacks();
-                    NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
-
-                    NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
-                } catch (Exception e) {
-                    NarutoLoading.LOGGER.error("Error activating resource pack", e);
-                }
-            });
-        }
-
-        private void addPackMcmeta(@NotNull ZipOutputStream zos) throws Exception {
-            ZipEntry entry = new ZipEntry("pack.mcmeta");
-            zos.putNextEntry(entry);
-
-            String mcmeta = """
-                        {
-                          "pack": {
-                            "pack_format": 9,
-                            "description": "NarutoLoading Audio Sources"
-                          }
-                        }""";
-
-            zos.write(mcmeta.getBytes(StandardCharsets.UTF_8));
-            zos.closeEntry();
-        }
-
-        private void addAudioFiles(ZipOutputStream zos) throws Exception {
-            File audioFile = new File(this.convertedAudioPath);
-            if (!audioFile.exists() || !audioFile.isFile()) return;
-
-            String entryPath = String.format("assets/%s/sounds/%s.ogg", NarutoLoading.MOD_ID, this.id);
-            ZipEntry entry = new ZipEntry(entryPath);
-            zos.putNextEntry(entry);
-
-            try (FileInputStream fis = new FileInputStream(audioFile)) {
-                byte[] buffer = new byte[8192];
-                int length;
-                while ((length = fis.read(buffer)) > 0) {
-                    zos.write(buffer, 0, length);
-                }
-            }
-
-            zos.closeEntry();
-            NarutoLoading.LOGGER.info("{}Added audio file to resource pack: {}", NarutoLoading.info(), entryPath);
-
-            addSoundsJson(zos);
-        }
-
-        private void addSoundsJson(@NotNull ZipOutputStream zos) throws Exception {
-            ZipEntry entry = new ZipEntry(String.format("assets/%s/sounds.json", NarutoLoading.MOD_ID));
-            zos.putNextEntry(entry);
-
-            String json = String.format("""
-                {
-                  "%s": {
-                    "sounds": [
-                      "%s:%s"
-                    ]
-                  }
-                }""", this.id, NarutoLoading.MOD_ID, this.id);
-
-            zos.write(json.getBytes(StandardCharsets.UTF_8));
-            zos.closeEntry();
-        }
-    }
-
-    public static class AudioConverter {
-        private final String absoluteSourcePath;
-        private final String absoluteFFmpegPath;
-        private final ExecutorService converter = Executors.newSingleThreadExecutor(task -> {
-            Thread thread = new Thread(task , "NarutoAudioConverter");
-            thread.setDaemon(true);
-            return thread;
-        });
-        public String converted = "";
-
-        public AudioConverter(String absoluteSourcePath, String absoluteFFmpegPath) {
-            this.absoluteSourcePath = absoluteSourcePath;
-            this.absoluteFFmpegPath = absoluteFFmpegPath;
-        }
-
-        public void setup(Runnable onDone) {
-            File sourceFile = new File(absoluteSourcePath);
-            if (!sourceFile.exists() || !sourceFile.isFile()) return;
-
-            String fileName = sourceFile.getName();
-            String lowerName = fileName.toLowerCase();
-
-            if (lowerName.endsWith(".ogg")) {
-                this.converted = this.absoluteSourcePath;
-                onDone.run();
-                return;
-            }
-
-            Path parentDir = sourceFile.toPath().getParent();
-            File absoluteOutputPath = parentDir.resolve(fileName.substring(0, fileName.lastIndexOf(".")) + ".ogg").toFile();
-
-            if (absoluteOutputPath.exists()) {
-                this.converted = absoluteOutputPath.getAbsolutePath();
-                onDone.run();
-                return;
-            }
-
-            this.converter.submit(() -> {
-                try {
-                    ProcessBuilder processBuilder = new ProcessBuilder(this.absoluteFFmpegPath, "-i", absoluteSourcePath, "-vn", "-acodec", "libvorbis", "-q:a", "4", "-y", absoluteOutputPath.getAbsolutePath()).redirectErrorStream(true);
-                    Process process = processBuilder.start();
-
-                    StringBuilder output = new StringBuilder();
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            output.append(line).append("\n");
-                        }
-                    }
-
-                    int exitCode = process.waitFor();
-
-                    if (exitCode == 0 && absoluteOutputPath.exists()) {
-                        NarutoLoading.LOGGER.info("{}Successfully converted to OGG: {}", NarutoLoading.info(), absoluteOutputPath.getAbsolutePath());
-                        this.converted = absoluteOutputPath.getAbsolutePath();
-                    } else {
-                        NarutoLoading.LOGGER.error("FFmpeg conversion failed with exit code: {}", exitCode);
-                        NarutoLoading.LOGGER.error("FFmpeg output:\n{}", output.toString());
-                    }
-                } catch (Exception exception) {
-                    NarutoLoading.LOGGER.error("Error converting audio ", exception);
-                } finally {
-                    onDone.run();
-                    this.converter.shutdown();
-                }
-            });
         }
     }
 }

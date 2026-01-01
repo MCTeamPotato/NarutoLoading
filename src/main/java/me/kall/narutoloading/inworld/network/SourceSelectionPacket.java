@@ -41,7 +41,7 @@ public class SourceSelectionPacket {
                 ObjectSet<NarutoInWorldRenderer> renderers = ClientScreensRenderer.CLIENT_SCREENS.get(dimension);
                 if (renderers == null) return;
                 for (NarutoInWorldRenderer renderer : renderers) {
-                    if (renderer.screen.involved().contains(this.position)) {
+                    if (renderer.screen.borderInvolved().contains(this.position)) {
                         minecraft.setScreen(new InWorldSelectionScreen(minecraft.screen, renderer));
                         break;
                     }

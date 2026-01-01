@@ -11,6 +11,10 @@
     "defaultRequire": 1
   },
   "client": [
+    "inworld.MixinBlock",
+    "inworld.MixinFrustum",
+    "inworld.MixinMinecraft",
+    "inworld.MixinResourceLoadStateTracker",
     "noworld.clear.MixinFont",
     "noworld.clear.MixinGuiGraphics",
     "noworld.clear.MixinStringRenderOutput",
@@ -22,9 +26,6 @@
     "noworld.impl.screen.MixinScrollPanel",
     "noworld.impl.screen.MixinTitleScreen",
     "sound.MixinOptions",
-    "sound.MixinSoundEngine",
-    "sync.MixinResourceLoadStateTracker",
-    "sync.MixinMinecraft",
-    "util.MixinFrustum"
+    "sound.MixinSoundEngine"
   ]
 }

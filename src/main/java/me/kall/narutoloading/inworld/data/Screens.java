@@ -32,6 +32,7 @@ public class Screens extends SavedData {
     private static final String AUDIO_KEY = "Audio";
     private static final String CULLABLE_KEY = "Cullable";
     private static final String LOCAL_SOUND_KEY = "LocalSound";
+    private static final String HIDE_INNER_KEY = "HideInner";
 
     public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
 
@@ -42,7 +43,7 @@ public class Screens extends SavedData {
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), screenTag.getBoolean(CULLABLE_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY))));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), screenTag.getBoolean(CULLABLE_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getBoolean(HIDE_INNER_KEY)));
         }
 
         return screens;
@@ -63,6 +64,7 @@ public class Screens extends SavedData {
                 screenTag.putString(AUDIO_KEY, inWorldScreen.absoluteAudioPath(""));
                 screenTag.putBoolean(CULLABLE_KEY, inWorldScreen.isCullable());
                 screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.getLocalSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
+                screenTag.putBoolean(HIDE_INNER_KEY, inWorldScreen.hideInner());
                 NarutoLoading.LOGGER.info("{}Saving {} successfully", NarutoLoading.info(), inWorldScreen.toString());
                 screensList.add(screenTag);
             }
