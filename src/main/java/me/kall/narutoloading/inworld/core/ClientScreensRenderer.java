@@ -132,6 +132,20 @@ public class ClientScreensRenderer {
         double centerY = (leftBottomCornerY + rightTopCornerY) / 2.0;
         double centerZ = (leftBottomCornerZ + rightTopCornerZ) / 2.0;
 
+        double toCameraX = camera.x - centerX;
+        double toCameraY = camera.y - centerY;
+        double toCameraZ = camera.z - centerZ;
+
+        double dot = normalX * toCameraX + normalY * toCameraY + normalZ * toCameraZ;
+
+        double offsetDirection = dot > 0 ? 1.0 : -1.0;
+
+        if (dot < 0) {
+            normalX = -normalX;
+            normalY = -normalY;
+            normalZ = -normalZ;
+        }
+
         double distCenter = distanceSquared(camera.x, camera.y, camera.z, centerX, centerY, centerZ);
         double distLeftBottom = distanceSquared(camera.x, camera.y, camera.z, leftBottomCornerX, leftBottomCornerY, leftBottomCornerZ);
         double distLeftTop = distanceSquared(camera.x, camera.y, camera.z, leftTopCornerX, leftTopCornerY, leftTopCornerZ);
@@ -140,7 +154,7 @@ public class ClientScreensRenderer {
 
         double minDistSquared = Math.min(distCenter, Math.min(Math.min(distLeftBottom, distLeftTop), Math.min(distRightBottom, distRightTop)));
 
-        double againstZFighting = 0.01 + Math.sqrt(minDistSquared) * 0.01;
+        double againstZFighting = (0.01 + Math.sqrt(minDistSquared) * 0.005) * offsetDirection;
 
         leftBottomCornerX += normalX * againstZFighting;
         leftBottomCornerY += normalY * againstZFighting;

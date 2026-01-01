@@ -94,11 +94,18 @@ public class LifetimeController {
             }
             if (current - this.lastLagSpikeRestart < 5000) return;
             String sec = String.valueOf(this.elapsedSeconds());
-            NarutoLoading.LOGGER.warn("Lag spike detected, restarting video from {} seconds", sec);
+            NarutoLoading.LOGGER.warn("Lag spike detected, restarting video and audio from {} seconds", sec);
+
             if (this.renderer.videoExecutor != null){
                 this.renderer.videoExecutor.shutdown();
                 this.renderer.videoExecutor.setup(sec);
             }
+
+            if (this.renderer.audioExecutor != null) {
+                this.renderer.audioExecutor.shutdown();
+                this.renderer.audioExecutor.setup(sec);
+            }
+
             this.lastLagSpikeRestart = System.currentTimeMillis();
         }
     }
@@ -106,7 +113,15 @@ public class LifetimeController {
     public void syncSoundEngine() {
         if (this.syncSoundEngine) {
             this.syncSoundEngine = false;
-            if (this.renderer.audioExecutor != null) this.renderer.audioExecutor.setup(String.valueOf(this.elapsedSeconds()));
+            if (this.renderer.audioExecutor != null) {
+                double syncTime = this.elapsedSeconds();
+                NarutoLoading.LOGGER.info("{}Syncing audio to {} seconds after sound engine reload", NarutoLoading.info(), syncTime);
+                this.renderer.audioExecutor.setup(String.valueOf(syncTime));
+                if (this.renderer.videoExecutor != null) {
+                    this.renderer.videoExecutor.shutdown();
+                    this.renderer.videoExecutor.setup(String.valueOf(syncTime));
+                }
+            }
         }
     }
 }

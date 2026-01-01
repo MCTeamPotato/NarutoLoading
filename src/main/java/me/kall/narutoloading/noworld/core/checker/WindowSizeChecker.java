@@ -56,11 +56,16 @@ public final class WindowSizeChecker {
             this.resizable = false;
             if (this.renderer.lifetime != null){
                 String currentSecond = String.valueOf(this.renderer.lifetime.elapsedSeconds());
-                NarutoLoading.LOGGER.info("{}Resizing Naruto Loading video from {} seconds", NarutoLoading.info(), currentSecond);
+                NarutoLoading.LOGGER.info("{}Resizing video and resyncing audio from {} seconds", NarutoLoading.info(), currentSecond);
 
                 if (this.renderer.videoExecutor != null) {
                     this.renderer.videoExecutor.shutdown();
                     this.renderer.videoExecutor.setup(currentSecond);
+                }
+
+                if (this.renderer.audioExecutor != null) {
+                    this.renderer.audioExecutor.shutdown();
+                    this.renderer.audioExecutor.setup(currentSecond);
                 }
             }
 
