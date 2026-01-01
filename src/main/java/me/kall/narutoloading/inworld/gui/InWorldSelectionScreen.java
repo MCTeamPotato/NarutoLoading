@@ -117,7 +117,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         NarutoLoading.LOGGER.info("Step 2 - After absolute(): [{}]", videoFilename);
         String audioFileName = this.audioBox.getValue();
         InWorldScreen inWorldScreen = this.renderer.screen;
+
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
+
         NarutoLoading.LOGGER.info("Step 3 - After set(): [{}]", inWorldScreen.relativeVideoPath(""));
         inWorldScreen.setCullable(this.cullableCheck.selected());
         inWorldScreen.setHideInner(this.hideInnerCheck.selected());

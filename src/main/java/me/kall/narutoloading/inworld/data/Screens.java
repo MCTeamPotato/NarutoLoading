@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
@@ -61,8 +60,8 @@ public class Screens extends SavedData {
                 CompoundTag screenTag = new CompoundTag();
                 screenTag.putString(DIMENSION_KEY, dimension.toString());
                 screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
-                screenTag.putString(VIDEO_KEY, NarutoConfig.relative(inWorldScreen.relativeVideoPath("")));
-                screenTag.putString(AUDIO_KEY, NarutoConfig.relative(inWorldScreen.relativeAudioPath("")));
+                screenTag.putString(VIDEO_KEY, inWorldScreen.relativeVideoPath(""));
+                screenTag.putString(AUDIO_KEY, inWorldScreen.relativeAudioPath(""));
                 screenTag.putBoolean(CULLABLE_KEY, inWorldScreen.isCullable());
                 screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.getLocalSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
                 screenTag.putBoolean(HIDE_INNER_KEY, inWorldScreen.hideInner());
