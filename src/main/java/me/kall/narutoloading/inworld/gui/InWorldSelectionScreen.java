@@ -40,6 +40,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     public static final Component CULLABLE = Component.translatable("box.narutoloading.cullable");
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
+
     public static final Component RANDOM = Component.translatable("button.narutoloading.random");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
@@ -113,14 +114,11 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     @Override
     protected void onDone() {
         String videoFilename = this.videoBox.getValue();
-        NarutoLoading.LOGGER.info("Step 1 - EditBox value: [{}]", this.videoBox.getValue());
-        NarutoLoading.LOGGER.info("Step 2 - After absolute(): [{}]", videoFilename);
         String audioFileName = this.audioBox.getValue();
         InWorldScreen inWorldScreen = this.renderer.screen;
 
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
 
-        NarutoLoading.LOGGER.info("Step 3 - After set(): [{}]", inWorldScreen.relativeVideoPath(""));
         inWorldScreen.setCullable(this.cullableCheck.selected());
         inWorldScreen.setHideInner(this.hideInnerCheck.selected());
 
@@ -149,7 +147,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
-        NarutoLoading.LOGGER.info("Step 4 - Before packet send: [{}]", this.renderer.screen.relativeVideoPath(""));
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
         Minecraft.getInstance().setScreen(this.lastScreen);
     }

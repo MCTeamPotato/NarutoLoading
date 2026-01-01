@@ -23,8 +23,10 @@ public class SourcesSelectionScreen extends Screen {
     protected EditBox audioBox;
 
     public static final Component SCREEN = Component.translatable("screen.narutoloading.selection");
+
     public static final Component DONE = Component.translatable("button.narutoloading.done");
     public static final Component CANCEL = Component.translatable("button.narutoloading.cancel");
+
     public static final Component VIDEO = Component.translatable("box.narutoloading.video");
     public static final Component AUDIO = Component.translatable("box.narutoloading.audio");
 
