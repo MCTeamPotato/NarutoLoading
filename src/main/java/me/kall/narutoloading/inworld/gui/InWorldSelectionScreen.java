@@ -56,12 +56,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing * 2 - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);
-        this.videoBox.setValue(NarutoConfig.relative(this.renderer.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)));
+        this.videoBox.setValue(NarutoConfig.relative(this.renderer.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)));
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(1024);
-        this.audioBox.setValue(NarutoConfig.relative(this.renderer.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
+        this.audioBox.setValue(NarutoConfig.relative(this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
         this.addRenderableWidget(this.audioBox);
 
         int firstCheckY = centerY + spacing / 2;
@@ -93,9 +93,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     @Override
     protected void onDone() {
         String videoFilename = NarutoConfig.absolute(this.videoBox.getValue());
+        NarutoLoading.LOGGER.info("Step 1 - EditBox value: [{}]", this.videoBox.getValue());
+        NarutoLoading.LOGGER.info("Step 2 - After absolute(): [{}]", videoFilename);
         String audioFileName = NarutoConfig.absolute(this.audioBox.getValue());
         InWorldScreen inWorldScreen = this.renderer.screen;
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
+        NarutoLoading.LOGGER.info("Step 3 - After set(): [{}]", inWorldScreen.relativeVideoPath(""));
         inWorldScreen.setCullable(this.cullableCheck.selected());
         inWorldScreen.setHideInner(this.hideInnerCheck.selected());
 
@@ -108,11 +111,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             }
         }
 
+        Minecraft.getInstance().levelRenderer.allChanged();
+
         this.renderer.shutdown();
 
         if (this.localSoundCheck.selected()) {
             this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
-            AudioConverter audioConverter = new AudioConverter(inWorldScreen.absoluteAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            AudioConverter audioConverter = new AudioConverter(inWorldScreen.relativeAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();
@@ -122,6 +127,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
+        NarutoLoading.LOGGER.info("Step 4 - Before packet send: [{}]", this.renderer.screen.relativeVideoPath(""));
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
         Minecraft.getInstance().setScreen(this.lastScreen);
     }

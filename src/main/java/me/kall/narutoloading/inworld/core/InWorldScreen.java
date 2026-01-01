@@ -22,7 +22,7 @@ public final class InWorldScreen {
     private final BlockPos rightTopCorner;
     private final ResourceLocation dimension;
 
-    private String absoluteVideoPath = "", absoluteAudioPath = "";
+    private String relativeVideoPath = "", relativeAudioPath = "";
     private boolean cullable = true, hideInner = false;
     private ResourceLocation localSound = NO_LOCAL_SOUND;
 
@@ -43,17 +43,17 @@ public final class InWorldScreen {
         this.dimension = dimension;
     }
 
-    public String absoluteVideoPath(String fallback) {
-        return this.absoluteVideoPath.isBlank() ? fallback : this.absoluteVideoPath;
+    public String relativeVideoPath(String fallback) {
+        return this.relativeVideoPath.isBlank() ? fallback : this.relativeVideoPath;
     }
 
-    public String absoluteAudioPath(String fallback) {
-        return this.absoluteAudioPath.isBlank() ? fallback : this.absoluteAudioPath;
+    public String relativeAudioPath(String fallback) {
+        return this.relativeAudioPath.isBlank() ? fallback : this.relativeAudioPath;
     }
 
     public void set(String absoluteVideoPath, String absoluteAudioPath) {
-        this.absoluteVideoPath = absoluteVideoPath;
-        this.absoluteAudioPath = absoluteAudioPath;
+        this.relativeVideoPath = absoluteVideoPath;
+        this.relativeAudioPath = absoluteAudioPath;
     }
 
     public void setCullable(boolean cullable) {
@@ -121,7 +121,7 @@ public final class InWorldScreen {
 
     public @NotNull InWorldScreen fullCopy() {
         InWorldScreen screen = this.finalCopy();
-        screen.set(this.absoluteVideoPath, this.absoluteAudioPath);
+        screen.set(this.relativeVideoPath, this.relativeAudioPath);
         screen.setHideInner(this.hideInner());
         screen.setLocalSound(this.getLocalSound());
         screen.setCullable(this.isCullable());
@@ -170,7 +170,7 @@ public final class InWorldScreen {
 
     @Override
     public @NotNull String toString() {
-        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.absoluteVideoPath + "], Audio: [" + this.absoluteAudioPath + "], Cullable: " + this.isCullable() + ", LocalSound: [" + this.getLocalSound().toString() +"]}";
+        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.relativeVideoPath + "], Audio: [" + this.relativeAudioPath + "], Cullable: " + this.isCullable() + ", LocalSound: [" + this.getLocalSound().toString() +"]}";
     }
 
     private @NotNull AABB area() {

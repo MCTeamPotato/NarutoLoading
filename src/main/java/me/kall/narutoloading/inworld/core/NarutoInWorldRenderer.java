@@ -5,6 +5,7 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.VideoArgReader;
+import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
@@ -34,9 +35,9 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     public void setup() {
         if (!this.isEnabled()) return;
 
-        this.videoArgReader = new VideoArgReader(this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), BaseEnv.ffmpegProvider.absoluteFFprobe);
+        this.videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)), BaseEnv.ffmpegProvider.absoluteFFprobe);
         if (!this.screen.isLocalSound()) {
-            this.audioExecutor = new NarutoAudioExecutor(() -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> this.screen.absoluteAudioPath(BaseEnv.narutoConfig.absoluteAudioPath), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            this.audioExecutor = new NarutoAudioExecutor(() -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)), () -> this.screen.relativeAudioPath(BaseEnv.narutoConfig.absoluteAudioPath), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         } else {
             this.audioExecutor = null;
             this.soundSetup = () -> {
@@ -57,7 +58,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         }
 
         this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> this.screen.absoluteVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> 1280, () -> 720, this.videoArgReader::fps);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> this.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath), () -> 1280, () -> 720, this.videoArgReader::fps);
         this.windowSizeChecker = null;
         this.keyChecker = null;
 

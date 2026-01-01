@@ -27,8 +27,8 @@ public class ArgUpdatePacket {
     public void encode(@NotNull FriendlyByteBuf buf) {
         buf.writeLongArray(this.argSource.toLongArray());
         buf.writeResourceLocation(this.argSource.dimension());
-        buf.writeUtf(this.argSource.absoluteVideoPath(""));
-        buf.writeUtf(this.argSource.absoluteAudioPath(""));
+        buf.writeUtf(this.argSource.relativeVideoPath(""));
+        buf.writeUtf(this.argSource.relativeAudioPath(""));
         buf.writeBoolean(this.argSource.isCullable());
         buf.writeResourceLocation(this.argSource.getLocalSound());
         buf.writeBoolean(this.argSource.hideInner());

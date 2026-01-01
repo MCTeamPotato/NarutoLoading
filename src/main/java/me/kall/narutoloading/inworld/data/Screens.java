@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
@@ -43,7 +44,7 @@ public class Screens extends SavedData {
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), screenTag.getBoolean(CULLABLE_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getBoolean(HIDE_INNER_KEY)));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, NarutoConfig.absolute(screenTag.getString(VIDEO_KEY)), NarutoConfig.absolute(screenTag.getString(AUDIO_KEY)), screenTag.getBoolean(CULLABLE_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getBoolean(HIDE_INNER_KEY)));
         }
 
         return screens;
@@ -60,8 +61,8 @@ public class Screens extends SavedData {
                 CompoundTag screenTag = new CompoundTag();
                 screenTag.putString(DIMENSION_KEY, dimension.toString());
                 screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
-                screenTag.putString(VIDEO_KEY, inWorldScreen.absoluteVideoPath(""));
-                screenTag.putString(AUDIO_KEY, inWorldScreen.absoluteAudioPath(""));
+                screenTag.putString(VIDEO_KEY, NarutoConfig.relative(inWorldScreen.relativeVideoPath("")));
+                screenTag.putString(AUDIO_KEY, NarutoConfig.relative(inWorldScreen.relativeAudioPath("")));
                 screenTag.putBoolean(CULLABLE_KEY, inWorldScreen.isCullable());
                 screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.getLocalSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
                 screenTag.putBoolean(HIDE_INNER_KEY, inWorldScreen.hideInner());
