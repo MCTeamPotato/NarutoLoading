@@ -1,9 +1,14 @@
 {
   "box.narutoloading.cullable": "单面渲染",
   "box.narutoloading.local_sound": "本地音效",
+  "box.narutoloading.hide_inner": "隐藏显示屏方块",
+
   "screen.narutoloading.selection": "来源选择",
+
   "button.narutoloading.done": "完成",
   "button.narutoloading.cancel": "取消",
+  "button.narutoloading.random": "随机",
+
   "box.narutoloading.video": "视频",
   "box.narutoloading.audio": "音频",
 
@@ -18,9 +23,6 @@
   "info.narutoloading.screen.displayer_not_found": "未在[%s]处找到有效显示器方块。",
   "info.narutoloading.screen.created": "已创建%s。右击任意一个显示器方块设置视频与音频参数。",
   "info.narutoloading.screen.destroy": "%s已被破坏。",
-
-  "info.narutoloading.local_sound.start": "将音频[%s]加入MC音源并重载客户端资源中……",
-  "info.narutoloading.local_sound.end": "完成！",
 
   "screen.narutoloading.arg": "屏幕：{左下角：[%s], 左上角：[%s], 右下角：[%s], 右上角：[%s], 维度：[%s]}"
 }

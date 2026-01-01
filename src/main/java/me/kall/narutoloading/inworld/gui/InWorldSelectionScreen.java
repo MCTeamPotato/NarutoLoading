@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.common.env.config.SourceCollector;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
@@ -39,6 +40,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     public static final Component CULLABLE = Component.translatable("box.narutoloading.cullable");
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
+    public static final Component RANDOM = Component.translatable("button.narutoloading.random");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
         super(lastScreen);
@@ -56,12 +58,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing * 2 - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);
-        this.videoBox.setValue(NarutoConfig.relative(this.renderer.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)));
+        this.videoBox.setValue(this.renderer.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath));
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(1024);
-        this.audioBox.setValue(NarutoConfig.relative(this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)));
+        this.audioBox.setValue(this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.absoluteAudioPath));
         this.addRenderableWidget(this.audioBox);
 
         int firstCheckY = centerY + spacing / 2;
@@ -81,21 +83,39 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         int buttonHeight = 20;
         int buttonY = centerY + spacing * 2 + 50;
 
-        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, buttonY, buttonWidth, buttonHeight).build();
-        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, buttonY, buttonWidth, buttonHeight).build();
+        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth * 3 / 2 - 10, buttonY, buttonWidth, buttonHeight).build();
+        this.addRenderableWidget(random);
 
+        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth / 2, buttonY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(done);
+
+        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + buttonWidth / 2 + 10, buttonY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(cancel);
 
         this.setInitialFocus(this.videoBox);
     }
 
+    private void onRandom() {
+        SourceCollector.Source source = SourceCollector.roll();
+        if (source != null) {
+            String relativeVideo = NarutoConfig.relative(source.absoluteVideoPath());
+            String relativeAudio = NarutoConfig.relative(source.absoluteAudioPath());
+
+            this.videoBox.setValue(relativeVideo);
+            this.audioBox.setValue(relativeAudio);
+
+            NarutoLoading.LOGGER.info("{}Randomly selected source - Video: {}, Audio: {}", NarutoLoading.info(), relativeVideo, relativeAudio);
+        } else {
+            NarutoLoading.LOGGER.warn("{}No sources available for random selection", NarutoLoading.info());
+        }
+    }
+
     @Override
     protected void onDone() {
-        String videoFilename = NarutoConfig.absolute(this.videoBox.getValue());
+        String videoFilename = this.videoBox.getValue();
         NarutoLoading.LOGGER.info("Step 1 - EditBox value: [{}]", this.videoBox.getValue());
         NarutoLoading.LOGGER.info("Step 2 - After absolute(): [{}]", videoFilename);
-        String audioFileName = NarutoConfig.absolute(this.audioBox.getValue());
+        String audioFileName = this.audioBox.getValue();
         InWorldScreen inWorldScreen = this.renderer.screen;
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
         NarutoLoading.LOGGER.info("Step 3 - After set(): [{}]", inWorldScreen.relativeVideoPath(""));
