@@ -58,12 +58,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing * 2 - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);
-        this.videoBox.setValue(this.renderer.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath));
+        this.videoBox.setValue(this.renderer.screen.relativeVideoPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteVideoPath)));
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(1024);
-        this.audioBox.setValue(this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.absoluteAudioPath));
+        this.audioBox.setValue(this.renderer.screen.relativeAudioPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteAudioPath)));
         this.addRenderableWidget(this.audioBox);
 
         int firstCheckY = centerY + spacing / 2;
