@@ -44,7 +44,7 @@ public class Screens extends SavedData {
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, NarutoConfig.absolute(screenTag.getString(VIDEO_KEY)), NarutoConfig.absolute(screenTag.getString(AUDIO_KEY)), screenTag.getBoolean(CULLABLE_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getBoolean(HIDE_INNER_KEY)));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), screenTag.getBoolean(CULLABLE_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getBoolean(HIDE_INNER_KEY)));
         }
 
         return screens;
