@@ -55,7 +55,7 @@ public class ScreenLifePacket {
                                 break;
                             }
                         }
-                        NarutoLoading.LOGGER.info("Delivered {} for removal.", this.inWorldScreen.toString());
+                        NarutoLoading.LOGGER.info("{}Delivered {} for removal.", NarutoLoading.info(), this.inWorldScreen.toString());
                     }
                 } else {
                     Optional.ofNullable(ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension())).ifPresent(renderers -> {
@@ -70,7 +70,7 @@ public class ScreenLifePacket {
                         }
                     });
                     ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(renderer());
-                    NarutoLoading.LOGGER.info("Delivered {} for addition.", this.inWorldScreen.toString());
+                    NarutoLoading.LOGGER.info("{}Delivered {} for addition.", NarutoLoading.info(), this.inWorldScreen.toString());
                 }
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ScreenLifePacket", exception);

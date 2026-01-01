@@ -18,7 +18,7 @@ public abstract class MixinResourceLoadStateTracker {
         Minecraft.getInstance().execute(() -> {
             for (ObjectSet<NarutoInWorldRenderer> renderers : ClientScreensRenderer.CLIENT_SCREENS.values()) {
                 for (NarutoInWorldRenderer renderer : renderers) {
-                    NarutoLoading.LOGGER.info("Restarting {} after resource reload.", renderer.screen.toString());
+                    NarutoLoading.LOGGER.info("{}Restarting {} after resource reload.", NarutoLoading.info(), renderer.screen.toString());
                     renderer.shutdown();
                     renderer.setup();
                 }

@@ -63,7 +63,7 @@ public class Screens extends SavedData {
                 screenTag.putString(AUDIO_KEY, inWorldScreen.absoluteAudioPath(""));
                 screenTag.putBoolean(CULLABLE_KEY, inWorldScreen.isCullable());
                 screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.getLocalSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
-                NarutoLoading.LOGGER.info("Saving {} successfully", inWorldScreen.toString());
+                NarutoLoading.LOGGER.info("{}Saving {} successfully", NarutoLoading.info(), inWorldScreen.toString());
                 screensList.add(screenTag);
             }
         }

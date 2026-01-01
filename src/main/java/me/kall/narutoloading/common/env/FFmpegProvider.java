@@ -43,7 +43,7 @@ public final class FFmpegProvider {
         if (!absoluteFFprobePath.isBlank() && !absoluteFFmpegPath.isBlank()) {
             this.absoluteFFprobe = absoluteFFprobePath;
             this.absoluteFFmpeg = absoluteFFmpegPath;
-            NarutoLoading.LOGGER.info("Using FFmpeg from config.");
+            NarutoLoading.LOGGER.info("{}Using FFmpeg from config.", NarutoLoading.info());
             onDone.run();
             return;
         }
@@ -60,13 +60,13 @@ public final class FFmpegProvider {
 
             if (baseDir == null && os != null) {
                 try {
-                    NarutoLoading.LOGGER.info("Downloading FFmpeg...");
+                    NarutoLoading.LOGGER.info("{}Downloading FFmpeg...", NarutoLoading.info());
                     Downloader.download(gamePath, os, os.equals(OSType.WINDOWS) ? this.winUrl : this.linuxUrl);
                     baseDir = OSType.getBase(gamePath, os);
                 } catch (Exception exception) {
                     NarutoLoading.LOGGER.error("Error downloading FFmpeg.", exception);
                 } finally {
-                    NarutoLoading.LOGGER.info("FFmpeg download task ends.");
+                    NarutoLoading.LOGGER.info("{}FFmpeg download task ends.", NarutoLoading.info());
                 }
             }
 
@@ -82,8 +82,8 @@ public final class FFmpegProvider {
 
             this.absoluteFFmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
             this.absoluteFFprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
-            NarutoLoading.LOGGER.info("NarutoLoading ffmpeg file path: {}", this.absoluteFFmpeg);
-            NarutoLoading.LOGGER.info("NarutoLoading ffprobe file path: {}", this.absoluteFFprobe);
+            NarutoLoading.LOGGER.info("{}NarutoLoading ffmpeg file path: {}", NarutoLoading.info(), this.absoluteFFmpeg);
+            NarutoLoading.LOGGER.info("{}NarutoLoading ffprobe file path: {}", NarutoLoading.info(), this.absoluteFFprobe);
             onDone.run();
         });
     }

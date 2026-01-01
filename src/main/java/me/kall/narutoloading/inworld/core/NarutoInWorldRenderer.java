@@ -10,9 +10,11 @@ import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.Holder;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -51,7 +53,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.soundShutdown = () -> {
                 if (this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
                     Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.MUSIC);
-                    NarutoLoading.LOGGER.info("Local sound {} playing at [{}, {}, {}] is stopped", this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
+                    NarutoLoading.LOGGER.info("{}Local sound {} playing at [{}, {}, {}] is stopped", NarutoLoading.info(), this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
         }
@@ -65,7 +67,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             this.dynamicTexture = new DynamicTexture(1280, 720, false);
             if (this.textureLocation == null) {
                 this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
-                NarutoLoading.LOGGER.info("NarutoInWorldRenderer texture location initialized: {}", this.textureLocation.toString());
+                NarutoLoading.LOGGER.info("{}NarutoInWorldRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
             }
         }
 

@@ -22,12 +22,12 @@ public class VideoArgReader {
     }
 
     public void setup() {
-        NarutoLoading.LOGGER.info("Start to use [{}] to read video [{}] arguments", this.ffprobe, this.video);
+        NarutoLoading.LOGGER.info("{}Start to use [{}] to read video [{}] arguments", NarutoLoading.info(), this.ffprobe, this.video);
         String json = FFprobe.genJson(this.video, this.ffprobe);
         this.fps = FFprobe.getFps(json);
         this.duration = FFprobe.getDuration(json);
-        NarutoLoading.LOGGER.info("NarutoLoading video fps: {}", this.fps);
-        NarutoLoading.LOGGER.info("NarutoLoading video duration: {}", this.duration);
+        NarutoLoading.LOGGER.info("{}NarutoLoading video fps: {}", NarutoLoading.info(), this.fps);
+        NarutoLoading.LOGGER.info("{}NarutoLoading video duration: {}", NarutoLoading.info(), this.duration);
     }
 
     public int fps() {

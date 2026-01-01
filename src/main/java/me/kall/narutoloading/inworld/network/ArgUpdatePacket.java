@@ -47,7 +47,7 @@ public class ArgUpdatePacket {
                 inWorldScreens.add(this.argSource);
 
                 screens.setDirty();
-                NarutoLoading.LOGGER.info("Successfully sync the video and audio arguments for {}.", this.argSource.toString());
+                NarutoLoading.LOGGER.info("{}Successfully sync the video and audio arguments for {}.", NarutoLoading.info(), this.argSource.toString());
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ArgUpdatePacket", exception);
             }

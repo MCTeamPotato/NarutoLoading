@@ -168,7 +168,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                 try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
                     addPackMcmeta(zos);
                     addAudioFiles(zos);
-                    NarutoLoading.LOGGER.info("Successfully created resource pack: {}", zipFile.getAbsolutePath());
+                    NarutoLoading.LOGGER.info("{}Successfully created resource pack: {}", NarutoLoading.info(), zipFile.getAbsolutePath());
                 }
 
             } catch (Exception e) {
@@ -199,9 +199,10 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     minecraft.options.resourcePacks = new ArrayList<>(selected);
                     minecraft.options.save();
 
-                    minecraft.reloadResourcePacks();
-                    NarutoLoading.LOGGER.info("Successfully activated resource pack: {}", packId);
                     renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                    minecraft.reloadResourcePacks();
+                    NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
+
                     NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
                 } catch (Exception e) {
                     NarutoLoading.LOGGER.error("Error activating resource pack", e);
@@ -242,7 +243,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             }
 
             zos.closeEntry();
-            NarutoLoading.LOGGER.debug("Added audio file to resource pack: {}", entryPath);
+            NarutoLoading.LOGGER.info("{}Added audio file to resource pack: {}", NarutoLoading.info(), entryPath);
 
             addSoundsJson(zos);
         }
@@ -318,7 +319,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     int exitCode = process.waitFor();
 
                     if (exitCode == 0 && absoluteOutputPath.exists()) {
-                        NarutoLoading.LOGGER.info("Successfully converted to OGG: {}", absoluteOutputPath.getAbsolutePath());
+                        NarutoLoading.LOGGER.info("{}Successfully converted to OGG: {}", NarutoLoading.info(), absoluteOutputPath.getAbsolutePath());
                         this.converted = absoluteOutputPath.getAbsolutePath();
                     } else {
                         NarutoLoading.LOGGER.error("FFmpeg conversion failed with exit code: {}", exitCode);

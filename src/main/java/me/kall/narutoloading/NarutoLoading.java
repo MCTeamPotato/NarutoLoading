@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 public final class NarutoLoading {
     public static final String MOD_ID = "narutoloading";
     public static final Logger LOGGER = LogManager.getLogger(NarutoLoading.class);
+    private static final String PREFIX = "[NarutoLoading] ";
 
     public NarutoLoading(@NotNull FMLJavaModLoadingContext context) {
         IEventBus modBus = context.getModEventBus();
@@ -35,5 +36,9 @@ public final class NarutoLoading {
 
             modBus.addListener(NarutoLoadingClient::onClientSetup);
         }
+    }
+
+    public static String info() {
+        return PREFIX;
     }
 }
