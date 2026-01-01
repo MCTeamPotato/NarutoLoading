@@ -89,16 +89,4 @@ public class Screens extends SavedData {
             }
         }
     }
-
-    @SubscribeEvent
-    public static void clearScreens(PlayerEvent.@NotNull PlayerLoggedOutEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            PacketDistributor.PacketTarget packetTarget = PacketDistributor.PLAYER.with(() -> player);
-            for (ObjectSet<InWorldScreen> screens : get(level).screens.values()) {
-                for (InWorldScreen inWorldScreen : screens) {
-                    NarutoPackets.INSTANCE.send(packetTarget, new ScreenLifePacket(inWorldScreen, true));
-                }
-            }
-        }
-    }
 }

@@ -18,6 +18,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -30,6 +31,18 @@ import org.joml.Matrix4f;
 public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<NarutoInWorldRenderer>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
     public static final Object2ObjectMap<ResourceLocation, LongSet> HIDDEN_DISPLAYERS = new Object2ObjectOpenHashMap<>();
+
+    @SubscribeEvent
+    public static void logOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        Minecraft.getInstance().execute(() -> {
+            for (ObjectSet<NarutoInWorldRenderer> renderers : CLIENT_SCREENS.values()) {
+                for (NarutoInWorldRenderer renderer : renderers) {
+                    renderer.shutdown();
+                }
+            }
+            CLIENT_SCREENS.clear();
+        });
+    }
 
     @SubscribeEvent
     public static void renderTick(TickEvent.@NotNull ClientTickEvent event) {

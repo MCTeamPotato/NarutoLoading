@@ -23,7 +23,7 @@ public final class InWorldScreen {
     private final ResourceLocation dimension;
 
     private String relativeVideoPath = "", relativeAudioPath = "";
-    private boolean cullable = true, hideInner = false;
+    private boolean cullable = false, hideInner = true;
     private ResourceLocation localSound = NO_LOCAL_SOUND;
 
     private LongSet areaInvolved;
@@ -117,15 +117,6 @@ public final class InWorldScreen {
     @Contract(" -> new")
     public @NotNull InWorldScreen finalCopy() {
         return new InWorldScreen(this.leftBottomCorner(), this.leftTopCorner(), this.rightBottomCorner(), this.rightTopCorner(), this.dimension());
-    }
-
-    public @NotNull InWorldScreen fullCopy() {
-        InWorldScreen screen = this.finalCopy();
-        screen.set(this.relativeVideoPath, this.relativeAudioPath);
-        screen.setHideInner(this.hideInner());
-        screen.setLocalSound(this.getLocalSound());
-        screen.setCullable(this.isCullable());
-        return screen;
     }
 
     @Contract(" -> new")
