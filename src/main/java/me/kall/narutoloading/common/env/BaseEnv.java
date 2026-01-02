@@ -27,14 +27,16 @@ public final class BaseEnv {
         if (narutoConfig.urlSource) ytDlpProvider = new YtDlpProvider(narutoConfig.absoluteYtDlpPath, narutoConfig.ytdlpWinUrl, narutoConfig.ytdlpLinuxUrl, narutoConfig.ytdlpMacUrl);
 
         ffmpegProvider.setup(() -> {
-            if (narutoConfig.urlSource && ffmpegProvider.absoluteFFprobe != null) {
-                ytDlpProvider.setup(() -> ytDlpProvider.shutdown());
+            if (ffmpegProvider.absoluteFFmpeg != null) {
+                if (narutoConfig.urlSource) {
+                    ytDlpProvider.setup(() -> ytDlpProvider.shutdown());
+                }
+
+                noWorldVideoArgs = new VideoArgReader(narutoConfig.absoluteVideoPath, ffmpegProvider.absoluteFFprobe);
+                available = true;
+
+                if (narutoConfig.urlSource) ytDlpProvider.setup(() -> ytDlpProvider.shutdown());
             }
-
-            noWorldVideoArgs = new VideoArgReader(narutoConfig.absoluteVideoPath, ffmpegProvider.absoluteFFprobe);
-            available = true;
-
-            if (narutoConfig.urlSource && ffmpegProvider.absoluteFFprobe != null) ytDlpProvider.setup(() -> ytDlpProvider.shutdown());
 
             ffmpegProvider.shutdown();
         });

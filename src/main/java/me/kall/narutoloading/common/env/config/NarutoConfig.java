@@ -78,7 +78,7 @@ public final class NarutoConfig {
                 .put("ytdlpExePath", "D:\\your\\yt-dlp\\file.exe")
                 .put("ffmpegLinuxDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl.tar.xz")
                 .put("ffmpegWindowsDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip")
-                .put("ffmpegMacDownloadLink", "https://evermeet.cx/ffmpeg/getrelease")
+                .put("ffmpegMacDownloadLink", "https://evermeet.cx/ffmpeg")
                 .put("enableUrlForSourceSelection", false)
                 .put("ytdlpWindowsDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe")
                 .put("ytdlpLinuxDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp")
@@ -158,6 +158,7 @@ public final class NarutoConfig {
                 "], [Video Frame Storage Buffer Size: " + this.bufferSize +
                 "], [Audio Volume: " + this.volume +
                 "], [Log Errors Or Not: " + this.debug +
+                "], [Enable Url ForSource Selection: " + this.urlSource +
                 "], [FFmpeg Windows Download Link: " + this.winUrl +
                 "], [FFmpeg Linux Download Link:" + this.linuxUrl +
                 "], [FFmpeg Mac Download Link:" + this.macUrl +
