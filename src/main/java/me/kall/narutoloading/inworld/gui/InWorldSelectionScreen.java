@@ -14,6 +14,7 @@ import me.kall.narutoloading.inworld.gui.util.AudioConverter;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
+import me.kall.narutoloading.inworld.network.ClearScreenPacket;
 import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
@@ -42,6 +43,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
 
     public static final Component RANDOM = Component.translatable("button.narutoloading.random");
+    public static final Component CLEAR = Component.translatable("button.narutoloading.clear");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
         super(lastScreen);
@@ -82,15 +84,19 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         int buttonWidth = 80;
         int buttonHeight = 20;
-        int buttonY = centerY + spacing * 2 + 50;
+        int firstButtonY = centerY + spacing * 2 + 50;
+        int secondButtonY = firstButtonY + buttonHeight + 5;
 
-        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth * 3 / 2 - 10, buttonY, buttonWidth, buttonHeight).build();
+        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, firstButtonY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(random);
 
-        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth / 2, buttonY, buttonWidth, buttonHeight).build();
+        Button clear = Button.builder(CLEAR, button -> onClear()).bounds(centerX + 5, firstButtonY, buttonWidth, buttonHeight).build();
+        this.addRenderableWidget(clear);
+
+        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, secondButtonY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(done);
 
-        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + buttonWidth / 2 + 10, buttonY, buttonWidth, buttonHeight).build();
+        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, secondButtonY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(cancel);
 
         this.setInitialFocus(this.videoBox);
@@ -109,6 +115,10 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         } else {
             NarutoLoading.LOGGER.warn("{}No sources available for random selection", NarutoLoading.info());
         }
+    }
+
+    private void onClear() {
+        NarutoPackets.INSTANCE.sendToServer(new ClearScreenPacket(this.renderer.screen));
     }
 
     @Override

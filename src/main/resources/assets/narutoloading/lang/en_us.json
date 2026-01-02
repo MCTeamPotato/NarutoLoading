@@ -8,6 +8,7 @@
   "button.narutoloading.done": "Done",
   "button.narutoloading.cancel": "Cancel",
   "button.narutoloading.random": "Random",
+  "button.narutoloading.clear": "Clear",
 
   "box.narutoloading.video": "Video",
   "box.narutoloading.audio": "Audio",
@@ -23,6 +24,9 @@
   "info.narutoloading.screen.displayer_not_found": "Failed to find valid displayer at [%s].",
   "info.narutoloading.screen.created": "Created %s. Right-click a displayer block to set video and audio.",
   "info.narutoloading.screen.destroy": "%s is destroyed.",
+
+  "info.narutoloading.clear.begin": "Start to clear unused displayers for %s...",
+  "info.narutoloading.clear.end": "Complete!",
 
   "screen.narutoloading.arg": "Screen: {LeftBottom: [%s], LeftTop: [%s], RightBottom: [%s], RightTop: [%s], Dimension: [%s]}"
 }

@@ -8,6 +8,7 @@
   "button.narutoloading.done": "完成",
   "button.narutoloading.cancel": "取消",
   "button.narutoloading.random": "随机",
+  "button.narutoloading.clear": "清理",
 
   "box.narutoloading.video": "视频",
   "box.narutoloading.audio": "音频",
@@ -23,6 +24,9 @@
   "info.narutoloading.screen.displayer_not_found": "未在[%s]处找到有效显示器方块。",
   "info.narutoloading.screen.created": "已创建%s。右击任意一个显示器方块设置视频与音频参数。",
   "info.narutoloading.screen.destroy": "%s已被破坏。",
+
+  "info.narutoloading.clear.begin": "开始为%s清理未使用到的的显示器方块……",
+  "info.narutoloading.clear.end": "完成！",
 
   "screen.narutoloading.arg": "屏幕：{左下角：[%s], 左上角：[%s], 右下角：[%s], 右上角：[%s], 维度：[%s]}"
 }
