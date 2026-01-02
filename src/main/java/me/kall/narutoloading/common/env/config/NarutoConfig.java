@@ -35,6 +35,7 @@ public final class NarutoConfig {
 
     public String winUrl;
     public String linuxUrl;
+    public String macUrl;
 
     public String absoluteVideoPath;
     public String absoluteAudioPath;
@@ -64,11 +65,12 @@ public final class NarutoConfig {
     }
 
     public void init(boolean roll) {
-        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "5")
+        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "6")
                 .put("ffmpegExePath", "D:\\your\\ffmpeg\\file.exe")
                 .put("ffprobeExePath", "D:\\your\\ffprobe\\file.exe")
                 .put("ffmpegLinuxDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl.tar.xz")
                 .put("ffmpegWindowsDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip")
+                .put("ffmpegMacDownloadLink", "https://evermeet.cx/ffmpeg/getrelease")
                 .put("videoFileName", "naruto.mp4")
                 .put("audioFileName", NarutoLoading.BLANK)
                 .put("reloadKey", GLFW.GLFW_KEY_F12)
@@ -101,6 +103,7 @@ public final class NarutoConfig {
 
         this.winUrl = this.config.getString("ffmpegWindowsDownloadLink");
         this.linuxUrl = this.config.getString("ffmpegLinuxDownloadLink");
+        this.macUrl = this.config.getString("ffmpegMacDownloadLink");
 
         if (roll) this.roll();
 
@@ -136,7 +139,8 @@ public final class NarutoConfig {
                 "], [Audio Volume: " + this.volume +
                 "], [Log Errors Or Not: " + this.debug +
                 "], [FFmpeg Windows Download Link: " + this.winUrl +
-                "], [FFmpeg Linux Download Link:" + this.linuxUrl + "]}";
+                "], [FFmpeg Linux Download Link:" + this.linuxUrl +
+                "], [FFmpeg Mac Download Link:" + this.macUrl + "]}";
     }
 
     public static @NotNull String absolute(@NotNull String relativePath) {

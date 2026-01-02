@@ -18,7 +18,8 @@ public final class BaseEnv {
     public static void setupEnv(boolean roll) {
         narutoConfig = new NarutoConfig(roll);
 
-        ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl);
+        ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl, narutoConfig.macUrl);
+
         ffmpegProvider.setup(() -> {
             if (ffmpegProvider.absoluteFFprobe == null) return;
             noWorldVideoArgs = new VideoArgReader(narutoConfig.absoluteVideoPath, ffmpegProvider.absoluteFFprobe);

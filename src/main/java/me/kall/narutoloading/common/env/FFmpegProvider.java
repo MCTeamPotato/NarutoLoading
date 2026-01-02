@@ -20,15 +20,16 @@ public final class FFmpegProvider {
     public volatile @Nullable String absoluteFFmpeg;
     public volatile @Nullable String absoluteFFprobe;
 
-    private final String uncheckedAbsoluteFFprobePath, uncheckedAbsoluteFFmpegPath, winUrl, linuxUrl;
+    private final String uncheckedAbsoluteFFprobePath, uncheckedAbsoluteFFmpegPath, winUrl, linuxUrl, macUrl;
 
     private final ExecutorService downloader;
 
-    public FFmpegProvider(String uncheckedAbsoluteFFprobePath, String uncheckedAbsoluteFFmpegPath, String winUrl, String linuxUrl) {
+    public FFmpegProvider(String uncheckedAbsoluteFFprobePath, String uncheckedAbsoluteFFmpegPath, String winUrl, String linuxUrl, String macUrl) {
         this.uncheckedAbsoluteFFprobePath = uncheckedAbsoluteFFprobePath;
         this.uncheckedAbsoluteFFmpegPath = uncheckedAbsoluteFFmpegPath;
         this.winUrl = winUrl;
         this.linuxUrl = linuxUrl;
+        this.macUrl = macUrl;
         this.downloader = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task , "NarutoFFmpegDownloader");
             thread.setDaemon(true);
@@ -55,13 +56,27 @@ public final class FFmpegProvider {
         String ffmpegName = windows ? "ffmpeg.exe" : "ffmpeg";
         String ffprobeName = windows ? "ffprobe.exe" : "ffprobe";
 
+        if (windows) {
+            ffmpegName += ".exe";
+            ffprobeName += ".exe";
+        }
+
+        final String finalFfmpegName = ffmpegName;
+        final String finalFfprobeName = ffprobeName;
+
         this.downloader.submit(() -> {
             String baseDir = OSType.getBase(gamePath, os);
 
             if (baseDir == null && os != null) {
                 try {
-                    NarutoLoading.LOGGER.info("{}Downloading FFmpeg...", NarutoLoading.info());
-                    Downloader.download(gamePath, os, os.equals(OSType.WINDOWS) ? this.winUrl : this.linuxUrl);
+                    NarutoLoading.LOGGER.info("{}Downloading FFmpeg for {}...", NarutoLoading.info(), os);
+
+                    if (os == OSType.MACOS) {
+                        Downloader.downloadMac(gamePath, this.macUrl);
+                    } else {
+                        Downloader.download(gamePath, os, os.equals(OSType.WINDOWS) ? this.winUrl : this.linuxUrl);
+                    }
+
                     baseDir = OSType.getBase(gamePath, os);
                 } catch (Exception exception) {
                     NarutoLoading.LOGGER.error("Error downloading FFmpeg.", exception);
@@ -77,8 +92,8 @@ public final class FFmpegProvider {
                 return;
             }
 
-            File ffmpegFile = Executable.getExe(baseDir, ffmpegName);
-            File ffprobeFile = Executable.getExe(baseDir, ffprobeName);
+            File ffmpegFile = Executable.getExe(baseDir, finalFfmpegName, os);
+            File ffprobeFile = Executable.getExe(baseDir, finalFfprobeName, os);
 
             this.absoluteFFmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
             this.absoluteFFprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
@@ -99,7 +114,10 @@ public final class FFmpegProvider {
             return file.exists() ? file.getAbsolutePath() : NarutoLoading.BLANK;
         }
 
-        static @NotNull File getExe(String baseDir, String fileName) {
+        static @NotNull File getExe(String baseDir, String fileName, OSType os) {
+            if (os == OSType.MACOS) {
+                return FMLLoader.getGamePath().resolve(baseDir).resolve(fileName).toFile();
+            }
             return FMLLoader.getGamePath().resolve(baseDir).resolve("bin").resolve(fileName).toFile();
         }
     }
@@ -120,6 +138,33 @@ public final class FFmpegProvider {
             }
 
             Files.deleteIfExists(tmp);
+        }
+
+        static void downloadMac(@NotNull Path gamePath, String baseUrl) throws Exception {
+            Path targetDir = gamePath.resolve("ffmpeg-mac");
+            Files.createDirectories(targetDir);
+
+            String ffmpegUrl = baseUrl + "/ffmpeg/zip";
+            Path ffmpegZip = gamePath.resolve("ffmpeg-mac-temp.zip");
+            NarutoLoading.LOGGER.info("{}Downloading ffmpeg from: {}", NarutoLoading.info(), ffmpegUrl);
+
+            try (InputStream in = new URL(ffmpegUrl).openStream()) {
+                Files.copy(in, ffmpegZip, StandardCopyOption.REPLACE_EXISTING);
+            }
+            Extractor.unzipSingle(ffmpegZip, targetDir, "ffmpeg");
+            Files.deleteIfExists(ffmpegZip);
+
+            String ffprobeUrl = baseUrl + "/ffprobe/zip";
+            Path ffprobeZip = gamePath.resolve("ffprobe-mac-temp.zip");
+            NarutoLoading.LOGGER.info("{}Downloading ffprobe from: {}", NarutoLoading.info(), ffprobeUrl);
+
+            try (InputStream in = new URL(ffprobeUrl).openStream()) {
+                Files.copy(in, ffprobeZip, StandardCopyOption.REPLACE_EXISTING);
+            }
+            Extractor.unzipSingle(ffprobeZip, targetDir, "ffprobe");
+            Files.deleteIfExists(ffprobeZip);
+
+            NarutoLoading.LOGGER.info("{}macOS FFmpeg files extracted to: {}", NarutoLoading.info(), targetDir);
         }
     }
 
@@ -154,11 +199,29 @@ public final class FFmpegProvider {
                 }
             }
         }
+
+        static void unzipSingle(Path zip, Path targetDir, String executableName) throws Exception {
+            try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zip))) {
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (!entry.isDirectory()) {
+                        Path out = targetDir.resolve(executableName);
+                        Files.copy(zis, out, StandardCopyOption.REPLACE_EXISTING);
+
+                        if (out.toFile().setExecutable(true, false)) {
+                            NarutoLoading.LOGGER.info("{}Extracted {} to {}", NarutoLoading.info(), executableName, out);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     enum OSType {
         WINDOWS("ffmpeg-win"),
-        LINUX("ffmpeg-linux");
+        LINUX("ffmpeg-linux"),
+        MACOS("ffmpeg-mac");
 
         static final OSType CURRENT = current();
 
@@ -171,6 +234,7 @@ public final class FFmpegProvider {
         static @Nullable FFmpegProvider.OSType current() {
             String os = System.getProperty("os.name").toLowerCase();
             if (os.contains("win")) return WINDOWS;
+            if (os.contains("mac")) return MACOS;
             if (os.contains("linux")) return LINUX;
             return null;
         }
