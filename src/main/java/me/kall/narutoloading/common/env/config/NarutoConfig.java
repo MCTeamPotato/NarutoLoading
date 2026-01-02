@@ -45,6 +45,8 @@ public final class NarutoConfig {
     public String absoluteVideoPath;
     public String absoluteAudioPath;
 
+    public boolean urlSource;
+
     public int width() {
         int width = Minecraft.getInstance().getWindow().getScreenWidth();
         if (width > this.maxResolutionWidth) width = this.maxResolutionWidth;
@@ -77,6 +79,7 @@ public final class NarutoConfig {
                 .put("ffmpegLinuxDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl.tar.xz")
                 .put("ffmpegWindowsDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip")
                 .put("ffmpegMacDownloadLink", "https://evermeet.cx/ffmpeg/getrelease")
+                .put("enableUrlForSourceSelection", false)
                 .put("ytdlpWindowsDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe")
                 .put("ytdlpLinuxDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp")
                 .put("ytdlpMacDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos")
@@ -114,6 +117,8 @@ public final class NarutoConfig {
         this.winUrl = this.config.getString("ffmpegWindowsDownloadLink");
         this.linuxUrl = this.config.getString("ffmpegLinuxDownloadLink");
         this.macUrl = this.config.getString("ffmpegMacDownloadLink");
+
+        this.urlSource = this.config.getBoolean("enableUrlForSourceSelection");
 
         this.ytdlpWinUrl = this.config.getString("ytdlpWindowsDownloadLink");
         this.ytdlpLinuxUrl = this.config.getString("ytdlpLinuxDownloadLink");
