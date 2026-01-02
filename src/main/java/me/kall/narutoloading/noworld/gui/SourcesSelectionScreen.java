@@ -2,6 +2,7 @@ package me.kall.narutoloading.noworld.gui;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -46,12 +47,12 @@ public class SourcesSelectionScreen extends Screen {
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing - boxHeight, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(256);
-        this.videoBox.setValue(BaseEnv.narutoConfig.videoFileName);
+        this.videoBox.setValue(NarutoConfig.relative(BaseEnv.narutoConfig.videoFileName));
         this.addRenderableWidget(this.videoBox);
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY + spacing, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(256);
-        this.audioBox.setValue(BaseEnv.narutoConfig.audioFileName);
+        this.audioBox.setValue(NarutoConfig.relative(BaseEnv.narutoConfig.audioFileName));
         this.addRenderableWidget(this.audioBox);
 
         int buttonWidth = 80;
@@ -74,7 +75,7 @@ public class SourcesSelectionScreen extends Screen {
     protected void onDone() {
         String video = this.videoBox.getValue();
         String audio = this.audioBox.getValue();
-        BaseEnv.narutoConfig.config.put("videoFileName", video).put("audioFileName", audio).saveToFile();
+        BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.absolute(video)).put("audioFileName", NarutoConfig.absolute(audio)).saveToFile();
         BaseEnv.setupEnv(false);
         NarutoRenderer.INSTANCE.shutdown();
         NarutoRenderer.INSTANCE.setup();
