@@ -1,4 +1,4 @@
-package me.kall.narutoloading.common.env;
+package me.kall.narutoloading.common.env.ffmpeg;
 
 import me.kall.narutoloading.NarutoLoading;
 import org.jetbrains.annotations.Nullable;

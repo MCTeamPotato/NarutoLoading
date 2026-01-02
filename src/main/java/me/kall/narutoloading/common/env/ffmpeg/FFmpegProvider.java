@@ -1,4 +1,4 @@
-package me.kall.narutoloading.common.env;
+package me.kall.narutoloading.common.env.ffmpeg;
 
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -56,14 +56,6 @@ public final class FFmpegProvider {
         String ffmpegName = windows ? "ffmpeg.exe" : "ffmpeg";
         String ffprobeName = windows ? "ffprobe.exe" : "ffprobe";
 
-        if (windows) {
-            ffmpegName += ".exe";
-            ffprobeName += ".exe";
-        }
-
-        final String finalFfmpegName = ffmpegName;
-        final String finalFfprobeName = ffprobeName;
-
         this.downloader.submit(() -> {
             String baseDir = OSType.getBase(gamePath, os);
 
@@ -92,8 +84,8 @@ public final class FFmpegProvider {
                 return;
             }
 
-            File ffmpegFile = Executable.getExe(baseDir, finalFfmpegName, os);
-            File ffprobeFile = Executable.getExe(baseDir, finalFfprobeName, os);
+            File ffmpegFile = Executable.getExe(baseDir, ffmpegName, os);
+            File ffprobeFile = Executable.getExe(baseDir, ffprobeName, os);
 
             this.absoluteFFmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
             this.absoluteFFprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
@@ -144,7 +136,7 @@ public final class FFmpegProvider {
             Path targetDir = gamePath.resolve("ffmpeg-mac");
             Files.createDirectories(targetDir);
 
-            String ffmpegUrl = baseUrl + "/ffmpeg/zip";
+            String ffmpegUrl = baseUrl + "/getrelease/ffmpeg/zip";
             Path ffmpegZip = gamePath.resolve("ffmpeg-mac-temp.zip");
             NarutoLoading.LOGGER.info("{}Downloading ffmpeg from: {}", NarutoLoading.info(), ffmpegUrl);
 
@@ -154,7 +146,7 @@ public final class FFmpegProvider {
             Extractor.unzipSingle(ffmpegZip, targetDir, "ffmpeg");
             Files.deleteIfExists(ffmpegZip);
 
-            String ffprobeUrl = baseUrl + "/ffprobe/zip";
+            String ffprobeUrl = baseUrl + "/getrelease/ffprobe/zip";
             Path ffprobeZip = gamePath.resolve("ffprobe-mac-temp.zip");
             NarutoLoading.LOGGER.info("{}Downloading ffprobe from: {}", NarutoLoading.info(), ffprobeUrl);
 
@@ -208,10 +200,9 @@ public final class FFmpegProvider {
                         Path out = targetDir.resolve(executableName);
                         Files.copy(zis, out, StandardCopyOption.REPLACE_EXISTING);
 
-                        if (out.toFile().setExecutable(true, false)) {
-                            NarutoLoading.LOGGER.info("{}Extracted {} to {}", NarutoLoading.info(), executableName, out);
-                            break;
-                        }
+                        boolean executable = out.toFile().setExecutable(true, false);
+                        NarutoLoading.LOGGER.info("{}Extracted {} to {} (executable: {})", NarutoLoading.info(), executableName, out, executable);
+                        break;
                     }
                 }
             }

@@ -23,6 +23,7 @@ public final class NarutoConfig {
 
     public String absoluteFFprobePath;
     public String absoluteFFmpegPath;
+    public String absoluteYtDlpPath;
 
     private int maxResolutionWidth;
     private int maxResolutionHeight;
@@ -36,6 +37,10 @@ public final class NarutoConfig {
     public String winUrl;
     public String linuxUrl;
     public String macUrl;
+
+    public String ytdlpWinUrl;
+    public String ytdlpLinuxUrl;
+    public String ytdlpMacUrl;
 
     public String absoluteVideoPath;
     public String absoluteAudioPath;
@@ -65,12 +70,16 @@ public final class NarutoConfig {
     }
 
     public void init(boolean roll) {
-        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "6")
+        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "7")
                 .put("ffmpegExePath", "D:\\your\\ffmpeg\\file.exe")
                 .put("ffprobeExePath", "D:\\your\\ffprobe\\file.exe")
+                .put("ytdlpExePath", "D:\\your\\yt-dlp\\file.exe")
                 .put("ffmpegLinuxDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl.tar.xz")
                 .put("ffmpegWindowsDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip")
                 .put("ffmpegMacDownloadLink", "https://evermeet.cx/ffmpeg/getrelease")
+                .put("ytdlpWindowsDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe")
+                .put("ytdlpLinuxDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp")
+                .put("ytdlpMacDownloadLink", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos")
                 .put("videoFileName", "naruto.mp4")
                 .put("audioFileName", NarutoLoading.BLANK)
                 .put("reloadKey", GLFW.GLFW_KEY_F12)
@@ -91,6 +100,7 @@ public final class NarutoConfig {
 
         this.absoluteFFprobePath = this.config.getString("ffprobeExePath");
         this.absoluteFFmpegPath = this.config.getString("ffmpegExePath");
+        this.absoluteYtDlpPath = this.config.getString("ytdlpExePath");
 
         this.maxResolutionWidth = this.config.getInt("maxResolutionWidth");
         this.maxResolutionHeight = this.config.getInt("maxResolutionHeight");
@@ -104,6 +114,10 @@ public final class NarutoConfig {
         this.winUrl = this.config.getString("ffmpegWindowsDownloadLink");
         this.linuxUrl = this.config.getString("ffmpegLinuxDownloadLink");
         this.macUrl = this.config.getString("ffmpegMacDownloadLink");
+
+        this.ytdlpWinUrl = this.config.getString("ytdlpWindowsDownloadLink");
+        this.ytdlpLinuxUrl = this.config.getString("ytdlpLinuxDownloadLink");
+        this.ytdlpMacUrl = this.config.getString("ytdlpMacDownloadLink");
 
         if (roll) this.roll();
 
@@ -133,6 +147,7 @@ public final class NarutoConfig {
                 "], [Audio Path: " + this.audioFileName +
                 "], [FFprobe Path: " + this.absoluteFFprobePath +
                 "], [FFmpeg Path:" + this.absoluteFFmpegPath +
+                "], [yt-dlp Path:" + this.absoluteYtDlpPath +
                 "], [Max Resolution Width: " + this.maxResolutionWidth +
                 "], [Max Resolution Height: " + this.maxResolutionHeight +
                 "], [Video Frame Storage Buffer Size: " + this.bufferSize +
@@ -140,7 +155,10 @@ public final class NarutoConfig {
                 "], [Log Errors Or Not: " + this.debug +
                 "], [FFmpeg Windows Download Link: " + this.winUrl +
                 "], [FFmpeg Linux Download Link:" + this.linuxUrl +
-                "], [FFmpeg Mac Download Link:" + this.macUrl + "]}";
+                "], [FFmpeg Mac Download Link:" + this.macUrl +
+                "], [yt-dlp Windows Download Link: " + this.ytdlpWinUrl +
+                "], [yt-dlp Linux Download Link:" + this.ytdlpLinuxUrl +
+                "], [yt-dlp Mac Download Link:" + this.ytdlpMacUrl + "]}";
     }
 
     public static @NotNull String absolute(@NotNull String relativePath) {

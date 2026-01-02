@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
-import me.kall.narutoloading.common.env.VideoArgReader;
+import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
