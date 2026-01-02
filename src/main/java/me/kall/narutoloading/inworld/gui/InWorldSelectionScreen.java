@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
@@ -28,7 +29,11 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private final NarutoInWorldRenderer renderer;
@@ -87,6 +92,16 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         String audioFileName = this.audioBox.getValue();
         InWorldScreen inWorldScreen = this.renderer.screen;
 
+        if (videoFilename.startsWith("http")) {
+            handleUrlDownload(videoFilename, audioFileName, inWorldScreen);
+        } else {
+            handleLocalFiles(videoFilename, audioFileName, inWorldScreen);
+        }
+
+        Minecraft.getInstance().setScreen(this.lastScreen);
+    }
+
+    private void handleLocalFiles(String videoFilename, @NotNull String audioFileName, @NotNull InWorldScreen inWorldScreen) {
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
 
         inWorldScreen.setCullable(this.cullableCheck.selected());
@@ -106,19 +121,103 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.renderer.shutdown();
 
         if (this.localSoundCheck.selected()) {
-            this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
-            AudioConverter audioConverter = new AudioConverter(inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg);
-            audioConverter.setup(() -> {
-                ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
-                resourceZipGenerator.generate();
-                resourceZipGenerator.reload(this.renderer);
-            });
+            setupLocalSound(inWorldScreen);
         } else {
-            this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
+            inWorldScreen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
         }
 
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
-        Minecraft.getInstance().setScreen(this.lastScreen);
+    }
+
+    private void handleUrlDownload(String videoUrl, String audioUrl, InWorldScreen inWorldScreen) {
+        String dirName = extractLetters(videoUrl);
+        Path outputDir = YtDlpDownloader.getDefaultOutputDir(dirName);
+
+        NarutoLoading.LOGGER.info("{}Starting URL download for in-world screen: {}", NarutoLoading.info(), videoUrl);
+
+        CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, progress -> NarutoLoading.LOGGER.info("{}Video download progress: {}", NarutoLoading.info(), progress), downloadResult -> {
+                    NarutoLoading.LOGGER.info("{}Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
+                    if (downloadResult.success() && downloadResult.hasVideo()) {
+                        Minecraft.getInstance().execute(() -> {
+                            String relativePath = NarutoConfig.relative(downloadResult.videoPath());
+                            inWorldScreen.set(relativePath, relativePath);
+                            NarutoLoading.LOGGER.info("{}Set video path to: {}", NarutoLoading.info(), relativePath);
+                        });
+                    }
+                }
+        );
+
+        if (videoFuture != null) {
+            videoFuture.thenRun(() -> {
+                String audioUrlToUse = audioUrl.isBlank() ? videoUrl : audioUrl;
+                if (audioUrlToUse.startsWith("http")) {
+                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioUrlToUse, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, progress -> NarutoLoading.LOGGER.info("{}Audio download progress: {}", NarutoLoading.info(), progress), downloadResult -> {
+                                NarutoLoading.LOGGER.info("{}Audio download of {} processed. {}", NarutoLoading.info(), audioUrlToUse, downloadResult.toString());
+                                if (downloadResult.success() && downloadResult.hasAudio()) {
+                                    Minecraft.getInstance().execute(() -> {
+                                        String relativePath = NarutoConfig.relative(downloadResult.audioPath());
+                                        String currentVideo = inWorldScreen.relativeVideoPath(NarutoLoading.BLANK);
+                                        inWorldScreen.set(currentVideo, relativePath);
+                                        NarutoLoading.LOGGER.info("{}Set audio path to: {}", NarutoLoading.info(), relativePath);
+                                    });
+                                }
+                            }
+                    );
+
+                    if (audioFuture != null) {
+                        audioFuture.thenRun(() -> finalizeUrlSetup(inWorldScreen));
+                    }
+                } else {
+                    finalizeUrlSetup(inWorldScreen);
+                }
+            });
+        }
+    }
+
+    private void finalizeUrlSetup(InWorldScreen inWorldScreen) {
+        Minecraft.getInstance().execute(() -> {
+            inWorldScreen.setCullable(this.cullableCheck.selected());
+            inWorldScreen.setHideInner(this.hideInnerCheck.selected());
+
+            if (inWorldScreen.hideInner()) {
+                ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(inWorldScreen.dimension(), key -> new LongOpenHashSet()).addAll(inWorldScreen.areaInvolved());
+            } else {
+                LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(inWorldScreen.dimension());
+                if (hiddenAreas != null) {
+                    hiddenAreas.removeAll(inWorldScreen.areaInvolved());
+                }
+            }
+
+            Minecraft.getInstance().levelRenderer.allChanged();
+
+            this.renderer.shutdown();
+
+            if (this.localSoundCheck.selected()) {
+                setupLocalSound(inWorldScreen);
+            } else {
+                inWorldScreen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
+                this.renderer.setup();
+            }
+
+            NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
+
+            NarutoLoading.LOGGER.info("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), inWorldScreen.toString());
+        });
+    }
+
+    private void setupLocalSound(@NotNull InWorldScreen inWorldScreen) {
+        inWorldScreen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
+        AudioConverter audioConverter = new AudioConverter(inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        audioConverter.setup(() -> {
+            ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
+            resourceZipGenerator.generate();
+            resourceZipGenerator.reload(this.renderer);
+        });
+    }
+
+    @Contract(pure = true)
+    private static @NotNull String extractLetters(@NotNull String input) {
+        return input.replaceAll("[^A-Za-z]", "");
     }
 
     @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
