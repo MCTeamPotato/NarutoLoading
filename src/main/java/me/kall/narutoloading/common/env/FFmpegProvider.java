@@ -94,9 +94,9 @@ public final class FFmpegProvider {
 
     static class Executable {
         static @NotNull String validExe(String path) {
-            if (path == null || path.isBlank()) return "";
+            if (path == null || path.isBlank()) return NarutoLoading.BLANK;
             File file = new File(path);
-            return file.exists() ? file.getAbsolutePath() : "";
+            return file.exists() ? file.getAbsolutePath() : NarutoLoading.BLANK;
         }
 
         static @NotNull File getExe(String baseDir, String fileName) {

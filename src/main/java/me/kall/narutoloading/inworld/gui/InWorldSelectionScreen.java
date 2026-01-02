@@ -137,7 +137,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         if (this.localSoundCheck.selected()) {
             this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
-            AudioConverter audioConverter = new AudioConverter(inWorldScreen.relativeAudioPath(""), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            AudioConverter audioConverter = new AudioConverter(inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();

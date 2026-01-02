@@ -17,7 +17,7 @@ public class AudioConverter {
         thread.setDaemon(true);
         return thread;
     });
-    public String converted = "";
+    public String converted = NarutoLoading.BLANK;
 
     public AudioConverter(String absoluteSourcePath, String absoluteFFmpegPath) {
         this.absoluteSourcePath = absoluteSourcePath;

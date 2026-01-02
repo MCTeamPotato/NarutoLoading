@@ -20,7 +20,6 @@ public final class Fader {
     private static int stopTickCount = 0;
     private static float fadeAlpha = 1.0F;
 
-    public static final String EMPTY_STRING = "";
     public static final Component EMPTY_COMPONENT = Component.empty();
 
     private static boolean shouldFade() {

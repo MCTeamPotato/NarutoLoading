@@ -60,8 +60,8 @@ public class Screens extends SavedData {
                 CompoundTag screenTag = new CompoundTag();
                 screenTag.putString(DIMENSION_KEY, dimension.toString());
                 screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
-                screenTag.putString(VIDEO_KEY, inWorldScreen.relativeVideoPath(""));
-                screenTag.putString(AUDIO_KEY, inWorldScreen.relativeAudioPath(""));
+                screenTag.putString(VIDEO_KEY, inWorldScreen.relativeVideoPath(NarutoLoading.BLANK));
+                screenTag.putString(AUDIO_KEY, inWorldScreen.relativeAudioPath(NarutoLoading.BLANK));
                 screenTag.putBoolean(CULLABLE_KEY, inWorldScreen.isCullable());
                 screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.getLocalSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
                 screenTag.putBoolean(HIDE_INNER_KEY, inWorldScreen.hideInner());

@@ -7,10 +7,6 @@ import org.jetbrains.annotations.NotNull;
 public interface IFrustum {
     boolean naruto$isVisible(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 
-    static boolean isVisible(Frustum frustum, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return ((IFrustum)frustum).naruto$isVisible(minX, minY, minZ, maxX, maxY, maxZ);
-    }
-
     static boolean isVisible(Frustum frustum, @NotNull InWorldScreen screen) {
         double minX = Math.min(screen.leftBottomCorner().getX(), screen.rightTopCorner().getX());
         double minY = Math.min(screen.leftBottomCorner().getY(), screen.rightTopCorner().getY());
@@ -19,6 +15,6 @@ public interface IFrustum {
         double maxY = Math.max(screen.leftBottomCorner().getY(), screen.rightTopCorner().getY()) + 1;
         double maxZ = Math.max(screen.leftBottomCorner().getZ(), screen.rightTopCorner().getZ()) + 1;
 
-        return isVisible(frustum, minX, minY, minZ, maxX, maxY, maxZ);
+        return ((IFrustum)frustum).naruto$isVisible(minX, minY, minZ, maxX, maxY, maxZ);
     }
 }

@@ -1,5 +1,6 @@
 package me.kall.narutoloading.mixin.noworld.clear;
 
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.fade.Fader;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
@@ -34,12 +35,12 @@ public abstract class MixinFont {
 
     @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private String clearDrawInBatch(String string) {
-        return Fader.transparency() ? Fader.EMPTY_STRING : string;
+        return Fader.transparency() ? NarutoLoading.BLANK : string;
     }
 
     @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private String clearDrawInBatch2(String string) {
-        return Fader.transparency() ? Fader.EMPTY_STRING : string;
+        return Fader.transparency() ? NarutoLoading.BLANK : string;
     }
 
     @ModifyVariable(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)

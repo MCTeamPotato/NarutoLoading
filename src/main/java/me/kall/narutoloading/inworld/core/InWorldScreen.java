@@ -22,7 +22,7 @@ public final class InWorldScreen {
     private final BlockPos rightTopCorner;
     private final ResourceLocation dimension;
 
-    private String relativeVideoPath = "", relativeAudioPath = "";
+    private String relativeVideoPath = NarutoLoading.BLANK, relativeAudioPath = NarutoLoading.BLANK;
     private boolean cullable = false, hideInner = true;
     private ResourceLocation localSound = NO_LOCAL_SOUND;
 
@@ -194,7 +194,7 @@ public final class InWorldScreen {
 
     public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, boolean cullable, ResourceLocation localSound, boolean hideInner) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
-        inWorldScreen.set(video == null ? "" : video, audio == null ? "" : audio);
+        inWorldScreen.set(video == null ? NarutoLoading.BLANK : video, audio == null ? NarutoLoading.BLANK : audio);
         inWorldScreen.setCullable(cullable);
         inWorldScreen.setLocalSound(localSound);
         inWorldScreen.setHideInner(hideInner);

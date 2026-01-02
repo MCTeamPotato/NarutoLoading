@@ -70,7 +70,7 @@ public final class NarutoConfig {
                 .put("ffmpegLinuxDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-lgpl.tar.xz")
                 .put("ffmpegWindowsDownloadLink", "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip")
                 .put("videoFileName", "naruto.mp4")
-                .put("audioFileName", "")
+                .put("audioFileName", NarutoLoading.BLANK)
                 .put("reloadKey", GLFW.GLFW_KEY_F12)
                 .put("audioVolume", 1.0)
                 .put("maxResolutionWidth", 1350)
@@ -85,7 +85,7 @@ public final class NarutoConfig {
         this.absoluteVideoPath = NarutoConfig.absolute(this.videoFileName);
 
         this.audioFileName = this.config.getString("audioFileName");
-        this.absoluteAudioPath = this.audioFileName.isBlank() ? "" : NarutoConfig.absolute(this.audioFileName);
+        this.absoluteAudioPath = this.audioFileName.isBlank() ? NarutoLoading.BLANK : NarutoConfig.absolute(this.audioFileName);
 
         this.absoluteFFprobePath = this.config.getString("ffprobeExePath");
         this.absoluteFFmpegPath = this.config.getString("ffmpegExePath");
@@ -140,15 +140,15 @@ public final class NarutoConfig {
     }
 
     public static @NotNull String absolute(@NotNull String relativePath) {
-        if (relativePath.isBlank()) return "";
+        if (relativePath.isBlank()) return NarutoLoading.BLANK;
         return FMLLoader.getGamePath().resolve("config").resolve(relativePath).toAbsolutePath().toString();
     }
 
     public static @NotNull String relative(@NotNull String absolutePath) {
-        if (absolutePath.isBlank()) return "";
+        if (absolutePath.isBlank()) return NarutoLoading.BLANK;
         Path configPath = FMLLoader.getGamePath().resolve("config").toAbsolutePath().normalize();
         Path targetPath = Path.of(absolutePath).toAbsolutePath().normalize();
-        if (!targetPath.startsWith(configPath)) return "";
+        if (!targetPath.startsWith(configPath)) return NarutoLoading.BLANK;
         return configPath.relativize(targetPath).toString();
     }
 }
