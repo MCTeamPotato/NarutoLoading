@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class YtDlpProvider {
-    public volatile @Nullable String absoluteYtDlp;
+    public volatile String absoluteYtDlp;
 
     private final String uncheckedAbsoluteYtDlpPath;
     private final String winUrl;
