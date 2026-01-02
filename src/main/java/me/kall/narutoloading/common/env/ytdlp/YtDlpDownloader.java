@@ -1,6 +1,7 @@
 package me.kall.narutoloading.common.env.ytdlp;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.common.env.BaseEnv;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -29,18 +30,17 @@ public class YtDlpDownloader {
 
     public enum DownloadType {
         VIDEO,
-        AUDIO,
-        BOTH
+        AUDIO
     }
 
-    public static void download(@NotNull String ytDlpPath, @NotNull String url, @NotNull Path outputDir, @NotNull String outputName, @NotNull DownloadType type, @Nullable Consumer<String> onProgress, @Nullable Consumer<DownloadResult> onComplete) {
+    public static @Nullable CompletableFuture<Void> download(@NotNull String ytDlpPath, @NotNull String url, @NotNull Path outputDir, @NotNull String outputName, @NotNull DownloadType type, @Nullable Consumer<String> onProgress, @Nullable Consumer<DownloadResult> onComplete) {
         if (ytDlpPath.isBlank() || !new File(ytDlpPath).exists()) {
             NarutoLoading.LOGGER.error("{}yt-dlp executable not found at: {}", NarutoLoading.info(), ytDlpPath);
             if (onComplete != null) onComplete.accept(new DownloadResult(false, null, null, "yt-dlp not found"));
-            return;
+            return null;
         }
 
-        CompletableFuture.runAsync(() -> {
+        return CompletableFuture.runAsync(() -> {
             DownloadResult result = new DownloadResult(false, null, null, null);
 
             try {
@@ -49,7 +49,6 @@ public class YtDlpDownloader {
                 switch (type) {
                     case VIDEO -> result = downloadVideo(ytDlpPath, url, outputDir, outputName, onProgress);
                     case AUDIO -> result = downloadAudio(ytDlpPath, url, outputDir, outputName, onProgress);
-                    case BOTH -> result = downloadBoth(ytDlpPath, url, outputDir, outputName, onProgress);
                 }
 
             } catch (Exception e) {
@@ -68,17 +67,7 @@ public class YtDlpDownloader {
         try {
             String outputTemplate = outputDir.resolve(outputName + ".%(ext)s").toString();
 
-            List<String> command = new ArrayList<>();
-            command.add(ytDlpPath);
-            command.add(url);
-            command.add("-o");
-            command.add(outputTemplate);
-            command.add("--format");
-            command.add("bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best");
-            command.add("--merge-output-format");
-            command.add("mp4");
-            command.add("--no-playlist");
-            command.add("--progress");
+            List<String> command = buildVideoCmd(ytDlpPath, url, outputTemplate);
 
             NarutoLoading.LOGGER.info("{}Downloading video: {}", NarutoLoading.info(), url);
             NarutoLoading.LOGGER.info("{}Output: {}", NarutoLoading.info(), outputDir);
@@ -103,23 +92,29 @@ public class YtDlpDownloader {
         }
     }
 
+    private static @NotNull List<String> buildVideoCmd(String ytDlpPath, String url, String outputTemplate) {
+        List<String> command = new ArrayList<>();
+        command.add(ytDlpPath);
+        command.add(url);
+        command.add("-o");
+        command.add(outputTemplate);
+        command.add("--format");
+        command.add("bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best");
+        command.add("--merge-output-format");
+        command.add("mp4");
+        command.add("--no-playlist");
+        command.add("--progress");
+        command.add("--ffmpeg-location");
+        command.add(BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        return command;
+    }
+
     @Contract("_, _, _, _, _ -> new")
     private static @NotNull DownloadResult downloadAudio(String ytDlpPath, String url, Path outputDir, String outputName, Consumer<String> onProgress) {
         try {
             String outputTemplate = outputDir.resolve(outputName + ".%(ext)s").toString();
 
-            List<String> command = new ArrayList<>();
-            command.add(ytDlpPath);
-            command.add(url);
-            command.add("-o");
-            command.add(outputTemplate);
-            command.add("-x");
-            command.add("--audio-format");
-            command.add("mp3");
-            command.add("--audio-quality");
-            command.add("0");
-            command.add("--no-playlist");
-            command.add("--progress");
+            List<String> command = buildAudioCmd(ytDlpPath, url, outputTemplate);
 
             NarutoLoading.LOGGER.info("{}Downloading audio: {}", NarutoLoading.info(), url);
             NarutoLoading.LOGGER.info("{}Output: {}", NarutoLoading.info(), outputDir);
@@ -144,24 +139,22 @@ public class YtDlpDownloader {
         }
     }
 
-    private static @NotNull DownloadResult downloadBoth(String ytDlpPath, String url, Path outputDir, String outputName, Consumer<String> onProgress) {
-        try {
-            DownloadResult videoResult = downloadVideo(ytDlpPath, url, outputDir, outputName + "_video", onProgress);
-            if (!videoResult.success) {
-                return videoResult;
-            }
-
-            DownloadResult audioResult = downloadAudio(ytDlpPath, url, outputDir, outputName + "_audio", onProgress);
-            if (!audioResult.success) {
-                return audioResult;
-            }
-
-            return new DownloadResult(true, videoResult.videoPath, audioResult.audioPath, null);
-
-        } catch (Exception e) {
-            NarutoLoading.LOGGER.error("{}Error downloading both", NarutoLoading.info(), e);
-            return new DownloadResult(false, null, null, e.getMessage());
-        }
+    private static @NotNull List<String> buildAudioCmd(String ytDlpPath, String url, String outputTemplate) {
+        List<String> command = new ArrayList<>();
+        command.add(ytDlpPath);
+        command.add(url);
+        command.add("-o");
+        command.add(outputTemplate);
+        command.add("-x");
+        command.add("--audio-format");
+        command.add("mp3");
+        command.add("--audio-quality");
+        command.add("0");
+        command.add("--no-playlist");
+        command.add("--progress");
+        command.add("--ffmpeg-location");
+        command.add(BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        return command;
     }
 
     private static int executeCommand(List<String> command, Consumer<String> onProgress) throws Exception {

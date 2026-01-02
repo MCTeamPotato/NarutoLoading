@@ -8,7 +8,8 @@
   "button.narutoloading.done": "完成",
   "button.narutoloading.cancel": "取消",
   "button.narutoloading.random": "随机",
-  "button.narutoloading.clear": "清理",
+  "button.narutoloading.clear": "清理方块",
+  "button.narutoloading.empty": "清空",
 
   "box.narutoloading.video": "视频",
   "box.narutoloading.audio": "音频",

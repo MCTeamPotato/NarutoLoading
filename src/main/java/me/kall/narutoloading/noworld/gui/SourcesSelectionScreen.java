@@ -4,6 +4,7 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.config.SourceCollector;
+import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,8 +17,12 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
+
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 public class SourcesSelectionScreen extends Screen {
     protected final Screen lastScreen;
@@ -30,6 +35,7 @@ public class SourcesSelectionScreen extends Screen {
     public static final Component DONE = Component.translatable("button.narutoloading.done");
     public static final Component CANCEL = Component.translatable("button.narutoloading.cancel");
     public static final Component RANDOM = Component.translatable("button.narutoloading.random");
+    public static final Component EMPTY = Component.translatable("button.narutoloading.empty");
 
     public static final Component VIDEO = Component.translatable("box.narutoloading.video");
     public static final Component AUDIO = Component.translatable("box.narutoloading.audio");
@@ -78,6 +84,13 @@ public class SourcesSelectionScreen extends Screen {
     protected void checkBoxes(int centerX, int boxHeight) {}
 
     protected void buttons(int centerX, int buttonWidth, int buttonHeight) {
+        Button empty = Button.builder(EMPTY, button -> {
+            this.videoBox.setValue(NarutoLoading.BLANK);
+            this.audioBox.setValue(NarutoLoading.BLANK);
+        }).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth * 2 + 10, buttonHeight).build();
+        this.addRenderableWidget(empty);
+        this.currentY += buttonHeight + 5;
+
         Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth * 2 + 10, buttonHeight).build();
         this.addRenderableWidget(random);
         this.currentY += buttonHeight + 5;
@@ -96,13 +109,46 @@ public class SourcesSelectionScreen extends Screen {
     }
 
     protected void onDone() {
-        String video = this.videoBox.getValue();
-        String audio = this.audioBox.getValue();
-        BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.absolute(video)).put("audioFileName", NarutoConfig.absolute(audio)).saveToFile();
-        BaseEnv.setupEnv(false);
-        NarutoRenderer.INSTANCE.shutdown();
-        NarutoRenderer.INSTANCE.setup();
+        String videoFilename = this.videoBox.getValue();
+        String audioFileName = this.audioBox.getValue();
+        if (videoFilename.startsWith("http")){
+            String dirName = extractLetters(videoFilename);
+            Path outputDir = YtDlpDownloader.getDefaultOutputDir(dirName);
+            CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoFilename, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> {
+                NarutoLoading.LOGGER.info("{} Video download of {} processed. {}", NarutoLoading.info(), videoFilename, downloadResult.toString());
+                if (downloadResult.success()) {
+                    Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", downloadResult.videoPath()).saveToFile());
+                }
+            });
+            if (videoFuture != null) {
+                videoFuture.thenRun(() -> {
+                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioFileName, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> {
+                        NarutoLoading.LOGGER.info("{} Audio download of {} processed. {}", NarutoLoading.info(), audioFileName, downloadResult.toString());
+                        if (downloadResult.success()) {
+                            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", downloadResult.audioPath()).saveToFile());
+                        }
+                    });
+                    if (audioFuture != null) {
+                        audioFuture.thenRun(() -> Minecraft.getInstance().execute(() -> {
+                            BaseEnv.setupEnv(false);
+                            NarutoRenderer.INSTANCE.shutdown();
+                            NarutoRenderer.INSTANCE.setup();
+                        }));
+                    }
+                });
+            }
+        } else {
+            BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.absolute(videoFilename)).put("audioFileName", NarutoConfig.absolute(audioFileName)).saveToFile();
+            BaseEnv.setupEnv(false);
+            NarutoRenderer.INSTANCE.shutdown();
+            NarutoRenderer.INSTANCE.setup();
+        }
         Minecraft.getInstance().setScreen(this.lastScreen);
+    }
+
+    @Contract(pure = true)
+    private static @NotNull String extractLetters(@NotNull String input) {
+        return input.replaceAll("[^A-Za-z]", "");
     }
 
     protected void onRandom() {
