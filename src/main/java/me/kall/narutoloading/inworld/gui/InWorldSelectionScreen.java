@@ -53,50 +53,56 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     @Override
     protected void init() {
         int centerX = this.width / 2;
-        int centerY = this.height / 2;
 
         int boxWidth = 200;
         int boxHeight = 20;
-        int spacing = 28;
+        int editBoxSpacing = 25;
 
-        this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing * 2 - boxHeight, boxWidth, boxHeight, VIDEO);
+        int totalHeight = boxHeight * 2 + editBoxSpacing + boxHeight * 3 + editBoxSpacing * 2 + boxHeight * 2 + editBoxSpacing;
+
+        int currentY = Math.max(20, (this.height - totalHeight) / 2);
+
+        this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, currentY, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);
         this.videoBox.setValue(this.renderer.screen.relativeVideoPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteVideoPath)));
         this.addRenderableWidget(this.videoBox);
+        currentY += boxHeight + editBoxSpacing;
 
-        this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing, boxWidth, boxHeight, AUDIO);
+        this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, currentY, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(1024);
         this.audioBox.setValue(this.renderer.screen.relativeAudioPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteAudioPath)));
         this.addRenderableWidget(this.audioBox);
+        currentY += boxHeight + editBoxSpacing;
 
-        int firstCheckY = centerY + spacing / 2;
-        int checkBoxSpacing = 25;
         int checkWidth = 200;
+        int checkBoxSpacing = 10;
 
-        this.cullableCheck = new Checkbox(centerX - checkWidth / 2, firstCheckY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
+        this.cullableCheck = new Checkbox(centerX - checkWidth / 2, currentY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
         this.addRenderableWidget(this.cullableCheck);
+        currentY += boxHeight + checkBoxSpacing;
 
-        this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, firstCheckY + checkBoxSpacing, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
+        this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, currentY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
         this.addRenderableWidget(this.localSoundCheck);
+        currentY += boxHeight + checkBoxSpacing;
 
-        this.hideInnerCheck = new Checkbox(centerX - checkWidth / 2, firstCheckY + checkBoxSpacing * 2, checkWidth, boxHeight, HIDE_INNER, this.renderer.screen.hideInner());
+        this.hideInnerCheck = new Checkbox(centerX - checkWidth / 2, currentY, checkWidth, boxHeight, HIDE_INNER, this.renderer.screen.hideInner());
         this.addRenderableWidget(this.hideInnerCheck);
+        currentY += boxHeight + checkBoxSpacing;
 
         int buttonWidth = 80;
         int buttonHeight = 20;
-        int firstButtonY = centerY + spacing * 2 + 50;
-        int secondButtonY = firstButtonY + buttonHeight + 5;
 
-        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, firstButtonY, buttonWidth, buttonHeight).build();
+        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(random);
 
-        Button clear = Button.builder(CLEAR, button -> onClear()).bounds(centerX + 5, firstButtonY, buttonWidth, buttonHeight).build();
+        Button clear = Button.builder(CLEAR, button -> onClear()).bounds(centerX + 5, currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(clear);
+        currentY += buttonHeight + 5;
 
-        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, secondButtonY, buttonWidth, buttonHeight).build();
+        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(done);
 
-        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, secondButtonY, buttonWidth, buttonHeight).build();
+        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(cancel);
 
         this.setInitialFocus(this.videoBox);
