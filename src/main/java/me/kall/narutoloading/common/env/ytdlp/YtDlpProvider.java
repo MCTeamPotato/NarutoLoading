@@ -79,7 +79,6 @@ public final class YtDlpProvider {
                         Files.copy(in, ytDlpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     }
 
-                    // Set executable permission for Unix-like systems
                     if (!windows) {
                         if (!ytDlpFile.setExecutable(true, false)) {
                             NarutoLoading.LOGGER.warn("{}Failed to set executable permission for yt-dlp", NarutoLoading.info());
