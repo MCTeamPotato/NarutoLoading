@@ -3,6 +3,7 @@ package me.kall.narutoloading.noworld.gui;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.common.env.config.SourceCollector;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -22,11 +23,13 @@ public class SourcesSelectionScreen extends Screen {
     protected final Screen lastScreen;
     protected EditBox videoBox;
     protected EditBox audioBox;
+    protected int currentY;
 
     public static final Component SCREEN = Component.translatable("screen.narutoloading.selection");
 
     public static final Component DONE = Component.translatable("button.narutoloading.done");
     public static final Component CANCEL = Component.translatable("button.narutoloading.cancel");
+    public static final Component RANDOM = Component.translatable("button.narutoloading.random");
 
     public static final Component VIDEO = Component.translatable("box.narutoloading.video");
     public static final Component AUDIO = Component.translatable("box.narutoloading.audio");
@@ -39,33 +42,53 @@ public class SourcesSelectionScreen extends Screen {
     @Override
     protected void init() {
         int centerX = this.width / 2;
-        int centerY = this.height / 2;
 
         int boxWidth = 200;
         int boxHeight = 20;
-        int spacing = 28;
+        int editBoxSpacing = 25;
 
-        this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, centerY - spacing - boxHeight, boxWidth, boxHeight, VIDEO);
-        this.videoBox.setMaxLength(256);
-        this.videoBox.setValue(NarutoConfig.relative(BaseEnv.narutoConfig.videoFileName));
+        int totalHeight = boxHeight * 2 + editBoxSpacing + boxHeight * 3 + editBoxSpacing * 2 + boxHeight * 2 + editBoxSpacing;
+
+        this.currentY = Math.max(20, (this.height - totalHeight) / 2);
+
+        this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, VIDEO);
+        this.videoBox.setMaxLength(1024);
+        this.videoBox.setValue(this.initVideo());
         this.addRenderableWidget(this.videoBox);
+        this.currentY += boxHeight + editBoxSpacing;
 
-        this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, centerY + spacing, boxWidth, boxHeight, AUDIO);
-        this.audioBox.setMaxLength(256);
-        this.audioBox.setValue(NarutoConfig.relative(BaseEnv.narutoConfig.audioFileName));
+        this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, AUDIO);
+        this.audioBox.setMaxLength(1024);
+        this.audioBox.setValue(this.initAudio());
         this.addRenderableWidget(this.audioBox);
+        this.currentY += boxHeight + editBoxSpacing;
+
+        this.checkBoxes(centerX, boxHeight);
 
         int buttonWidth = 80;
         int buttonHeight = 20;
-        int buttonY = centerY + spacing * 2 + 10;
 
-        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, buttonY, buttonWidth, buttonHeight).build();
-        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, buttonY, buttonWidth, buttonHeight).build();
-
-        this.addRenderableWidget(done);
-        this.addRenderableWidget(cancel);
+        this.buttons(centerX, buttonWidth, buttonHeight);
+        this.addRenderableWidget(Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight).build());
+        this.addRenderableWidget(Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build());
 
         this.setInitialFocus(this.videoBox);
+    }
+
+    protected void checkBoxes(int centerX, int boxHeight) {}
+
+    protected void buttons(int centerX, int buttonWidth, int buttonHeight) {
+        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth * 2 + 10, buttonHeight).build();
+        this.addRenderableWidget(random);
+        this.currentY += buttonHeight + 5;
+    }
+
+    protected String initVideo() {
+        return BaseEnv.narutoConfig.videoFileName;
+    }
+
+    protected String initAudio() {
+        return BaseEnv.narutoConfig.audioFileName;
     }
 
     protected void onCancel() {
@@ -80,6 +103,21 @@ public class SourcesSelectionScreen extends Screen {
         NarutoRenderer.INSTANCE.shutdown();
         NarutoRenderer.INSTANCE.setup();
         Minecraft.getInstance().setScreen(this.lastScreen);
+    }
+
+    protected void onRandom() {
+        SourceCollector.Source source = SourceCollector.roll();
+        if (source != null) {
+            String relativeVideo = NarutoConfig.relative(source.absoluteVideoPath());
+            String relativeAudio = NarutoConfig.relative(source.absoluteAudioPath());
+
+            this.videoBox.setValue(relativeVideo);
+            this.audioBox.setValue(relativeAudio);
+
+            NarutoLoading.LOGGER.info("{}Randomly selected source - Video: {}, Audio: {}", NarutoLoading.info(), relativeVideo, relativeAudio);
+        } else {
+            NarutoLoading.LOGGER.warn("{}No sources available for random selection", NarutoLoading.info());
+        }
     }
 
     @Override

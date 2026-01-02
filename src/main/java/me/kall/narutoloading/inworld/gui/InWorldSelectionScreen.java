@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
-import me.kall.narutoloading.common.env.config.SourceCollector;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
@@ -20,7 +19,6 @@ import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -42,7 +40,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
 
-    public static final Component RANDOM = Component.translatable("button.narutoloading.random");
     public static final Component CLEAR = Component.translatable("button.narutoloading.clear");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
@@ -50,81 +47,38 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.renderer = renderer;
     }
 
-    @Override
-    protected void init() {
-        int centerX = this.width / 2;
-
-        int boxWidth = 200;
-        int boxHeight = 20;
-        int editBoxSpacing = 25;
-
-        int totalHeight = boxHeight * 2 + editBoxSpacing + boxHeight * 3 + editBoxSpacing * 2 + boxHeight * 2 + editBoxSpacing;
-
-        int currentY = Math.max(20, (this.height - totalHeight) / 2);
-
-        this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, currentY, boxWidth, boxHeight, VIDEO);
-        this.videoBox.setMaxLength(1024);
-        this.videoBox.setValue(this.renderer.screen.relativeVideoPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteVideoPath)));
-        this.addRenderableWidget(this.videoBox);
-        currentY += boxHeight + editBoxSpacing;
-
-        this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, currentY, boxWidth, boxHeight, AUDIO);
-        this.audioBox.setMaxLength(1024);
-        this.audioBox.setValue(this.renderer.screen.relativeAudioPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteAudioPath)));
-        this.addRenderableWidget(this.audioBox);
-        currentY += boxHeight + editBoxSpacing;
-
+    protected void checkBoxes(int centerX, int boxHeight) {
         int checkWidth = 200;
         int checkBoxSpacing = 10;
 
-        this.cullableCheck = new Checkbox(centerX - checkWidth / 2, currentY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
+        this.cullableCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
         this.addRenderableWidget(this.cullableCheck);
-        currentY += boxHeight + checkBoxSpacing;
+        this.currentY += boxHeight + checkBoxSpacing;
 
-        this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, currentY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
+        this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
         this.addRenderableWidget(this.localSoundCheck);
-        currentY += boxHeight + checkBoxSpacing;
+        this.currentY += boxHeight + checkBoxSpacing;
 
-        this.hideInnerCheck = new Checkbox(centerX - checkWidth / 2, currentY, checkWidth, boxHeight, HIDE_INNER, this.renderer.screen.hideInner());
+        this.hideInnerCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, HIDE_INNER, this.renderer.screen.hideInner());
         this.addRenderableWidget(this.hideInnerCheck);
-        currentY += boxHeight + checkBoxSpacing;
+        this.currentY += boxHeight + checkBoxSpacing;
+    }
 
-        int buttonWidth = 80;
-        int buttonHeight = 20;
-
-        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, currentY, buttonWidth, buttonHeight).build();
+    protected void buttons(int centerX, int buttonWidth, int buttonHeight) {
+        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(random);
 
-        Button clear = Button.builder(CLEAR, button -> onClear()).bounds(centerX + 5, currentY, buttonWidth, buttonHeight).build();
+        Button clear = Button.builder(CLEAR, button -> NarutoPackets.INSTANCE.sendToServer(new ClearScreenPacket(this.renderer.screen))).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(clear);
-        currentY += buttonHeight + 5;
-
-        Button done = Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, currentY, buttonWidth, buttonHeight).build();
-        this.addRenderableWidget(done);
-
-        Button cancel = Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, currentY, buttonWidth, buttonHeight).build();
-        this.addRenderableWidget(cancel);
-
-        this.setInitialFocus(this.videoBox);
+        this.currentY += buttonHeight + 5;
     }
 
-    private void onRandom() {
-        SourceCollector.Source source = SourceCollector.roll();
-        if (source != null) {
-            String relativeVideo = NarutoConfig.relative(source.absoluteVideoPath());
-            String relativeAudio = NarutoConfig.relative(source.absoluteAudioPath());
-
-            this.videoBox.setValue(relativeVideo);
-            this.audioBox.setValue(relativeAudio);
-
-            NarutoLoading.LOGGER.info("{}Randomly selected source - Video: {}, Audio: {}", NarutoLoading.info(), relativeVideo, relativeAudio);
-        } else {
-            NarutoLoading.LOGGER.warn("{}No sources available for random selection", NarutoLoading.info());
-        }
+    protected String initVideo() {
+        return this.renderer.screen.relativeVideoPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteVideoPath));
     }
 
-    private void onClear() {
-        NarutoPackets.INSTANCE.sendToServer(new ClearScreenPacket(this.renderer.screen));
+    protected String initAudio() {
+        return this.renderer.screen.relativeAudioPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteAudioPath));
     }
 
     @Override
