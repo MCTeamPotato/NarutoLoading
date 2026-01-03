@@ -16,6 +16,7 @@ import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import me.kall.narutoloading.inworld.network.ClearScreenPacket;
 import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
+import me.kall.narutoloading.noworld.gui.SourceNameScreen;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -28,7 +29,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -93,12 +93,11 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         InWorldScreen inWorldScreen = this.renderer.screen;
 
         if (videoFilename.startsWith("http")) {
-            handleUrlDownload(videoFilename, audioFileName, inWorldScreen);
+            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> handleUrlDownload(videoFilename, audioFileName, inWorldScreen, folderName)));
         } else {
             handleLocalFiles(videoFilename, audioFileName, inWorldScreen);
+            Minecraft.getInstance().setScreen(this.lastScreen);
         }
-
-        Minecraft.getInstance().setScreen(this.lastScreen);
     }
 
     private void handleLocalFiles(String videoFilename, @NotNull String audioFileName, @NotNull InWorldScreen inWorldScreen) {
@@ -129,11 +128,10 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
     }
 
-    private void handleUrlDownload(String videoUrl, String audioUrl, InWorldScreen inWorldScreen) {
-        String dirName = extractLetters(videoUrl);
-        Path outputDir = YtDlpDownloader.getDefaultOutputDir(dirName);
+    private void handleUrlDownload(String videoUrl, String audioUrl, InWorldScreen inWorldScreen, String folderName) {
+        Path outputDir = YtDlpDownloader.getDefaultOutputDir(folderName);
 
-        NarutoLoading.LOGGER.info("{}Starting URL download for in-world screen: {}", NarutoLoading.info(), videoUrl);
+        NarutoLoading.LOGGER.info("{}Starting URL download with folder name: {}", NarutoLoading.info(), folderName);
 
         CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, progress -> NarutoLoading.LOGGER.info("{}Video download progress: {}", NarutoLoading.info(), progress), downloadResult -> {
                     NarutoLoading.LOGGER.info("{}Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
@@ -236,7 +234,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             BlockPos pos = event.getPos();
             if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong())) {
                 if (interval > 0) return;
-                NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
+                NarutoPackets.INSTANCE.send(net.minecraftforge.network.PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
                 interval = 20;
             }
         }

@@ -17,14 +17,13 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
-public class SourcesSelectionScreen extends Screen {
+public class SourcesSelectionScreen extends EmptyScreen {
     protected final Screen lastScreen;
     protected EditBox videoBox;
     protected EditBox audioBox;
@@ -103,44 +102,56 @@ public class SourcesSelectionScreen extends Screen {
     protected void onDone() {
         String videoFilename = this.videoBox.getValue();
         String audioFileName = this.audioBox.getValue();
-        if (videoFilename.startsWith("http")){
-            String dirName = extractLetters(videoFilename);
-            Path outputDir = YtDlpDownloader.getDefaultOutputDir(dirName);
-            CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoFilename, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> {
-                NarutoLoading.LOGGER.info("{} Video download of {} processed. {}", NarutoLoading.info(), videoFilename, downloadResult.toString());
-                if (downloadResult.success()) {
-                    Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", downloadResult.videoPath()).saveToFile());
-                }
-            });
-            if (videoFuture != null) {
-                videoFuture.thenRun(() -> {
-                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioFileName, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> {
-                        NarutoLoading.LOGGER.info("{} Audio download of {} processed. {}", NarutoLoading.info(), audioFileName, downloadResult.toString());
-                        if (downloadResult.success()) {
-                            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", downloadResult.audioPath()).saveToFile());
-                        }
-                    });
-                    if (audioFuture != null) {
-                        audioFuture.thenRun(() -> Minecraft.getInstance().execute(() -> {
-                            BaseEnv.setupEnv(false);
-                            NarutoRenderer.INSTANCE.shutdown();
-                            NarutoRenderer.INSTANCE.setup();
-                        }));
-                    }
-                });
-            }
+
+        if (videoFilename.startsWith("http")) {
+            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> handleUrlDownload(videoFilename, audioFileName, folderName)));
         } else {
             BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.absolute(videoFilename)).put("audioFileName", NarutoConfig.absolute(audioFileName)).saveToFile();
             BaseEnv.setupEnv(false);
             NarutoRenderer.INSTANCE.shutdown();
             NarutoRenderer.INSTANCE.setup();
+            Minecraft.getInstance().setScreen(this.lastScreen);
         }
-        Minecraft.getInstance().setScreen(this.lastScreen);
     }
 
-    @Contract(pure = true)
-    private static @NotNull String extractLetters(@NotNull String input) {
-        return input.replaceAll("[^A-Za-z]", "");
+    private void handleUrlDownload(String videoUrl, String audioUrl, String folderName) {
+        Path outputDir = YtDlpDownloader.getDefaultOutputDir(folderName);
+
+        NarutoLoading.LOGGER.info("{}Starting URL download with folder name: {}", NarutoLoading.info(), folderName);
+
+        CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> {
+                    NarutoLoading.LOGGER.info("{} Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
+                    if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", downloadResult.videoPath()).saveToFile());
+                }
+        );
+
+        if (videoFuture != null) {
+            videoFuture.thenRun(() -> {
+                String audioUrlToUse = audioUrl.isBlank() ? videoUrl : audioUrl;
+                if (audioUrlToUse.startsWith("http")) {
+                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioUrlToUse, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> {
+                                NarutoLoading.LOGGER.info("{} Audio download of {} processed. {}", NarutoLoading.info(), audioUrlToUse, downloadResult.toString());
+                                if (downloadResult.success()) {
+                                    Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", downloadResult.audioPath()).saveToFile());
+                                }
+                            }
+                    );
+
+                    if (audioFuture != null) audioFuture.thenRun(this::finalizeDownload);
+                } else {
+                    finalizeDownload();
+                }
+            });
+        }
+    }
+
+    private void finalizeDownload() {
+        Minecraft.getInstance().execute(() -> {
+            BaseEnv.setupEnv(false);
+            NarutoRenderer.INSTANCE.shutdown();
+            NarutoRenderer.INSTANCE.setup();
+            NarutoLoading.LOGGER.info("{}URL download completed, video playback started", NarutoLoading.info());
+        });
     }
 
     protected void onRandom() {
@@ -175,16 +186,6 @@ public class SourcesSelectionScreen extends Screen {
 
         graphics.drawCenteredString(this.font, VIDEO, centerX, this.videoBox.getY() - 12, 0xFFFFFF);
         graphics.drawCenteredString(this.font, AUDIO, centerX, this.audioBox.getY() - 12, 0xFFFFFF);
-
-        long window = Minecraft.getInstance().getWindow().getWindow();
-        boolean stateLeftShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS;
-        boolean stateRightShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
-        boolean stateRightMouse = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
-
-        if (stateRightMouse && (stateRightShift || stateLeftShift)) {
-            this.videoBox.setValue(NarutoLoading.BLANK);
-            this.audioBox.setValue(NarutoLoading.BLANK);
-        }
     }
 
     @Override

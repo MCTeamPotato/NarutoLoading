@@ -4,6 +4,7 @@
   "box.narutoloading.hide_inner": "隐藏显示屏方块",
 
   "screen.narutoloading.selection": "来源选择",
+  "screen.narutoloading.name": "设置文件夹名称",
 
   "button.narutoloading.done": "完成",
   "button.narutoloading.cancel": "取消",
@@ -12,6 +13,12 @@
 
   "box.narutoloading.video": "视频",
   "box.narutoloading.audio": "音频",
+
+  "box.narutoloading.folder_name": "文件夹名称",
+
+  "hint.narutoloading.folder_name": "只允许字母、数字、横线和下划线",
+
+  "error.narutoloading.invalid_folder_name": "无效的文件夹名！只允许字母、数字、- 和 _",
 
   "block.narutoloading.displayer": "显示器",
 
