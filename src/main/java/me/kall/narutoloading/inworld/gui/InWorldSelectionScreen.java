@@ -79,11 +79,11 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     }
 
     protected String initVideo() {
-        return this.renderer.screen.relativeVideoPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteVideoPath));
+        return this.renderer.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName);
     }
 
     protected String initAudio() {
-        return this.renderer.screen.relativeAudioPath(NarutoConfig.relative(BaseEnv.narutoConfig.absoluteAudioPath));
+        return this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName);
     }
 
     @Override

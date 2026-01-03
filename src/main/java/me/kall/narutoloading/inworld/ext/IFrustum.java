@@ -1,4 +1,4 @@
-package me.kall.narutoloading.ext;
+package me.kall.narutoloading.inworld.ext;
 
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import net.minecraft.client.renderer.culling.Frustum;

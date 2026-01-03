@@ -35,7 +35,6 @@ public class SourcesSelectionScreen extends Screen {
     public static final Component DONE = Component.translatable("button.narutoloading.done");
     public static final Component CANCEL = Component.translatable("button.narutoloading.cancel");
     public static final Component RANDOM = Component.translatable("button.narutoloading.random");
-    public static final Component EMPTY = Component.translatable("button.narutoloading.empty");
 
     public static final Component VIDEO = Component.translatable("box.narutoloading.video");
     public static final Component AUDIO = Component.translatable("box.narutoloading.audio");
@@ -84,13 +83,6 @@ public class SourcesSelectionScreen extends Screen {
     protected void checkBoxes(int centerX, int boxHeight) {}
 
     protected void buttons(int centerX, int buttonWidth, int buttonHeight) {
-        Button empty = Button.builder(EMPTY, button -> {
-            this.videoBox.setValue(NarutoLoading.BLANK);
-            this.audioBox.setValue(NarutoLoading.BLANK);
-        }).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth * 2 + 10, buttonHeight).build();
-        this.addRenderableWidget(empty);
-        this.currentY += buttonHeight + 5;
-
         Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth * 2 + 10, buttonHeight).build();
         this.addRenderableWidget(random);
         this.currentY += buttonHeight + 5;
@@ -183,6 +175,16 @@ public class SourcesSelectionScreen extends Screen {
 
         graphics.drawCenteredString(this.font, VIDEO, centerX, this.videoBox.getY() - 12, 0xFFFFFF);
         graphics.drawCenteredString(this.font, AUDIO, centerX, this.audioBox.getY() - 12, 0xFFFFFF);
+
+        long window = Minecraft.getInstance().getWindow().getWindow();
+        boolean stateLeftShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS;
+        boolean stateRightShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
+        boolean stateRightMouse = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+
+        if (stateRightMouse && (stateRightShift || stateLeftShift)) {
+            this.videoBox.setValue(NarutoLoading.BLANK);
+            this.audioBox.setValue(NarutoLoading.BLANK);
+        }
     }
 
     @Override
