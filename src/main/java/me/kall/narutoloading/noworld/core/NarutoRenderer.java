@@ -47,9 +47,9 @@ public class NarutoRenderer {
             this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
             NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }
-        this.lifetime.start();
         this.videoExecutor.setup();
         this.audioExecutor.setup();
+        this.lifetime.start();
     }
 
     public ResourceLocation nextFrame() {
@@ -130,6 +130,7 @@ public class NarutoRenderer {
     public void shutdown() {
         if (this.audioExecutor != null) this.audioExecutor.shutdown();
         if (this.videoExecutor != null) this.videoExecutor.shutdown();
+        if (this.lifetime != null) this.lifetime.stop();
 
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();
@@ -140,7 +141,5 @@ public class NarutoRenderer {
             Minecraft.getInstance().getTextureManager().release(this.textureLocation);
             this.textureLocation = null;
         }
-
-        if (this.lifetime != null) this.lifetime.stop();
     }
 }
