@@ -57,8 +57,6 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
         this.lifetime = new LifetimeController(this, videoArgReader.duration(), absoluteSetupTime);
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> 1280, () -> 720, videoArgReader::fps);
-        this.windowSizeChecker = null;
-        this.keyChecker = null;
 
         if (this.dynamicTexture == null) {
             this.dynamicTexture = new DynamicTexture(1280, 720, false);
