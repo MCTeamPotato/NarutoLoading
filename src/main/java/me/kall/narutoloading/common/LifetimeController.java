@@ -50,8 +50,11 @@ public class LifetimeController {
         }
 
         double intervalNanos = (double) now - (double) this.lastFetchFrameTime;
-        this.lastFetchFrameTime = now;
-        return intervalNanos >= (1_000_000_000.0 / (double) fps);
+        if (intervalNanos >= (1_000_000_000.0 / (double) fps)) {
+            this.lastFetchFrameTime = now;
+            return true;
+        }
+        return false;
     }
 
     public void start() {

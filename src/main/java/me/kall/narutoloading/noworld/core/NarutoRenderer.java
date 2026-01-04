@@ -60,6 +60,7 @@ public class NarutoRenderer {
         if (this.lifetime != null && this.lifetime.shouldUpdateFrame(BaseEnv.noWorldVideoArgs.fps()) && this.videoExecutor != null) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
+                this.setupLocalSound();
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
                 frame.close();
@@ -67,6 +68,8 @@ public class NarutoRenderer {
         }
         return this.textureLocation;
     }
+
+    protected void setupLocalSound() {}
 
     public boolean isRunning() {
         return this.lifetime != null && this.lifetime.isRunning();

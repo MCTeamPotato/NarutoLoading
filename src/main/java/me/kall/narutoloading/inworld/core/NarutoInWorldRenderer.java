@@ -1,11 +1,10 @@
 package me.kall.narutoloading.inworld.core;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
-import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
@@ -14,7 +13,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
@@ -78,24 +76,11 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     }
 
     @Override
-    public @Nullable ResourceLocation nextFrame() {
-        if (!this.isEnabled()) return this.textureLocation;
-        if (this.dynamicTexture == null) this.setup();
-        if (this.lifetime != null && this.videoArgReader != null && this.lifetime.shouldUpdateFrame(this.videoArgReader.fps()) && this.videoExecutor != null) {
-            NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
-
-            if (this.soundSetup != null && frame != null) {
-                this.soundSetup.run();
-                this.soundSetup = null;
-            }
-
-            if (frame != null) {
-                this.dynamicTexture.setPixels(frame);
-                this.dynamicTexture.upload();
-                frame.close();
-            }
+    protected void setupLocalSound() {
+        if (this.soundSetup != null) {
+            this.soundSetup.run();
+            this.soundSetup = null;
         }
-        return this.textureLocation;
     }
 
     @Override

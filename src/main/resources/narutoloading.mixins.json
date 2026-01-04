@@ -11,11 +11,11 @@
     "defaultRequire": 1
   },
   "client": [
+    "inworld.MixinBlockOcclusionCache",
     "inworld.MixinBlockRenderDispatcher",
     "inworld.MixinFrustum",
     "inworld.MixinMinecraft",
     "inworld.MixinResourceLoadStateTracker",
-    "inworld.MixinBlockOcclusionCache",
     "noworld.clear.MixinFont",
     "noworld.clear.MixinGuiGraphics",
     "noworld.clear.MixinStringRenderOutput",
