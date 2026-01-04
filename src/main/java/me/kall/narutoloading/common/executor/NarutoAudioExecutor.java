@@ -99,7 +99,6 @@ public final class NarutoAudioExecutor {
     }
 
     public void shutdown() {
-        if (this.canceled) return;
         this.canceled = true;
 
         if (this.process != null) {

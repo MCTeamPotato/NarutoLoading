@@ -16,7 +16,7 @@
 
   "box.narutoloading.folder_name": "Folder Name",
 
-  "hint.narutoloading.folder_name": "Only letters, numbers, hyphens and underscores are allowed",
+  "hint.narutoloading.folder_name": "Only letters, numbers, hyphens and underscores are allowed. It will be downloaded after Done is confirmed.",
 
   "error.narutoloading.invalid_folder_name": "Invalid folder name! Only letters, numbers, - and _ are allowed",
 

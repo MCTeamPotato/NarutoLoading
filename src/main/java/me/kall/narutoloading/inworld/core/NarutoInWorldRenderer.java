@@ -45,13 +45,13 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 ClientLevel level = Minecraft.getInstance().level;
                 if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND && level != null) {
                     Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(screen.getLocalSound()));
-                    level.playSeededSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), soundEvent, SoundSource.MUSIC, 1.0F, 1.0F, level.random.nextLong());
+                    level.playSeededSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F, level.random.nextLong());
                     NarutoLoading.LOGGER.info("{}Local sound {} played at [{}, {}, {}]", NarutoLoading.info(), this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
             this.soundShutdown = () -> {
                 if (this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND) {
-                    Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.MUSIC);
+                    Minecraft.getInstance().getSoundManager().stop(this.screen.getLocalSound(), SoundSource.BLOCKS);
                     NarutoLoading.LOGGER.info("{}Local sound {} playing at [{}, {}, {}] is stopped", NarutoLoading.info(), this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
@@ -72,11 +72,8 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
         this.lifetime.start();
 
-        if (this.audioExecutor != null) {
-            this.audioExecutor.setup();
-        }
-
         this.videoExecutor.setup();
+        this.audioExecutor.setup();
     }
 
     @Override
@@ -90,6 +87,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 this.soundSetup.run();
                 this.soundSetup = null;
             }
+
             if (frame != null) {
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();

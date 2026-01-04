@@ -48,8 +48,8 @@ public class NarutoRenderer {
             NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }
         this.lifetime.start();
-        this.audioExecutor.setup();
         this.videoExecutor.setup();
+        this.audioExecutor.setup();
     }
 
     public ResourceLocation nextFrame() {

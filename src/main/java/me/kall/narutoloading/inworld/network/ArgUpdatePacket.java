@@ -21,7 +21,7 @@ public class ArgUpdatePacket {
     }
 
     public ArgUpdatePacket(@NotNull FriendlyByteBuf buf) {
-        this.argSource = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readBoolean(), buf.readResourceLocation(), buf.readBoolean());
+        this.argSource = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readBoolean());
     }
 
     public void encode(@NotNull FriendlyByteBuf buf) {
@@ -29,7 +29,6 @@ public class ArgUpdatePacket {
         buf.writeResourceLocation(this.argSource.dimension());
         buf.writeUtf(this.argSource.relativeVideoPath(NarutoLoading.BLANK));
         buf.writeUtf(this.argSource.relativeAudioPath(NarutoLoading.BLANK));
-        buf.writeBoolean(this.argSource.isCullable());
         buf.writeResourceLocation(this.argSource.getLocalSound());
         buf.writeBoolean(this.argSource.hideInner());
     }

@@ -33,7 +33,7 @@ public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, LongSet> HIDDEN_DISPLAYERS = new Object2ObjectOpenHashMap<>();
 
     @SubscribeEvent
-    public static void logOut(ClientPlayerNetworkEvent.LoggingOut event) {
+    public static void logOutClean(ClientPlayerNetworkEvent.LoggingOut event) {
         Minecraft.getInstance().execute(() -> {
             for (ObjectSet<NarutoInWorldRenderer> renderers : CLIENT_SCREENS.values()) {
                 for (NarutoInWorldRenderer renderer : renderers) {
@@ -88,7 +88,7 @@ public class ClientScreensRenderer {
         InWorldScreen inWorldScreen = renderer.screen;
         ResourceLocation nextFrame = renderer.nextFrame();
         if (nextFrame == null) return;
-        RenderType renderType = inWorldScreen.isCullable() ? RenderType.entityTranslucentCull(nextFrame) : RenderType.entityTranslucent(nextFrame);
+        RenderType renderType = RenderType.entityTranslucent(nextFrame);
 
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
         if (!IFrustum.isVisible(frustum, inWorldScreen)) return;
@@ -154,6 +154,8 @@ public class ClientScreensRenderer {
 
         double offsetDirection = dot > 0 ? 1.0 : -1.0;
 
+        boolean isFrontFacing = dot > 0;
+
         if (dot < 0) {
             normalX = -normalX;
             normalY = -normalY;
@@ -189,10 +191,17 @@ public class ClientScreensRenderer {
         Matrix4f pose = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
 
-        vertexConsumer.vertex(pose, (float)leftBottomCornerX,   (float)leftBottomCornerY,  (float)leftBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-        vertexConsumer.vertex(pose, (float)leftTopCornerX,         (float)leftTopCornerY,     (float)leftTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-        vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-        vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+        if (isFrontFacing) {
+            vertexConsumer.vertex(pose, (float)leftBottomCornerX,   (float)leftBottomCornerY,  (float)leftBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float)leftTopCornerX,         (float)leftTopCornerY,     (float)leftTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+        } else {
+            vertexConsumer.vertex(pose, (float)leftBottomCornerX,   (float)leftBottomCornerY,  (float)leftBottomCornerZ).color(255, 255, 255, 255).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float)leftTopCornerX,         (float)leftTopCornerY,     (float)leftTopCornerZ).color(255, 255, 255, 255).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+        }
     }
 
     private static double distanceSquared(double x1, double y1, double z1, double x2, double y2, double z2) {

@@ -29,7 +29,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.Contract;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -37,11 +37,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private final NarutoInWorldRenderer renderer;
-    private Checkbox cullableCheck;
     private Checkbox localSoundCheck;
     private Checkbox hideInnerCheck;
 
-    public static final Component CULLABLE = Component.translatable("box.narutoloading.cullable");
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
 
@@ -55,10 +53,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     protected void checkBoxes(int centerX, int boxHeight) {
         int checkWidth = 200;
         int checkBoxSpacing = 10;
-
-        this.cullableCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, CULLABLE, this.renderer.screen.isCullable());
-        this.addRenderableWidget(this.cullableCheck);
-        this.currentY += boxHeight + checkBoxSpacing;
 
         this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
         this.addRenderableWidget(this.localSoundCheck);
@@ -103,7 +97,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private void handleLocalFiles(String videoFilename, @NotNull String audioFileName, @NotNull InWorldScreen inWorldScreen) {
         inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
 
-        inWorldScreen.setCullable(this.cullableCheck.selected());
         inWorldScreen.setHideInner(this.hideInnerCheck.selected());
 
         if (inWorldScreen.hideInner()) {
@@ -174,7 +167,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     private void finalizeUrlSetup(InWorldScreen inWorldScreen) {
         Minecraft.getInstance().execute(() -> {
-            inWorldScreen.setCullable(this.cullableCheck.selected());
             inWorldScreen.setHideInner(this.hideInnerCheck.selected());
 
             if (inWorldScreen.hideInner()) {
@@ -213,11 +205,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         });
     }
 
-    @Contract(pure = true)
-    private static @NotNull String extractLetters(@NotNull String input) {
-        return input.replaceAll("[^A-Za-z]", "");
-    }
-
     @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
     public static final class Trigger {
         private static int interval = 0;
@@ -234,7 +221,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             BlockPos pos = event.getPos();
             if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong())) {
                 if (interval > 0) return;
-                NarutoPackets.INSTANCE.send(net.minecraftforge.network.PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
+                NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
                 interval = 20;
             }
         }

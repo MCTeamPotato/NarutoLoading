@@ -26,7 +26,7 @@ public class Displayer extends Block {
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 4; i++) {
-            level.addParticle(ParticleTypes.PORTAL, pos.getX() + OFFSET.getAsDouble(), pos.getY() + OFFSET.getAsDouble(), pos.getZ() + OFFSET.getAsDouble(), 0.0, 0.0, 0.0);
+            level.addParticle(ParticleTypes.PORTAL, true, pos.getX() + OFFSET.getAsDouble(), pos.getY() + OFFSET.getAsDouble(), pos.getZ() + OFFSET.getAsDouble(), 0.0, 0.0, 0.0);
         }
     }
 }
