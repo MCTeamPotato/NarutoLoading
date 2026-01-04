@@ -116,6 +116,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             setupLocalSound(inWorldScreen);
         } else {
             inWorldScreen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
+            this.renderer.setup();
         }
 
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
