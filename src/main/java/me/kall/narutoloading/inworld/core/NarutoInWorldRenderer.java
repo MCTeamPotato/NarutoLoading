@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NarutoInWorldRenderer extends NarutoRenderer {
-    private @Nullable VideoArgReader videoArgReader;
     private @Nullable Runnable soundSetup;
     private @Nullable Runnable soundShutdown;
 
@@ -34,7 +33,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         if (!this.isEnabled()) return;
         long absoluteSetupTime = System.nanoTime();
 
-        this.videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
+        VideoArgReader videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
         if (!this.screen.isLocalSound()) {
             this.audioExecutor = new NarutoAudioExecutor(() -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName)), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         } else {
@@ -44,7 +43,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 ClientLevel level = Minecraft.getInstance().level;
                 if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND && level != null) {
                     Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(screen.getLocalSound()));
-                    level.playSeededSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F, level.random.nextLong());
+                    level.playSeededSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), soundEvent, SoundSource.BLOCKS, 4.0F, 1.0F, level.random.nextLong());
                     NarutoLoading.LOGGER.info("{}Local sound {} played at [{}, {}, {}]", NarutoLoading.info(), this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
@@ -56,8 +55,8 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             };
         }
 
-        this.lifetime = new LifetimeController(this, this.videoArgReader.duration(), absoluteSetupTime);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> 1280, () -> 720, this.videoArgReader::fps);
+        this.lifetime = new LifetimeController(this, videoArgReader.duration(), absoluteSetupTime);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> 1280, () -> 720, videoArgReader::fps);
         this.windowSizeChecker = null;
         this.keyChecker = null;
 
@@ -72,7 +71,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         this.lifetime.start();
 
         this.videoExecutor.setup();
-        this.audioExecutor.setup();
+        if (this.audioExecutor != null) this.audioExecutor.setup();
     }
 
     @Override
