@@ -34,6 +34,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     @Override
     public void setup() {
         if (!this.isEnabled()) return;
+        long absoluteSetupTime = System.currentTimeMillis();
 
         this.videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
         if (!this.screen.isLocalSound()) {
@@ -57,7 +58,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
             };
         }
 
-        this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
+        this.lifetime = new LifetimeController(this, this.videoArgReader.duration(), absoluteSetupTime);
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> 1280, () -> 720, this.videoArgReader::fps);
         this.windowSizeChecker = null;
         this.keyChecker = null;

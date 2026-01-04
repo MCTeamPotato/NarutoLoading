@@ -36,7 +36,9 @@ public class NarutoRenderer {
 
     public void setup() {
         if (!this.isEnabled()) return;
-        this.lifetime = new LifetimeController(this, BaseEnv.noWorldVideoArgs.duration());
+        long absoluteSetupTime = System.currentTimeMillis();
+
+        this.lifetime = new LifetimeController(this, BaseEnv.noWorldVideoArgs.duration(), absoluteSetupTime);
 
         this.audioExecutor = new NarutoAudioExecutor(() -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.absoluteAudioPath, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.noWorldVideoArgs.fps());
@@ -73,6 +75,13 @@ public class NarutoRenderer {
     public void renderFrame(@Nullable GuiGraphics graphics) {
         if (this.isEnabled()) {
 
+            if (this.lifetime != null) {
+                this.lifetime.resume();
+                this.lifetime.syncSoundEngine();
+                this.lifetime.lagSpikeRestart();
+                this.lifetime.endRestart();
+            }
+
             ResourceLocation texture = this.nextFrame();
             if (texture == null) return;
 
@@ -85,13 +94,6 @@ public class NarutoRenderer {
 
             if (this.keyChecker != null) this.keyChecker.reload();
             if (this.windowSizeChecker != null) this.windowSizeChecker.resize();
-            if (this.lifetime != null) {
-                this.lifetime.resume();
-                this.lifetime.tick();
-                this.lifetime.syncSoundEngine();
-                this.lifetime.lagSpikeRestart();
-                this.lifetime.endRestart();
-            }
         }
     }
 
