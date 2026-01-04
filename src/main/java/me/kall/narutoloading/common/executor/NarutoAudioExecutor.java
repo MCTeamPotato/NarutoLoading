@@ -32,6 +32,10 @@ public final class NarutoAudioExecutor {
     }
 
     public void setup() {
+        setup("0");
+    }
+
+    public void setup(String sec) {
         this.canceled = false;
 
         long currentContext = ALC10.alcGetCurrentContext();
@@ -63,6 +67,7 @@ public final class NarutoAudioExecutor {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(
                         this.ffmpeg.get(),
+                        "-ss", sec,
                         "-i", this.audio.get().isEmpty() ? this.video.get() : this.audio.get(),
                         "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"
                 );

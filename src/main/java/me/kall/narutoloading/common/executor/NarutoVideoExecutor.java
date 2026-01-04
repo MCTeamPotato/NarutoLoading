@@ -23,12 +23,12 @@ public final class NarutoVideoExecutor {
     private @Nullable ExecutorService executor;
     private volatile boolean canceled;
     private @Nullable Process process;
+    private long frameIndex;
 
     private @Nullable InputStream inputStream;
     private @Nullable ReadableByteChannel channel;
 
     private final LifetimeController lifetime;
-    private long frameCount;
 
     private final Supplier<String> ffmpeg, widthString, heightString, video;
     private final IntSupplier width, height, fps;
@@ -44,17 +44,19 @@ public final class NarutoVideoExecutor {
         this.fps = fps;
     }
 
-    public void setup() {
+    public void setup(String sec) {
         this.canceled = false;
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoVideoExecutor");
             thread.setDaemon(true);
             return thread;
         });
+        this.frameIndex = (long) (Double.parseDouble(sec) * this.fps.getAsInt());
         this.frameQueue = new LinkedBlockingQueue<>(BaseEnv.narutoConfig.bufferSize);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
                     this.ffmpeg.get(),
+                    "-ss", sec,
                     "-i", this.video.get(),
                     "-vf", "format=rgb24,scale=" + this.widthString.get() + ":" + this.heightString.get(),
                     "-pix_fmt", "rgb24",
@@ -80,11 +82,8 @@ public final class NarutoVideoExecutor {
                     byte[] buffer = new byte[frameSize];
                     byteBuffer.get(buffer);
 
-                    double frameRelativeSeconds = (double) this.frameCount / (double) this.fps.getAsInt();
-                    long frameTimestampNanos = this.lifetime.absoluteSetupTime + (long)(frameRelativeSeconds * 1_000_000_000L);
-
-                    this.frameCount++;
-                    this.frameQueue.put(new Frame(frameTimestampNanos, buildImage(buffer)));
+                    this.frameIndex++;
+                    this.frameQueue.put(new Frame(this.frameIndex, buildImage(buffer)));
                 }
             } catch (Exception exception) {
                 if (BaseEnv.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
@@ -106,30 +105,26 @@ public final class NarutoVideoExecutor {
         return image;
     }
 
-    public @Nullable NativeImage fetchImage() {
-        if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
+    public void setup() {
+        setup("0");
+    }
 
-        long currentTimeNanos = System.nanoTime();
+    public @Nullable NativeImage fetchImage(double elapsedSeconds) {
+        if (this.frameQueue == null || this.frameQueue.isEmpty()) return null;
         Frame frame = this.frameQueue.poll();
         if (frame == null) return null;
 
         boolean hasSkipping = false;
 
-        while (frame != null && frame.timestampNanos() < currentTimeNanos) {
+        while (frame != null && ((double) frame.frameIndex()) / ((double) this.fps.getAsInt()) < elapsedSeconds) {
             frame.image.close();
             frame = this.frameQueue.poll();
             hasSkipping = true;
         }
 
-        if (hasSkipping && frame == null) {
-            this.lifetime.lagSpikeDetected = true;
-        }
+        if (hasSkipping && frame == null) this.lifetime.lagSpikeDetected = true;
 
         return frame == null ? null : frame.image();
-    }
-
-    public static long secondsToNanos(double seconds) {
-        return (long)(seconds * 1_000_000_000L);
     }
 
     public void shutdown() {
@@ -167,5 +162,5 @@ public final class NarutoVideoExecutor {
         }
     }
 
-    private record Frame(long timestampNanos, NativeImage image) {}
+    private record Frame(long frameIndex, NativeImage image) {}
 }

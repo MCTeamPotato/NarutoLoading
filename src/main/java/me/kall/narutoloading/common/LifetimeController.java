@@ -5,10 +5,12 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 
 public class LifetimeController {
-    public volatile long absoluteSetupTime;
+    private long absoluteSetupTime;
+    private long pausedAt = 0L;
     private long lastFetchFrameTime = -1;
 
     private boolean running = false;
+    private boolean paused = false;
 
     public volatile boolean lagSpikeDetected = false;
     private long lastLagSpikeRestart = -1;
@@ -24,7 +26,22 @@ public class LifetimeController {
         this.absoluteSetupTime = absoluteSetupTime;
     }
 
+    public void pause() {
+        if (!this.paused && this.running && this.renderer.audioExecutor == null) {
+            this.paused = true;
+            this.pausedAt = System.nanoTime();
+        }
+    }
+
+    public void resume() {
+        if (this.paused && this.running) {
+            this.paused = false;
+            this.absoluteSetupTime += System.nanoTime() - this.pausedAt;
+        }
+    }
+
     public boolean shouldUpdateFrame(int fps) {
+        if (this.paused) return false;
         long now = System.nanoTime();
 
         if (this.lastFetchFrameTime == -1L) {
@@ -36,8 +53,9 @@ public class LifetimeController {
         if (intervalNanos >= (1_000_000_000.0 / (double) fps)) {
             this.lastFetchFrameTime = now;
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     public void start() {
@@ -102,7 +120,7 @@ public class LifetimeController {
         if (hasVideo) this.renderer.videoExecutor.shutdown();
         if (hasAudio) this.renderer.audioExecutor.shutdown();
 
-        if (hasVideo) this.renderer.videoExecutor.setup();
-        if (hasAudio) this.renderer.audioExecutor.setup();
+        if (hasVideo) this.renderer.videoExecutor.setup(elapsedSeconds);
+        if (hasAudio) this.renderer.audioExecutor.setup(elapsedSeconds);
     }
 }
