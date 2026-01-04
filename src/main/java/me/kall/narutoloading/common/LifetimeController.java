@@ -22,6 +22,9 @@ public class LifetimeController {
 
     private double accumulatedFrameTime = 0.0;
 
+    private static final double NANOS_TO_SECONDS = 1_000_000_000.0;
+    private static final long NANOS_TO_MILLIS = 1_000_000L;
+
     public LifetimeController(NarutoRenderer renderer, long duration) {
         this.renderer = renderer;
         this.duration = duration;
@@ -29,7 +32,7 @@ public class LifetimeController {
 
     public void tick() {
         if (this.paused) return;
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
         if (this.startTime == -1L) this.startTime = now;
         this.elapsedTime = now - this.startTime;
     }
@@ -37,14 +40,14 @@ public class LifetimeController {
     public void pause() {
         if (!this.paused && this.running && this.renderer.audioExecutor == null) {
             this.paused = true;
-            this.pausedAt = System.currentTimeMillis();
+            this.pausedAt = System.nanoTime();
         }
     }
 
     public void resume() {
         if (this.paused && this.running) {
             this.paused = false;
-            long pauseDuration = System.currentTimeMillis() - this.pausedAt;
+            long pauseDuration = System.nanoTime() - this.pausedAt;
             this.startTime += pauseDuration;
         }
     }
@@ -52,9 +55,9 @@ public class LifetimeController {
     public boolean shouldUpdateFrame(int fps) {
         if (this.paused) return false;
 
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
 
-        double frameInterval = 1000.0D / (double) fps;
+        double frameInterval = NANOS_TO_SECONDS / (double) fps;
         double elapsed = now - this.lastFrameTime;
 
         if (elapsed >= frameInterval) {
@@ -83,11 +86,11 @@ public class LifetimeController {
     }
 
     public double elapsedSeconds() {
-        return (double) this.elapsedTime / 1000D;
+        return (double) this.elapsedTime / NANOS_TO_SECONDS;
     }
 
     public void endRestart() {
-        if (this.elapsedTime >= this.duration) {
+        if (this.elapsedTime >= this.duration * NANOS_TO_MILLIS) {
             this.renderer.shutdown();
             this.renderer.setup();
         }
@@ -96,14 +99,14 @@ public class LifetimeController {
     public void lagSpikeRestart() {
         if (this.lagSpikeDetected) {
             this.lagSpikeDetected = false;
-            long current = System.currentTimeMillis();
+            long current = System.nanoTime();
             if (this.lastLagSpikeRestart == -1) {
                 this.lastLagSpikeRestart = current;
                 return;
             }
-            if (current - this.lastLagSpikeRestart < 5000) return;
+            if (current - this.lastLagSpikeRestart < 5_000_000_000L) return;
 
-            long restartStartTime = System.currentTimeMillis();
+            long restartStartTime = System.nanoTime();
             double targetSeconds = this.elapsedSeconds();
             String sec = String.valueOf(targetSeconds);
 
@@ -118,12 +121,12 @@ public class LifetimeController {
             if (hasVideo) this.renderer.videoExecutor.setup(sec);
             if (hasAudio) this.renderer.audioExecutor.setup(sec);
 
-            long restartDuration = System.currentTimeMillis() - restartStartTime;
+            long restartDuration = System.nanoTime() - restartStartTime;
             this.startTime += restartDuration;
 
-            NarutoLoading.LOGGER.info("{}Restart completed, compensated {} ms", NarutoLoading.info(), restartDuration);
+            NarutoLoading.LOGGER.info("{}Restart completed, compensated {} ms", NarutoLoading.info(), restartDuration / NANOS_TO_MILLIS);
 
-            this.lastLagSpikeRestart = System.currentTimeMillis();
+            this.lastLagSpikeRestart = System.nanoTime();
         }
     }
 
@@ -131,7 +134,7 @@ public class LifetimeController {
         if (this.syncSoundEngine) {
             this.syncSoundEngine = false;
             if (this.renderer.audioExecutor != null) {
-                long syncStartTime = System.currentTimeMillis();
+                long syncStartTime = System.nanoTime();
                 double syncTime = this.elapsedSeconds();
 
                 NarutoLoading.LOGGER.info("{}Syncing audio to {} seconds after sound engine reload", NarutoLoading.info(), syncTime);
@@ -143,7 +146,7 @@ public class LifetimeController {
                     this.renderer.videoExecutor.setup(String.valueOf(syncTime));
                 }
 
-                long syncDuration = System.currentTimeMillis() - syncStartTime;
+                long syncDuration = System.nanoTime() - syncStartTime;
                 this.startTime += syncDuration;
             }
         }
