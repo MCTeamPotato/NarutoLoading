@@ -40,7 +40,7 @@ public class LifetimeController {
         }
     }
 
-    public boolean shouldUpdateFrame(int fps) {
+    public boolean shouldUpdateFrame(double fps) {
         if (this.paused) return false;
         long now = System.nanoTime();
 
@@ -50,7 +50,7 @@ public class LifetimeController {
         }
 
         double intervalNanos = (double) now - (double) this.lastFetchFrameTime;
-        if (intervalNanos >= (1_000_000_000.0 / (double) fps)) {
+        if (intervalNanos >= (1_000_000_000.0 / fps)) {
             this.lastFetchFrameTime = now;
             return true;
         } else {

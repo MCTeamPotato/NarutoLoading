@@ -14,6 +14,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -31,9 +32,10 @@ public final class NarutoVideoExecutor {
     private final LifetimeController lifetime;
 
     private final Supplier<String> ffmpeg, widthString, heightString, video;
-    private final IntSupplier width, height, fps;
+    private final IntSupplier width, height;
+    private final DoubleSupplier fps;
 
-    public NarutoVideoExecutor(LifetimeController lifetime, Supplier<String> ffmpeg, Supplier<String> widthString, Supplier<String> heightString, Supplier<String> video, IntSupplier width, IntSupplier height, IntSupplier fps) {
+    public NarutoVideoExecutor(LifetimeController lifetime, Supplier<String> ffmpeg, Supplier<String> widthString, Supplier<String> heightString, Supplier<String> video, IntSupplier width, IntSupplier height, DoubleSupplier fps) {
         this.lifetime = lifetime;
         this.ffmpeg = ffmpeg;
         this.widthString = widthString;
@@ -51,7 +53,7 @@ public final class NarutoVideoExecutor {
             thread.setDaemon(true);
             return thread;
         });
-        this.frameIndex = (long) (Double.parseDouble(sec) * this.fps.getAsInt());
+        this.frameIndex = (long) (Double.parseDouble(sec) * this.fps.getAsDouble());
         this.frameQueue = new LinkedBlockingQueue<>(BaseEnv.narutoConfig.bufferSize);
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
@@ -116,7 +118,7 @@ public final class NarutoVideoExecutor {
 
         boolean hasSkipping = false;
 
-        while (frame != null && ((double) frame.frameIndex()) / ((double) this.fps.getAsInt()) < elapsedSeconds) {
+        while (frame != null && ((double) frame.frameIndex()) / ((double) this.fps.getAsDouble()) < elapsedSeconds) {
             frame.image.close();
             frame = this.frameQueue.poll();
             hasSkipping = true;

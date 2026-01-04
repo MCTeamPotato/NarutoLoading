@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VideoArgReader {
-    private int fps = 0;
+    private double fps = 0D;
     private long duration = 0L;
 
     private final String video;
@@ -30,7 +30,7 @@ public class VideoArgReader {
         NarutoLoading.LOGGER.info("{}NarutoLoading video duration: {}", NarutoLoading.info(), this.duration);
     }
 
-    public int fps() {
+    public double fps() {
         return this.fps;
     }
 
@@ -42,7 +42,7 @@ public class VideoArgReader {
         static final Pattern FPS = Pattern.compile("\"avg_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
         static final Pattern DURATION = Pattern.compile("\"duration\"\\s*:\\s*\"([0-9.]+)\"");
 
-        static int getFps(String json) {
+        static double getFps(String json) {
             if (json != null) {
                 Matcher matcher = FPS.matcher(json);
 
@@ -50,7 +50,7 @@ public class VideoArgReader {
                     double num = Double.parseDouble(matcher.group(1));
                     double den = Double.parseDouble(matcher.group(2));
                     if (den != 0) {
-                        return (int) (num / den);
+                        return num / den;
                     }
                 }
             }
