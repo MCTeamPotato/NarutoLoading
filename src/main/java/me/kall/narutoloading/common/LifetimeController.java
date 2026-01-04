@@ -29,29 +29,29 @@ public class LifetimeController {
     public void pause() {
         if (!this.paused && this.running && this.renderer.audioExecutor == null) {
             this.paused = true;
-            this.pausedAt = System.currentTimeMillis();
+            this.pausedAt = System.nanoTime();
         }
     }
 
     public void resume() {
         if (this.paused && this.running) {
             this.paused = false;
-            this.absoluteSetupTime += System.currentTimeMillis() - this.pausedAt;
+            this.absoluteSetupTime += System.nanoTime() - this.pausedAt;
         }
     }
 
     public boolean shouldUpdateFrame(int fps) {
         if (this.paused) return false;
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
 
         if (this.lastFetchFrameTime == -1L) {
             this.lastFetchFrameTime = now;
             return true;
         }
 
-        double intervalMillis = (double) now - (double) this.lastFetchFrameTime;
+        double intervalNanos = (double) now - (double) this.lastFetchFrameTime;
         this.lastFetchFrameTime = now;
-        return intervalMillis >= (1000.0 / (double) fps);
+        return intervalNanos >= (1_000_000_000.0 / (double) fps);
     }
 
     public void start() {
@@ -71,7 +71,7 @@ public class LifetimeController {
     }
 
     public long elapsedMillis() {
-        return System.currentTimeMillis() - this.absoluteSetupTime;
+        return (System.nanoTime() - this.absoluteSetupTime) / 1_000_000L;
     }
 
     public void endRestart() {
@@ -86,14 +86,14 @@ public class LifetimeController {
         if (this.lagSpikeDetected) {
             this.lagSpikeDetected = false;
             if (this.lastLagSpikeRestart == -1) {
-                this.lastLagSpikeRestart = System.currentTimeMillis();
+                this.lastLagSpikeRestart = System.nanoTime();
                 return;
             }
 
-            if (this.lastLagSpikeRestart - System.currentTimeMillis() > 2000L) {
+            if (System.nanoTime() - this.lastLagSpikeRestart > 2_000_000_000L) {
                 NarutoLoading.LOGGER.warn("Lag spike detected, restarting video and audio from {} seconds", this.elapsedSeconds());
                 this.restart();
-                this.lastLagSpikeRestart = System.currentTimeMillis();
+                this.lastLagSpikeRestart = System.nanoTime();
             }
         }
     }

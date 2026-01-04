@@ -34,7 +34,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     @Override
     public void setup() {
         if (!this.isEnabled()) return;
-        long absoluteSetupTime = System.currentTimeMillis();
+        long absoluteSetupTime = System.nanoTime();
 
         this.videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
         if (!this.screen.isLocalSound()) {

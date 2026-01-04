@@ -36,7 +36,7 @@ public class NarutoRenderer {
 
     public void setup() {
         if (!this.isEnabled()) return;
-        long absoluteSetupTime = System.currentTimeMillis();
+        long absoluteSetupTime = System.nanoTime();
 
         this.lifetime = new LifetimeController(this, BaseEnv.noWorldVideoArgs.duration(), absoluteSetupTime);
 
