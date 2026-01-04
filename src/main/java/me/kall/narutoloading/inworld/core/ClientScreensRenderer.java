@@ -46,7 +46,7 @@ public class ClientScreensRenderer {
     }
 
     @SubscribeEvent
-    public static void renderTick(TickEvent.@NotNull ClientTickEvent event) {
+    public static void renderTick(TickEvent.@NotNull RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             if (CLIENT_SCREENS.isEmpty()) return;
             for (ObjectSet<NarutoInWorldRenderer> renderers : CLIENT_SCREENS.values()) {
