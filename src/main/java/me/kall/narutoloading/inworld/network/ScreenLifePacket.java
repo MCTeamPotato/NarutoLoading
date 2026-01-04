@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
@@ -17,6 +18,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -68,13 +70,19 @@ public class ScreenLifePacket {
                         NarutoLoading.LOGGER.info("{}Delivered {} for removal.", NarutoLoading.info(), this.inWorldScreen.toString());
                     }
                 } else {
+                    String videoPath = NarutoConfig.absolute(this.inWorldScreen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
+                    if (!validateVideoPath(videoPath)) {
+                        NarutoLoading.LOGGER.warn("{}Video file does not exist at path: {}. Skipping screen addition for {}", NarutoLoading.info(), videoPath, this.inWorldScreen.toLocalString());
+                        return;
+                    }
+
                     Optional.ofNullable(ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension())).ifPresent(renderers -> {
                         ObjectIterator<NarutoInWorldRenderer> renderersIterator = renderers.iterator();
                         while (renderersIterator.hasNext()) {
                             NarutoInWorldRenderer renderer = renderersIterator.next();
                             if (renderer.screen.equals(this.inWorldScreen)) {
-                                renderersIterator.remove();
                                 renderer.shutdown();
+                                renderersIterator.remove();
                                 break;
                             }
                         }
@@ -92,6 +100,20 @@ public class ScreenLifePacket {
             }
         });
         ctx.get().setPacketHandled(true);
+    }
+
+    private boolean validateVideoPath(String videoPath) {
+        if (videoPath == null || videoPath.isBlank()) {
+            NarutoLoading.LOGGER.warn("{}Video path is null or blank", NarutoLoading.info());
+            return false;
+        }
+
+        File videoFile = new File(videoPath);
+        boolean exists = videoFile.exists() && videoFile.isFile();
+
+        if (!exists) NarutoLoading.LOGGER.warn("{}Video file validation failed - Path: {}, Exists: {}, IsFile: {}", NarutoLoading.info(), videoPath, videoFile.exists(), videoFile.isFile());
+
+        return exists;
     }
 
     private @NotNull NarutoInWorldRenderer renderer() {

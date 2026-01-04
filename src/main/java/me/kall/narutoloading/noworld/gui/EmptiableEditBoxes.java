@@ -10,8 +10,8 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
-public class EmptyScreen extends Screen {
-    protected EmptyScreen(Component title) {
+public class EmptiableEditBoxes extends Screen {
+    protected EmptiableEditBoxes(Component title) {
         super(title);
     }
 
@@ -29,5 +29,7 @@ public class EmptyScreen extends Screen {
                 }
             }
         }
+
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 }

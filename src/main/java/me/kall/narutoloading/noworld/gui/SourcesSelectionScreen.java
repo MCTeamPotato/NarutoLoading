@@ -23,7 +23,7 @@ import org.lwjgl.glfw.GLFW;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
-public class SourcesSelectionScreen extends EmptyScreen {
+public class SourcesSelectionScreen extends EmptiableEditBoxes {
     protected final Screen lastScreen;
     protected EditBox videoBox;
     protected EditBox audioBox;

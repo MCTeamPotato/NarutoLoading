@@ -35,9 +35,9 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     public void setup() {
         if (!this.isEnabled()) return;
 
-        this.videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)), BaseEnv.ffmpegProvider.absoluteFFprobe);
+        this.videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
         if (!this.screen.isLocalSound()) {
-            this.audioExecutor = new NarutoAudioExecutor(() -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)), () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.absoluteAudioPath)), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            this.audioExecutor = new NarutoAudioExecutor(() -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName)), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         } else {
             this.audioExecutor = null;
             this.soundSetup = () -> {
@@ -58,7 +58,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         }
 
         this.lifetime = new LifetimeController(this, this.videoArgReader.duration());
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.absoluteVideoPath)), () -> 1280, () -> 720, this.videoArgReader::fps);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> 1280, () -> 720, this.videoArgReader::fps);
         this.windowSizeChecker = null;
         this.keyChecker = null;
 

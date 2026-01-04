@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-public class SourceNameScreen extends EmptyScreen {
+public class SourceNameScreen extends EmptiableEditBoxes {
     private final Screen lastScreen;
     private final String videoUrl;
     private final Consumer<String> onConfirm;
