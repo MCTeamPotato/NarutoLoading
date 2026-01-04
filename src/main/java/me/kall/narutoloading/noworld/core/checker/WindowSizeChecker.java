@@ -60,12 +60,12 @@ public final class WindowSizeChecker {
 
                 if (this.renderer.videoExecutor != null) {
                     this.renderer.videoExecutor.shutdown();
-                    this.renderer.videoExecutor.setup(currentSecond);
+                    this.renderer.videoExecutor.setup();
                 }
 
                 if (this.renderer.audioExecutor != null) {
                     this.renderer.audioExecutor.shutdown();
-                    this.renderer.audioExecutor.setup(currentSecond);
+                    this.renderer.audioExecutor.setup();
                 }
             }
 

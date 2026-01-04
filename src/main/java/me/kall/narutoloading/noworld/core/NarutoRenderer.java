@@ -58,7 +58,7 @@ public class NarutoRenderer {
         if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime != null && this.lifetime.shouldUpdateFrame(BaseEnv.noWorldVideoArgs.fps()) && this.videoExecutor != null) {
-            NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
+            NativeImage frame = this.videoExecutor.fetchImage();
             if (frame != null) {
                 this.setupLocalSound();
                 this.dynamicTexture.setPixels(frame);
@@ -79,7 +79,6 @@ public class NarutoRenderer {
         if (this.isEnabled()) {
 
             if (this.lifetime != null) {
-                this.lifetime.resume();
                 this.lifetime.syncSoundEngine();
                 this.lifetime.lagSpikeRestart();
                 this.lifetime.endRestart();
