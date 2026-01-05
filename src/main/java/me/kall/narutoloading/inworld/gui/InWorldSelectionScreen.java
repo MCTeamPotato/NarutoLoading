@@ -71,13 +71,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     protected void editBoxes(int centerX, int boxWidth, int boxHeight, int editBoxSpacing) {
         this.widthBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, 95, boxHeight, VIDEO_WIDTH);
-        this.widthBox.setMaxLength(5);
+        this.widthBox.setMaxLength(1024);
         this.widthBox.setValue(String.valueOf(this.renderer.screen.videoWidth()));
         this.widthBox.setFilter(this::validSize);
         this.addRenderableWidget(this.widthBox);
 
         this.heightBox = new EditBox(this.font, centerX + 5, this.currentY, 95, boxHeight, VIDEO_HEIGHT);
-        this.heightBox.setMaxLength(5);
+        this.heightBox.setMaxLength(1024);
         this.heightBox.setValue(String.valueOf(this.renderer.screen.videoHeight()));
         this.heightBox.setFilter(this::validSize);
         this.addRenderableWidget(this.heightBox);
@@ -85,16 +85,15 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.currentY += boxHeight + editBoxSpacing;
 
         this.volumeBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, VOLUME);
-        this.volumeBox.setMaxLength(5);
+        this.volumeBox.setMaxLength(1024);
         this.volumeBox.setValue(String.valueOf(this.renderer.screen.soundVolume()));
         this.volumeBox.setFilter(this::validVolume);
         this.addRenderableWidget(this.volumeBox);
-        this.currentY += boxHeight + editBoxSpacing;
     }
 
     protected void checkBoxes(int centerX, int boxHeight) {
         int checkWidth = 200;
-        int checkBoxSpacing = 10;
+        int checkBoxSpacing = 5;
 
         this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
         this.addRenderableWidget(this.localSoundCheck);

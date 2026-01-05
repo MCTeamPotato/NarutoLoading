@@ -51,7 +51,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
 
         int boxWidth = 200;
         int boxHeight = 20;
-        int editBoxSpacing = 25;
+        int editBoxSpacing = 18;
 
         this.currentY = 15;
 
@@ -68,6 +68,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         this.currentY += boxHeight + editBoxSpacing;
 
         this.editBoxes(centerX, boxWidth, boxHeight, editBoxSpacing);
+        this.currentY += boxHeight + 5;
 
         this.checkBoxes(centerX, boxHeight);
 
