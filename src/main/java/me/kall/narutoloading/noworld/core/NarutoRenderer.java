@@ -15,6 +15,9 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
+
 public class NarutoRenderer {
     public static final NarutoRenderer INSTANCE = new NarutoRenderer();
 
@@ -29,6 +32,14 @@ public class NarutoRenderer {
     public @Nullable WindowSizeChecker windowSizeChecker;
     public @Nullable KeyChecker keyChecker;
 
+    private final IntSupplier textureWidth = () -> BaseEnv.narutoConfig.width();
+    private final IntSupplier textureHeight = () -> BaseEnv.narutoConfig.height();
+    private final Supplier<String> absoluteVideoPath = () -> BaseEnv.narutoConfig.absoluteVideoPath;
+    private final Supplier<String> absoluteAudioPath = () -> BaseEnv.narutoConfig.absoluteAudioPath;
+
+    protected double fps;
+    protected long duration;
+
     public NarutoRenderer() {
         this.windowSizeChecker = this.runInLevel() ? null : new WindowSizeChecker(this);
         this.keyChecker = this.runInLevel() ? null : new KeyChecker(this);
@@ -38,26 +49,55 @@ public class NarutoRenderer {
         if (!this.isEnabled()) return;
         long absoluteSetupTime = System.nanoTime();
 
-        this.lifetime = new LifetimeController(this, BaseEnv.noWorldVideoArgs.duration(), absoluteSetupTime);
+        this.readVideoArg();
+        this.lifetime = new LifetimeController(this, this.duration, absoluteSetupTime);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> this.fps);
 
-        this.audioExecutor = new NarutoAudioExecutor(() -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.absoluteAudioPath, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> BaseEnv.noWorldVideoArgs.fps());
+        this.setupSound();
+        this.setupTexture();
+        this.videoExecutor.setup();
+        if (this.audioExecutor != null) this.audioExecutor.setup();
+        this.lifetime.start();
+    }
 
+    protected void readVideoArg() {
+        this.fps = BaseEnv.noWorldVideoArgs.fps();
+        this.duration = BaseEnv.noWorldVideoArgs.duration();
+    }
+
+    protected void setupSound() {
+        this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
+    }
+
+    protected void setupTexture() {
         if (this.dynamicTexture != null) return;
-        this.dynamicTexture = new DynamicTexture(BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
+        this.dynamicTexture = new DynamicTexture(this.textureWidth().getAsInt(), this.textureHeight().getAsInt(), false);
         if (this.textureLocation == null) {
             this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
             NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }
-        this.videoExecutor.setup();
-        this.audioExecutor.setup();
-        this.lifetime.start();
+    }
+
+    protected Supplier<String> absoluteVideoPath() {
+        return this.absoluteVideoPath;
+    }
+
+    protected Supplier<String> absoluteAudioPath() {
+        return this.absoluteAudioPath;
+    }
+
+    protected IntSupplier textureWidth() {
+        return this.textureWidth;
+    }
+
+    protected IntSupplier textureHeight() {
+        return this.textureHeight;
     }
 
     public ResourceLocation nextFrame() {
         if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
-        if (this.lifetime != null && this.lifetime.shouldUpdateFrame(BaseEnv.noWorldVideoArgs.fps()) && this.videoExecutor != null) {
+        if (this.lifetime != null && this.lifetime.shouldUpdateFrame(this.fps) && this.videoExecutor != null) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
                 this.setupLocalSound();

@@ -119,9 +119,10 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.setup();
         }
 
-        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
+        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(inWorldScreen));
     }
 
+    //TODO: douyin requires cookies for download, we need to investigate into it.
     private void handleUrlDownload(String videoUrl, String audioUrl, InWorldScreen inWorldScreen, String folderName) {
         Path outputDir = YtDlpDownloader.getDefaultOutputDir(folderName);
 

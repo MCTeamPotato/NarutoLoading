@@ -1,49 +1,48 @@
 package me.kall.narutoloading.inworld.core;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
-import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
+
 public class NarutoInWorldRenderer extends NarutoRenderer {
-    private @Nullable Runnable soundSetup;
+    private @Nullable Runnable soundTrigger;
     private @Nullable Runnable soundShutdown;
 
     public final InWorldScreen screen;
+    private final Supplier<String> absoluteVideoPath;
+    private final Supplier<String> absoluteAudioPath;
 
     public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
         this.screen = screen;
+        this.absoluteVideoPath = () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
+        this.absoluteAudioPath = () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName));
     }
 
     @Override
-    public void setup() {
-        if (!this.isEnabled()) return;
-        long absoluteSetupTime = System.nanoTime();
-
-        VideoArgReader videoArgReader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
+    protected void setupSound() {
         if (!this.screen.isLocalSound()) {
-            this.audioExecutor = new NarutoAudioExecutor(() -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName)), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         } else {
             this.audioExecutor = null;
-            this.soundSetup = () -> {
+            this.soundTrigger = () -> {
                 LocalPlayer player = Minecraft.getInstance().player;
                 ClientLevel level = Minecraft.getInstance().level;
                 if (player != null && this.screen.getLocalSound() != InWorldScreen.NO_LOCAL_SOUND && level != null) {
-                    Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(screen.getLocalSound()));
-                    level.playSeededSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), soundEvent, SoundSource.BLOCKS, 4.0F, 1.0F, level.random.nextLong());
+                    level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.getLocalSound())), SoundSource.BLOCKS, 4.0F, 1.0F, level.random.nextLong());
                     NarutoLoading.LOGGER.info("{}Local sound {} played at [{}, {}, {}]", NarutoLoading.info(), this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
@@ -54,29 +53,41 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 }
             };
         }
+    }
 
-        this.lifetime = new LifetimeController(this, videoArgReader.duration(), absoluteSetupTime);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> "1280", () -> "720", () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), () -> 1280, () -> 720, videoArgReader::fps);
+    @Override
+    protected void readVideoArg() {
+        VideoArgReader reader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
+        this.fps = reader.fps();
+        this.duration = reader.duration();
+    }
 
-        if (this.dynamicTexture == null) {
-            this.dynamicTexture = new DynamicTexture(1280, 720, false);
-            if (this.textureLocation == null) {
-                this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
-                NarutoLoading.LOGGER.info("{}NarutoInWorldRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
-            }
-        }
+    @Override
+    protected Supplier<String> absoluteVideoPath() {
+        return this.absoluteVideoPath;
+    }
 
-        this.lifetime.start();
+    @Override
+    protected Supplier<String> absoluteAudioPath() {
+        return this.absoluteAudioPath;
+    }
 
-        this.videoExecutor.setup();
-        if (this.audioExecutor != null) this.audioExecutor.setup();
+    //TODO: Customize these in InWorldSelectionScreen
+    @Override
+    protected IntSupplier textureWidth() {
+        return () -> 1280;
+    }
+
+    @Override
+    protected IntSupplier textureHeight() {
+        return () -> 720;
     }
 
     @Override
     protected void setupLocalSound() {
-        if (this.soundSetup != null) {
-            this.soundSetup.run();
-            this.soundSetup = null;
+        if (this.soundTrigger != null) {
+            this.soundTrigger.run();
+            this.soundTrigger = null;
         }
     }
 
