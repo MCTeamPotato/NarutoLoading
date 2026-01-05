@@ -11,13 +11,16 @@ import java.util.concurrent.Executors;
 
 public class AudioConverter {
     private final String absoluteSourcePath;
+
     private final String absoluteFFmpegPath;
     private final String absoluteFFprobePath;
+
     private final ExecutorService converter = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "NarutoAudioConverter");
         thread.setDaemon(true);
         return thread;
     });
+    
     public String converted = NarutoLoading.BLANK;
 
     public AudioConverter(String absoluteSourcePath, String absoluteFFmpegPath, String absoluteFFprobePath) {
@@ -49,7 +52,7 @@ public class AudioConverter {
         }
 
         if (lowerName.endsWith(".ogg")) {
-            if (isMono(this.absoluteSourcePath)) {
+            if (this.isMono(this.absoluteSourcePath)) {
                 this.converted = this.absoluteSourcePath;
                 onDone.run();
                 return;
