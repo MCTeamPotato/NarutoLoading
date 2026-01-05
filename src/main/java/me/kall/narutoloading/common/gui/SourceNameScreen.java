@@ -1,5 +1,6 @@
-package me.kall.narutoloading.noworld.gui;
+package me.kall.narutoloading.common.gui;
 
+import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;

@@ -6,6 +6,7 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
+import me.kall.narutoloading.common.gui.SourceNameScreen;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
@@ -16,7 +17,6 @@ import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import me.kall.narutoloading.inworld.network.ClearScreenPacket;
 import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
-import me.kall.narutoloading.noworld.gui.SourceNameScreen;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -51,12 +51,22 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
     public static final Component VIDEO_WIDTH = Component.translatable("box.narutoloading.video_width");
     public static final Component VIDEO_HEIGHT = Component.translatable("box.narutoloading.video_height");
+    public static final Component VOLUME = Component.translatable("box.narutoloading.sound_volume");
 
     public static final Component CLEAR = Component.translatable("button.narutoloading.clear");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
         super(lastScreen);
         this.renderer = renderer;
+    }
+
+    @Override
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
+
+        graphics.drawCenteredString(this.font, VIDEO_WIDTH, this.widthBox.getX() + this.widthBox.getInnerWidth() / 2, this.widthBox.getY() - 12, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, VIDEO_HEIGHT, this.heightBox.getX() + this.heightBox.getInnerWidth() / 2, this.heightBox.getY() - 12, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, VOLUME, this.width / 2, this.volumeBox.getY() - 12, 0xFFFFFF);
     }
 
     protected void editBoxes(int centerX, int boxWidth, int boxHeight, int editBoxSpacing) {
@@ -74,7 +84,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         this.currentY += boxHeight + editBoxSpacing;
 
-        this.volumeBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, Component.translatable("box.narutoloading.sound_volume"));
+        this.volumeBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, VOLUME);
         this.volumeBox.setMaxLength(5);
         this.volumeBox.setValue(String.valueOf(this.renderer.screen.soundVolume()));
         this.volumeBox.setFilter(this::validVolume);
@@ -294,22 +304,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         super.tick();
         if (this.widthBox != null) this.widthBox.tick();
         if (this.heightBox != null) this.heightBox.tick();
-    }
-
-    @Override
-    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-
-        if (this.widthBox != null && this.heightBox != null) {
-            int centerX = this.width / 2;
-            graphics.drawString(this.font, VIDEO_WIDTH, centerX - 95, this.widthBox.getY() - 12, 0xFFFFFF);
-            graphics.drawString(this.font, VIDEO_HEIGHT, centerX + 10, this.heightBox.getY() - 12, 0xFFFFFF);
-
-            int width = width();
-            int height = height();
-            String ratio = String.format("%.2f:1", (float)width / height);
-            graphics.drawCenteredString(this.font, Component.literal(ratio), centerX, this.widthBox.getY() + 25, 0xAAAAAA);
-        }
     }
 
     @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)

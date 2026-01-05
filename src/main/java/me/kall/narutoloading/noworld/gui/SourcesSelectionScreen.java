@@ -5,6 +5,8 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.config.SourceCollector;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
+import me.kall.narutoloading.common.gui.EmptiableEditBoxes;
+import me.kall.narutoloading.common.gui.SourceNameScreen;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -51,9 +53,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         int boxHeight = 20;
         int editBoxSpacing = 25;
 
-        int totalHeight = boxHeight * 2 + editBoxSpacing + boxHeight * 3 + editBoxSpacing * 2 + boxHeight * 2 + editBoxSpacing;
-
-        this.currentY = Math.max(20, (this.height - totalHeight) / 2);
+        this.currentY = 15;
 
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);

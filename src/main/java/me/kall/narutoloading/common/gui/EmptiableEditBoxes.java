@@ -1,4 +1,4 @@
-package me.kall.narutoloading.noworld.gui;
+package me.kall.narutoloading.common.gui;
 
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.client.Minecraft;
