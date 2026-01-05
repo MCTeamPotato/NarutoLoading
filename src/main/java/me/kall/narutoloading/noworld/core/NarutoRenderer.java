@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -67,7 +68,7 @@ public class NarutoRenderer {
     }
 
     protected void setupSound() {
-        this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume());
     }
 
     protected void setupTexture() {
@@ -77,6 +78,10 @@ public class NarutoRenderer {
             this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
             NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }
+    }
+
+    protected DoubleSupplier soundVolume() {
+        return () -> BaseEnv.narutoConfig.volume;
     }
 
     protected Supplier<String> absoluteVideoPath() {

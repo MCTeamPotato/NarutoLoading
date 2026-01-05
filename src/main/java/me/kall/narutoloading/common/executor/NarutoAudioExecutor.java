@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 public final class NarutoAudioExecutor {
@@ -24,11 +25,13 @@ public final class NarutoAudioExecutor {
     private boolean selfContext = false;
 
     private final Supplier<String> video, audio, ffmpeg;
+    private final DoubleSupplier volume;
 
-    public NarutoAudioExecutor(Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg) {
+    public NarutoAudioExecutor(Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume) {
         this.video = video;
         this.audio = audio;
         this.ffmpeg = ffmpeg;
+        this.volume = volume;
     }
 
     public void setup() {
@@ -56,7 +59,7 @@ public final class NarutoAudioExecutor {
         AL.createCapabilities(ALC.getCapabilities());
 
         this.source = AL10.alGenSources();
-        AL10.alSourcef(this.source, AL10.AL_GAIN, BaseEnv.narutoConfig.volume);
+        AL10.alSourcef(this.source, AL10.AL_GAIN, (float) this.volume.getAsDouble());
 
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoAudioExecutor");

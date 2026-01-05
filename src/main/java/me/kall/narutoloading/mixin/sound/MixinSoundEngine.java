@@ -55,13 +55,13 @@ public abstract class MixinSoundEngine {
         if (player == null) return;
 
         InWorldScreen screen = renderer.screen;
-        if (screen.getLocalSound() == InWorldScreen.NO_LOCAL_SOUND) return;
+        if (screen.localSound() == InWorldScreen.NO_LOCAL_SOUND) return;
 
         ClientLevel level = Minecraft.getInstance().level;
         if (level != null) {
-            Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(screen.getLocalSound()));
+            Holder<SoundEvent> soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(screen.localSound()));
             level.playSeededSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), soundEvent, SoundSource.BLOCKS, 4.0F, 1.0F, level.random.nextLong());
         }
-        NarutoLoading.LOGGER.info("{}Replayed local sound {} at [{}, {}, {}] after sound engine reload", NarutoLoading.info(), screen.getLocalSound().toString(), screen.centerX(), screen.centerY(), screen.centerZ());
+        NarutoLoading.LOGGER.info("{}Replayed local sound {} at [{}, {}, {}] after sound engine reload", NarutoLoading.info(), screen.localSound().toString(), screen.centerX(), screen.centerY(), screen.centerZ());
     }
 }

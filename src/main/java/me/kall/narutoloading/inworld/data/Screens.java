@@ -31,6 +31,7 @@ public class Screens extends SavedData {
     private static final String VIDEO_KEY = "Video";
     private static final String AUDIO_KEY = "Audio";
     private static final String LOCAL_SOUND_KEY = "LocalSound";
+    private static final String SOUND_VOLUME = "SoundVolume";
     private static final String HIDE_INNER_KEY = "HideInner";
     private static final String VIDEO_WIDTH_KEY = "VideoWidth";
     private static final String VIDEO_HEIGHT_KEY = "VideoHeight";
@@ -44,7 +45,7 @@ public class Screens extends SavedData {
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getBoolean(HIDE_INNER_KEY), screenTag.getInt(VIDEO_WIDTH_KEY), screenTag.getInt(VIDEO_HEIGHT_KEY)));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getFloat(SOUND_VOLUME), screenTag.getBoolean(HIDE_INNER_KEY), screenTag.getInt(VIDEO_WIDTH_KEY), screenTag.getInt(VIDEO_HEIGHT_KEY)));
         }
 
         return screens;
@@ -63,7 +64,8 @@ public class Screens extends SavedData {
                 screenTag.putLongArray(CORNERS_KEY, inWorldScreen.toLongArray());
                 screenTag.putString(VIDEO_KEY, inWorldScreen.relativeVideoPath(NarutoLoading.BLANK));
                 screenTag.putString(AUDIO_KEY, inWorldScreen.relativeAudioPath(NarutoLoading.BLANK));
-                screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.getLocalSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
+                screenTag.putString(LOCAL_SOUND_KEY, Optional.ofNullable(inWorldScreen.localSound()).orElse(InWorldScreen.NO_LOCAL_SOUND).toString());
+                screenTag.putFloat(SOUND_VOLUME, inWorldScreen.soundVolume());
                 screenTag.putBoolean(HIDE_INNER_KEY, inWorldScreen.hideInner());
                 screenTag.putInt(VIDEO_HEIGHT_KEY, inWorldScreen.videoHeight());
                 screenTag.putInt(VIDEO_WIDTH_KEY, inWorldScreen.videoWidth());

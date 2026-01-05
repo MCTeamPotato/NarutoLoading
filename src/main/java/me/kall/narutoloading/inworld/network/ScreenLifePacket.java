@@ -32,7 +32,7 @@ public class ScreenLifePacket {
     }
 
     public ScreenLifePacket(@NotNull FriendlyByteBuf buf) {
-        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readBoolean(), buf.readInt(), buf.readInt());
+        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readInt());
         this.isRemoval = buf.readBoolean();
     }
 
@@ -41,7 +41,8 @@ public class ScreenLifePacket {
         buf.writeResourceLocation(this.inWorldScreen.dimension());
         buf.writeUtf(this.inWorldScreen.relativeVideoPath(NarutoLoading.BLANK));
         buf.writeUtf(this.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK));
-        buf.writeResourceLocation(this.inWorldScreen.getLocalSound());
+        buf.writeResourceLocation(this.inWorldScreen.localSound());
+        buf.writeFloat(this.inWorldScreen.soundVolume());
         buf.writeBoolean(this.inWorldScreen.hideInner());
         buf.writeInt(this.inWorldScreen.videoWidth());
         buf.writeInt(this.inWorldScreen.videoHeight());

@@ -24,7 +24,7 @@ public class EmptiableEditBoxes extends Screen {
 
         if (stateRightMouse && (stateRightShift || stateLeftShift)) {
             for (Renderable renderable : this.renderables) {
-                if (renderable instanceof EditBox editBox) {
+                if (renderable instanceof EditBox editBox && editBox.isFocused()) {
                     editBox.setValue(NarutoLoading.BLANK);
                 }
             }
