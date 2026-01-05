@@ -40,7 +40,7 @@ public class AudioConverter {
         File absoluteOutputPath = parentDir.resolve(fileName.substring(0, fileName.lastIndexOf(".")) + ".ogg").toFile();
 
         if (absoluteOutputPath.exists()) {
-            if (isMono(absoluteOutputPath.getAbsolutePath())) {
+            if (this.isMono(absoluteOutputPath.getAbsolutePath())) {
                 this.converted = absoluteOutputPath.getAbsolutePath();
                 onDone.run();
                 return;

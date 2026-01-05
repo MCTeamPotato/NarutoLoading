@@ -170,9 +170,20 @@ public class NarutoRenderer {
     }
 
     public void shutdown() {
-        if (this.audioExecutor != null) this.audioExecutor.shutdown();
-        if (this.videoExecutor != null) this.videoExecutor.shutdown();
-        if (this.lifetime != null) this.lifetime.stop();
+        if (this.audioExecutor != null) {
+            this.audioExecutor.shutdown();
+            this.audioExecutor = null;
+        }
+
+        if (this.videoExecutor != null) {
+            this.videoExecutor.shutdown();
+            this.videoExecutor = null;
+        }
+
+        if (this.lifetime != null) {
+            this.lifetime.stop();
+            this.lifetime = null;
+        }
 
         if (this.dynamicTexture != null) {
             this.dynamicTexture.close();

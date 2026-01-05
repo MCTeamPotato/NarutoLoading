@@ -88,6 +88,12 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (this.pause) return false;
+        return super.isEnabled();
+    }
+
+    @Override
     public boolean runInLevel() {
         return true;
     }

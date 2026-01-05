@@ -139,7 +139,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         if (videoFilename.startsWith("http")) {
             Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> handleUrlDownload(videoFilename, audioFileName, this.renderer.screen, folderName)));
         } else {
-            handleLocalFiles();
+            this.handleLocalFiles();
             Minecraft.getInstance().setScreen(this.lastScreen);
         }
     }
