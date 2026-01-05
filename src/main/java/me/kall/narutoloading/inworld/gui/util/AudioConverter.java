@@ -30,7 +30,7 @@ public class AudioConverter {
     }
 
     public void setup(Runnable onDone) {
-        File sourceFile = new File(absoluteSourcePath);
+        File sourceFile = new File(this.absoluteSourcePath);
         if (!sourceFile.exists() || !sourceFile.isFile()) return;
 
         String fileName = sourceFile.getName();
@@ -63,7 +63,7 @@ public class AudioConverter {
 
         this.converter.submit(() -> {
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder(this.absoluteFFmpegPath, "-i", absoluteSourcePath, "-vn", "-acodec", "libvorbis", "-ac", "1", "-q:a", "4", "-y", absoluteOutputPath.getAbsolutePath()).redirectErrorStream(true);
+                ProcessBuilder processBuilder = new ProcessBuilder(this.absoluteFFmpegPath, "-i", this.absoluteSourcePath, "-vn", "-acodec", "libvorbis", "-ac", "1", "-q:a", "4", "-y", absoluteOutputPath.getAbsolutePath()).redirectErrorStream(true);
 
                 Process process = processBuilder.start();
 
