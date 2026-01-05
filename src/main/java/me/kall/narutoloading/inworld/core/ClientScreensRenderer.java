@@ -41,7 +41,7 @@ public class ClientScreensRenderer {
                 }
             }
             CLIENT_SCREENS.clear();
-
+            HIDDEN_DISPLAYERS.clear();
         });
     }
 
