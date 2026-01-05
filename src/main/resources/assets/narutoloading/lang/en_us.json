@@ -4,6 +4,7 @@
   "box.narutoloading.hide_inner": "Hide Screen Blocks",
   "box.narutoloading.video_width": "Video Width",
   "box.narutoloading.video_height": "Video Height",
+  "box.narutoloading.sound_volume": "Sound Volume",
 
   "screen.narutoloading.selection": "Sources Selection",
   "screen.narutoloading.name": "Set Folder Name",

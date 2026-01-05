@@ -45,6 +45,8 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private EditBox widthBox;
     private EditBox heightBox;
 
+    private EditBox volumeBox;
+
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
     public static final Component VIDEO_WIDTH = Component.translatable("box.narutoloading.video_width");
@@ -70,6 +72,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.heightBox.setFilter(this::valid);
         this.addRenderableWidget(this.heightBox);
 
+        this.currentY += boxHeight + editBoxSpacing;
+
+        this.volumeBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, Component.translatable("box.narutoloading.sound_volume"));
+        this.volumeBox.setMaxLength(5);
+        this.volumeBox.setValue(String.valueOf(this.renderer.screen.soundVolume()));
+        this.volumeBox.setFilter(this::validVolume);
+        this.addRenderableWidget(this.volumeBox);
         this.currentY += boxHeight + editBoxSpacing;
     }
 
@@ -113,6 +122,16 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         }
     }
 
+    private boolean validVolume(@NotNull String value) {
+        if (value.isEmpty()) return true;
+        try {
+            float vol = Float.parseFloat(value);
+            return vol >= 0.0F && vol <= 10.0F;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     private int width() {
         try {
             int width = Integer.parseInt(this.widthBox.getValue());
@@ -128,6 +147,15 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             return height > 0 ? height : 720;
         } catch (NumberFormatException e) {
             return 720;
+        }
+    }
+
+    private float volume() {
+        try {
+            float vol = Float.parseFloat(this.volumeBox.getValue());
+            return vol >= 0.0F ? vol : 4.0F;
+        } catch (NumberFormatException e) {
+            return 4.0F;
         }
     }
 
@@ -148,6 +176,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.renderer.screen.setPath(this.videoBox.getValue(), this.audioBox.getValue().isBlank() ? this.videoBox.getValue() : this.audioBox.getValue());
         this.renderer.screen.setSize(this.width(), this.height());
         this.renderer.screen.setHideInner(this.hideInnerCheck.selected());
+        this.renderer.screen.setSoundVolume(this.volume());
 
         if (this.renderer.screen.hideInner()) {
             ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.renderer.screen.dimension(), key -> new LongOpenHashSet()).addAll(this.renderer.screen.areaInvolved());
@@ -221,8 +250,8 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private void finalizeUrlSetup() {
         Minecraft.getInstance().execute(() -> {
             this.renderer.screen.setSize(this.width(), this.height());
-
             this.renderer.screen.setHideInner(this.hideInnerCheck.selected());
+            this.renderer.screen.setSoundVolume(this.volume());
 
             if (this.renderer.screen.hideInner()) {
                 ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.renderer.screen.dimension(), key -> new LongOpenHashSet()).addAll(this.renderer.screen.areaInvolved());
