@@ -73,13 +73,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.widthBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, 95, boxHeight, VIDEO_WIDTH);
         this.widthBox.setMaxLength(5);
         this.widthBox.setValue(String.valueOf(this.renderer.screen.videoWidth()));
-        this.widthBox.setFilter(this::valid);
+        this.widthBox.setFilter(this::validSize);
         this.addRenderableWidget(this.widthBox);
 
         this.heightBox = new EditBox(this.font, centerX + 5, this.currentY, 95, boxHeight, VIDEO_HEIGHT);
         this.heightBox.setMaxLength(5);
         this.heightBox.setValue(String.valueOf(this.renderer.screen.videoHeight()));
-        this.heightBox.setFilter(this::valid);
+        this.heightBox.setFilter(this::validSize);
         this.addRenderableWidget(this.heightBox);
 
         this.currentY += boxHeight + editBoxSpacing;
@@ -122,7 +122,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         return this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName);
     }
 
-    private boolean valid(@NotNull String value) {
+    private boolean validSize(@NotNull String value) {
         if (value.isEmpty()) return true;
         try {
             int num = Integer.parseInt(value);
