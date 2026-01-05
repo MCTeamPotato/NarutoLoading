@@ -54,7 +54,6 @@ public final class InWorldScreen {
     }
 
     public void setPath(String relativeVideoPath, String relativeAudioPath) {
-        NarutoLoading.LOGGER.info("{} Video changed from {} to {}. Audio changed from {} to {}",  NarutoLoading.info(), this.relativeVideoPath, relativeVideoPath, this.relativeAudioPath, relativeAudioPath);
         this.relativeVideoPath = relativeVideoPath;
         this.relativeAudioPath = relativeAudioPath;
     }

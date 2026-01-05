@@ -19,8 +19,10 @@ public abstract class MixinResourceLoadStateTracker {
             for (ObjectSet<NarutoInWorldRenderer> renderers : ClientScreensRenderer.CLIENT_SCREENS.values()) {
                 for (NarutoInWorldRenderer renderer : renderers) {
                     NarutoLoading.LOGGER.info("{}Restarting {} after resource reload.", NarutoLoading.info(), renderer.screen.toString());
+                    renderer.pause = true;
                     renderer.shutdown();
                     renderer.setup();
+                    renderer.pause = false;
                 }
             }
         });

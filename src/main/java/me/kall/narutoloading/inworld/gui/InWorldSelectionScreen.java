@@ -160,13 +160,15 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
         Minecraft.getInstance().levelRenderer.allChanged();
 
+        this.renderer.pause = true;
         this.renderer.shutdown();
 
         if (this.localSoundCheck.selected()) {
-            setupLocalSound(this.renderer.screen);
+            this.setupLocalSound();
         } else {
             this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
             this.renderer.setup();
+            this.renderer.pause = false;
         }
 
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
@@ -207,48 +209,50 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     );
 
                     if (audioFuture != null) {
-                        audioFuture.thenRun(() -> finalizeUrlSetup(inWorldScreen));
+                        audioFuture.thenRun(this::finalizeUrlSetup);
                     }
                 } else {
-                    finalizeUrlSetup(inWorldScreen);
+                    this.finalizeUrlSetup();
                 }
             });
         }
     }
 
-    private void finalizeUrlSetup(InWorldScreen inWorldScreen) {
+    private void finalizeUrlSetup() {
         Minecraft.getInstance().execute(() -> {
-            inWorldScreen.setSize(this.width(), this.height());
+            this.renderer.screen.setSize(this.width(), this.height());
 
-            inWorldScreen.setHideInner(this.hideInnerCheck.selected());
+            this.renderer.screen.setHideInner(this.hideInnerCheck.selected());
 
-            if (inWorldScreen.hideInner()) {
-                ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(inWorldScreen.dimension(), key -> new LongOpenHashSet()).addAll(inWorldScreen.areaInvolved());
+            if (this.renderer.screen.hideInner()) {
+                ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.renderer.screen.dimension(), key -> new LongOpenHashSet()).addAll(this.renderer.screen.areaInvolved());
             } else {
-                LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(inWorldScreen.dimension());
+                LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(this.renderer.screen.dimension());
                 if (hiddenAreas != null) {
-                    hiddenAreas.removeAll(inWorldScreen.areaInvolved());
+                    hiddenAreas.removeAll(this.renderer.screen.areaInvolved());
                 }
             }
 
+            this.renderer.pause = true;
             this.renderer.shutdown();
 
             if (this.localSoundCheck.selected()) {
-                setupLocalSound(inWorldScreen);
+                this.setupLocalSound();
             } else {
-                inWorldScreen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
+                this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
                 this.renderer.setup();
+                this.renderer.pause = false;
             }
 
             NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
 
-            NarutoLoading.LOGGER.info("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), inWorldScreen.toString());
+            NarutoLoading.LOGGER.info("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), this.renderer.screen.toString());
         });
     }
 
-    private void setupLocalSound(@NotNull InWorldScreen inWorldScreen) {
-        inWorldScreen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
-        AudioConverter audioConverter = new AudioConverter(NarutoConfig.absolute(inWorldScreen.relativeAudioPath(NarutoLoading.BLANK)), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
+    private void setupLocalSound() {
+        this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
+        AudioConverter audioConverter = new AudioConverter(NarutoConfig.absolute(this.renderer.screen.relativeAudioPath(NarutoLoading.BLANK)), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
         audioConverter.setup(() -> {
             ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
             resourceZipGenerator.generate();

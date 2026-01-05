@@ -77,8 +77,6 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         this.buttons(centerX, buttonWidth, buttonHeight);
         this.addRenderableWidget(Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight).build());
         this.addRenderableWidget(Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build());
-
-        this.setInitialFocus(this.videoBox);
     }
 
     protected void editBoxes(int centerX, int boxWidth, int boxHeight, int editBoxSpacing) {}

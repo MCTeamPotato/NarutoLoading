@@ -51,6 +51,7 @@ public class ClientScreensRenderer {
             if (CLIENT_SCREENS.isEmpty()) return;
             for (ObjectSet<NarutoInWorldRenderer> renderers : CLIENT_SCREENS.values()) {
                 for (NarutoInWorldRenderer renderer : renderers) {
+                    if (renderer.pause) continue;
                     renderer.renderFrame(null);
                 }
             }

@@ -23,6 +23,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     private @Nullable Runnable soundShutdown;
 
     public final InWorldScreen screen;
+    public volatile boolean pause;
 
     public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
         this.screen = screen;
@@ -30,9 +31,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
     @Override
     protected void setupSound() {
-        if (!this.screen.isLocalSound()) {
-            this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
-        } else {
+        if (this.screen.isLocalSound()) {
             this.audioExecutor = null;
             this.soundTrigger = () -> {
                 LocalPlayer player = Minecraft.getInstance().player;
@@ -48,6 +47,8 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                     NarutoLoading.LOGGER.info("{}Local sound {} playing at [{}, {}, {}] is stopped", NarutoLoading.info(), this.screen.getLocalSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
+        } else {
+            this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg);
         }
     }
 
