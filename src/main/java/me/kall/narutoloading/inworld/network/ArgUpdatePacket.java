@@ -21,7 +21,7 @@ public class ArgUpdatePacket {
     }
 
     public ArgUpdatePacket(@NotNull FriendlyByteBuf buf) {
-        this.argSource = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readBoolean());
+        this.argSource = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readBoolean(), buf.readInt(), buf.readInt());
     }
 
     public void encode(@NotNull FriendlyByteBuf buf) {
@@ -31,6 +31,8 @@ public class ArgUpdatePacket {
         buf.writeUtf(this.argSource.relativeAudioPath(NarutoLoading.BLANK));
         buf.writeResourceLocation(this.argSource.getLocalSound());
         buf.writeBoolean(this.argSource.hideInner());
+        buf.writeInt(this.argSource.videoWidth());
+        buf.writeInt(this.argSource.videoHeight());
     }
 
     public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {

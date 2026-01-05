@@ -95,7 +95,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     }
 
     private void handleLocalFiles(String videoFilename, @NotNull String audioFileName, @NotNull InWorldScreen inWorldScreen) {
-        inWorldScreen.set(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
+        inWorldScreen.setPath(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
 
         inWorldScreen.setHideInner(this.hideInnerCheck.selected());
 
@@ -133,7 +133,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     if (downloadResult.success() && downloadResult.hasVideo()) {
                         Minecraft.getInstance().execute(() -> {
                             String relativePath = NarutoConfig.relative(downloadResult.videoPath());
-                            inWorldScreen.set(relativePath, relativePath);
+                            inWorldScreen.setPath(relativePath, relativePath);
                             NarutoLoading.LOGGER.info("{}Set video path to: {}", NarutoLoading.info(), relativePath);
                         });
                     }
@@ -150,7 +150,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                                     Minecraft.getInstance().execute(() -> {
                                         String relativePath = NarutoConfig.relative(downloadResult.audioPath());
                                         String currentVideo = inWorldScreen.relativeVideoPath(NarutoLoading.BLANK);
-                                        inWorldScreen.set(currentVideo, relativePath);
+                                        inWorldScreen.setPath(currentVideo, relativePath);
                                         NarutoLoading.LOGGER.info("{}Set audio path to: {}", NarutoLoading.info(), relativePath);
                                     });
                                 }

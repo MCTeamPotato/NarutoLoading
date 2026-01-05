@@ -23,7 +23,7 @@ public final class InWorldScreen {
     private final ResourceLocation dimension;
 
     private String relativeVideoPath = NarutoLoading.BLANK, relativeAudioPath = NarutoLoading.BLANK;
-    private boolean  hideInner = true;
+    private boolean hideInner = true;
     private ResourceLocation localSound = NO_LOCAL_SOUND;
 
     private LongSet areaInvolved;
@@ -31,6 +31,8 @@ public final class InWorldScreen {
 
     private int hashCode;
     private boolean genHash = true;
+
+    private int videoWidth = 1280, videoHeight = 720;
 
     public static final ResourceLocation NO_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "empty");
     public static final ResourceLocation HAS_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "pending");
@@ -51,9 +53,14 @@ public final class InWorldScreen {
         return this.relativeAudioPath.isBlank() ? fallback : this.relativeAudioPath;
     }
 
-    public void set(String absoluteVideoPath, String absoluteAudioPath) {
+    public void setPath(String absoluteVideoPath, String absoluteAudioPath) {
         this.relativeVideoPath = absoluteVideoPath;
         this.relativeAudioPath = absoluteAudioPath;
+    }
+
+    public void setSize(int videoWidth, int videoHeight) {
+        this.videoWidth = videoWidth;
+        this.videoHeight = videoHeight;
     }
 
     public void setLocalSound(ResourceLocation localSound) {
@@ -100,6 +107,14 @@ public final class InWorldScreen {
 
     public ResourceLocation getLocalSound() {
         return this.localSound;
+    }
+
+    public int videoWidth() {
+        return this.videoWidth;
+    }
+
+    public int videoHeight() {
+        return this.videoHeight;
     }
 
     public boolean hideInner() {
@@ -153,7 +168,7 @@ public final class InWorldScreen {
 
     @Override
     public @NotNull String toString() {
-        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [" + this.relativeVideoPath + "], Audio: [" + this.relativeAudioPath + ", LocalSound: [" + this.getLocalSound().toString() +"]}";
+        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [Path: " + this.relativeVideoPath + ", Width: " + this.videoWidth + ", Height: " + this.videoHeight + "], Audio: [" + this.relativeAudioPath + ", LocalSound: [" + this.getLocalSound().toString() +"]}";
     }
 
     private @NotNull AABB area() {
@@ -184,11 +199,12 @@ public final class InWorldScreen {
         return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
     }
 
-    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, ResourceLocation localSound, boolean hideInner) {
+    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, ResourceLocation localSound, boolean hideInner, int videoWidth, int videoHeight) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
-        inWorldScreen.set(video == null ? NarutoLoading.BLANK : video, audio == null ? NarutoLoading.BLANK : audio);
+        inWorldScreen.setPath(video == null ? NarutoLoading.BLANK : video, audio == null ? NarutoLoading.BLANK : audio);
         inWorldScreen.setLocalSound(localSound);
         inWorldScreen.setHideInner(hideInner);
+        inWorldScreen.setSize(videoWidth, videoHeight);
         return inWorldScreen;
     }
 
