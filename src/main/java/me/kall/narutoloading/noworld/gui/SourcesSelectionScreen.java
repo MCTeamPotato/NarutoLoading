@@ -67,6 +67,8 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         this.addRenderableWidget(this.audioBox);
         this.currentY += boxHeight + editBoxSpacing;
 
+        this.editBoxes(centerX, boxWidth, boxHeight, editBoxSpacing);
+
         this.checkBoxes(centerX, boxHeight);
 
         int buttonWidth = 80;
@@ -78,6 +80,8 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
 
         this.setInitialFocus(this.videoBox);
     }
+
+    protected void editBoxes(int centerX, int boxWidth, int boxHeight, int editBoxSpacing) {}
 
     protected void checkBoxes(int centerX, int boxHeight) {}
 

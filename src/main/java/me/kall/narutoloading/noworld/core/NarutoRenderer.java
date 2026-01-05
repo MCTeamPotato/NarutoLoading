@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.checker.KeyChecker;
@@ -51,7 +52,7 @@ public class NarutoRenderer {
 
         this.readVideoArg();
         this.lifetime = new LifetimeController(this, this.duration, absoluteSetupTime);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.widthString(), () -> BaseEnv.narutoConfig.heightString(), () -> BaseEnv.narutoConfig.absoluteVideoPath, () -> BaseEnv.narutoConfig.width(), () -> BaseEnv.narutoConfig.height(), () -> this.fps);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.absoluteVideoPath, this.textureWidth(), this.textureHeight(), () -> this.fps);
 
         this.setupSound();
         this.setupTexture();
@@ -61,8 +62,9 @@ public class NarutoRenderer {
     }
 
     protected void readVideoArg() {
-        this.fps = BaseEnv.noWorldVideoArgs.fps();
-        this.duration = BaseEnv.noWorldVideoArgs.duration();
+        VideoArgReader reader = new VideoArgReader(BaseEnv.narutoConfig.absoluteVideoPath, BaseEnv.ffmpegProvider.absoluteFFprobe);
+        this.fps = reader.fps();
+        this.duration = reader.duration();
     }
 
     protected void setupSound() {

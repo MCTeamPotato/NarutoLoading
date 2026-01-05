@@ -2,6 +2,8 @@
   "box.narutoloading.cullable": "Single-Sided Rendering",
   "box.narutoloading.local_sound": "Local Sound",
   "box.narutoloading.hide_inner": "Hide Screen Blocks",
+  "box.narutoloading.video_width": "Video Width",
+  "box.narutoloading.video_height": "Video Height",
 
   "screen.narutoloading.selection": "Sources Selection",
   "screen.narutoloading.name": "Set Folder Name",

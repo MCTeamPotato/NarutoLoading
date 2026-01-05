@@ -168,7 +168,7 @@ public final class InWorldScreen {
 
     @Override
     public @NotNull String toString() {
-        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [Path: " + this.relativeVideoPath + ", Width: " + this.videoWidth + ", Height: " + this.videoHeight + "], Audio: [" + this.relativeAudioPath + ", LocalSound: [" + this.getLocalSound().toString() +"]}";
+        return "Screen: {LeftBottom: [" + this.leftBottomCorner().toShortString() + "], LeftTop: [" + this.leftTopCorner().toShortString() + "], RightBottom: [" + this.rightBottomCorner().toShortString() + "], RightTop: [" + this.rightTopCorner().toShortString() + "], Dimension: [" + this.dimension().toString() + "], Video: [Path: " + this.relativeVideoPath + ", Width: " + this.videoWidth + ", Height: " + this.videoHeight + "], Audio: [" + this.relativeAudioPath + "], LocalSound: [" + this.getLocalSound().toString() +"]}";
     }
 
     private @NotNull AABB area() {

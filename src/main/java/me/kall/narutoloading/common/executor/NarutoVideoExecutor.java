@@ -31,15 +31,13 @@ public final class NarutoVideoExecutor {
 
     private final LifetimeController lifetime;
 
-    private final Supplier<String> ffmpeg, widthString, heightString, video;
+    private final Supplier<String> ffmpeg, video;
     private final IntSupplier width, height;
     private final DoubleSupplier fps;
 
-    public NarutoVideoExecutor(LifetimeController lifetime, Supplier<String> ffmpeg, Supplier<String> widthString, Supplier<String> heightString, Supplier<String> video, IntSupplier width, IntSupplier height, DoubleSupplier fps) {
+    public NarutoVideoExecutor(LifetimeController lifetime, Supplier<String> ffmpeg, Supplier<String> video, IntSupplier width, IntSupplier height, DoubleSupplier fps) {
         this.lifetime = lifetime;
         this.ffmpeg = ffmpeg;
-        this.widthString = widthString;
-        this.heightString = heightString;
         this.video = video;
         this.width = width;
         this.height = height;
@@ -60,7 +58,7 @@ public final class NarutoVideoExecutor {
                     this.ffmpeg.get(),
                     "-ss", sec,
                     "-i", this.video.get(),
-                    "-vf", "format=rgb24,scale=" + this.widthString.get() + ":" + this.heightString.get(),
+                    "-vf", "format=rgb24,scale=" + this.width.getAsInt() + ":" + this.height.getAsInt(),
                     "-pix_fmt", "rgb24",
                     "-f", "image2pipe",
                     "-vcodec", "rawvideo",
@@ -118,7 +116,7 @@ public final class NarutoVideoExecutor {
 
         boolean hasSkipping = false;
 
-        while (frame != null && ((double) frame.frameIndex()) / ((double) this.fps.getAsDouble()) < elapsedSeconds) {
+        while (frame != null && ((double) frame.frameIndex()) / this.fps.getAsDouble() < elapsedSeconds) {
             frame.image.close();
             frame = this.frameQueue.poll();
             hasSkipping = true;

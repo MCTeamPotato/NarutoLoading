@@ -19,8 +19,10 @@ import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
 import me.kall.narutoloading.noworld.gui.SourceNameScreen;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -40,14 +42,35 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private Checkbox localSoundCheck;
     private Checkbox hideInnerCheck;
 
+    private EditBox widthBox;
+    private EditBox heightBox;
+
     public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
     public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
+    public static final Component VIDEO_WIDTH = Component.translatable("box.narutoloading.video_width");
+    public static final Component VIDEO_HEIGHT = Component.translatable("box.narutoloading.video_height");
 
     public static final Component CLEAR = Component.translatable("button.narutoloading.clear");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
         super(lastScreen);
         this.renderer = renderer;
+    }
+
+    protected void editBoxes(int centerX, int boxWidth, int boxHeight, int editBoxSpacing) {
+        this.widthBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, 95, boxHeight, VIDEO_WIDTH);
+        this.widthBox.setMaxLength(5);
+        this.widthBox.setValue(String.valueOf(this.renderer.screen.videoWidth()));
+        this.widthBox.setFilter(this::valid);
+        this.addRenderableWidget(this.widthBox);
+
+        this.heightBox = new EditBox(this.font, centerX + 5, this.currentY, 95, boxHeight, VIDEO_HEIGHT);
+        this.heightBox.setMaxLength(5);
+        this.heightBox.setValue(String.valueOf(this.renderer.screen.videoHeight()));
+        this.heightBox.setFilter(this::valid);
+        this.addRenderableWidget(this.heightBox);
+
+        this.currentY += boxHeight + editBoxSpacing;
     }
 
     protected void checkBoxes(int centerX, int boxHeight) {
@@ -80,6 +103,34 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         return this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName);
     }
 
+    private boolean valid(@NotNull String value) {
+        if (value.isEmpty()) return true;
+        try {
+            int num = Integer.parseInt(value);
+            return num > 0 && num <= 7680;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private int width() {
+        try {
+            int width = Integer.parseInt(this.widthBox.getValue());
+            return width > 0 ? width : 1280;
+        } catch (NumberFormatException e) {
+            return 1280;
+        }
+    }
+
+    private int height() {
+        try {
+            int height = Integer.parseInt(this.heightBox.getValue());
+            return height > 0 ? height : 720;
+        } catch (NumberFormatException e) {
+            return 720;
+        }
+    }
+
     @Override
     protected void onDone() {
         String videoFilename = this.videoBox.getValue();
@@ -96,6 +147,8 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     private void handleLocalFiles(String videoFilename, @NotNull String audioFileName, @NotNull InWorldScreen inWorldScreen) {
         inWorldScreen.setPath(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
+
+        inWorldScreen.setSize(this.width(), this.height());
 
         inWorldScreen.setHideInner(this.hideInnerCheck.selected());
 
@@ -122,7 +175,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(inWorldScreen));
     }
 
-    //TODO: douyin requires cookies for download, we need to investigate into it.
     private void handleUrlDownload(String videoUrl, String audioUrl, InWorldScreen inWorldScreen, String folderName) {
         Path outputDir = YtDlpDownloader.getDefaultOutputDir(folderName);
 
@@ -169,6 +221,8 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     private void finalizeUrlSetup(InWorldScreen inWorldScreen) {
         Minecraft.getInstance().execute(() -> {
+            inWorldScreen.setSize(this.width(), this.height());
+
             inWorldScreen.setHideInner(this.hideInnerCheck.selected());
 
             if (inWorldScreen.hideInner()) {
@@ -205,6 +259,29 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             resourceZipGenerator.generate();
             resourceZipGenerator.reload(this.renderer);
         });
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.widthBox != null) this.widthBox.tick();
+        if (this.heightBox != null) this.heightBox.tick();
+    }
+
+    @Override
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
+
+        if (this.widthBox != null && this.heightBox != null) {
+            int centerX = this.width / 2;
+            graphics.drawString(this.font, VIDEO_WIDTH, centerX - 95, this.widthBox.getY() - 12, 0xFFFFFF);
+            graphics.drawString(this.font, VIDEO_HEIGHT, centerX + 10, this.heightBox.getY() - 12, 0xFFFFFF);
+
+            int width = width();
+            int height = height();
+            String ratio = String.format("%.2f:1", (float)width / height);
+            graphics.drawCenteredString(this.font, Component.literal(ratio), centerX, this.widthBox.getY() + 25, 0xAAAAAA);
+        }
     }
 
     @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)

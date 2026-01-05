@@ -2,6 +2,8 @@
   "box.narutoloading.cullable": "单面渲染",
   "box.narutoloading.local_sound": "本地音效",
   "box.narutoloading.hide_inner": "隐藏显示屏方块",
+  "box.narutoloading.video_width": "视频宽度",
+  "box.narutoloading.video_height": "视频高度",
 
   "screen.narutoloading.selection": "来源选择",
   "screen.narutoloading.name": "设置文件夹名称",

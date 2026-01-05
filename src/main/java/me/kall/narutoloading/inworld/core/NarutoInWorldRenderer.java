@@ -72,15 +72,14 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
         return this.absoluteAudioPath;
     }
 
-    //TODO: Customize these in InWorldSelectionScreen
     @Override
     protected IntSupplier textureWidth() {
-        return () -> 1280;
+        return this.screen::videoWidth;
     }
 
     @Override
     protected IntSupplier textureHeight() {
-        return () -> 720;
+        return this.screen::videoHeight;
     }
 
     @Override

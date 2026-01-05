@@ -59,14 +59,6 @@ public final class NarutoConfig {
         return height;
     }
 
-    public @NotNull String widthString() {
-        return String.valueOf(width());
-    }
-
-    public @NotNull String heightString() {
-        return String.valueOf(height());
-    }
-
     public NarutoConfig(boolean roll) {
         this.init(roll);
     }

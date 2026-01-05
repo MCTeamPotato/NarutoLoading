@@ -2,7 +2,6 @@ package me.kall.narutoloading.common.env;
 
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.ffmpeg.FFmpegProvider;
-import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpProvider;
 
 public final class BaseEnv {
@@ -11,7 +10,6 @@ public final class BaseEnv {
     public static NarutoConfig narutoConfig;
     public static volatile FFmpegProvider ffmpegProvider;
     public static volatile YtDlpProvider ytDlpProvider;
-    public static volatile VideoArgReader noWorldVideoArgs;
 
     private static volatile boolean available;
 
@@ -32,7 +30,6 @@ public final class BaseEnv {
                     ytDlpProvider.setup(() -> ytDlpProvider.shutdown());
                 }
 
-                noWorldVideoArgs = new VideoArgReader(narutoConfig.absoluteVideoPath, ffmpegProvider.absoluteFFprobe);
                 available = true;
 
                 if (narutoConfig.urlSource) ytDlpProvider.setup(() -> ytDlpProvider.shutdown());
