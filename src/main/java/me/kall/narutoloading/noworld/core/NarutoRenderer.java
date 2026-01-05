@@ -47,7 +47,7 @@ public class NarutoRenderer {
 
         this.readVideoArg();
         this.lifetime = new LifetimeController(this, this.duration, absoluteSetupTime);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, () -> BaseEnv.narutoConfig.absoluteVideoPath, this.textureWidth(), this.textureHeight(), () -> this.fps);
+        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps);
 
         this.setupSound();
         this.setupTexture();
