@@ -33,7 +33,7 @@ public class LifetimeController {
     }
 
     public void resume() {
-        if (this.paused && this.running) {
+        if (this.paused && this.running && this.renderer.audioExecutor == null) {
             this.paused = false;
             this.absoluteSetupTime += System.nanoTime() - this.pausedAt;
         }
@@ -111,7 +111,9 @@ public class LifetimeController {
     }
 
     private void restart() {
+        long restartStartTime = System.nanoTime();
         String elapsedSeconds = String.valueOf(this.elapsedSeconds());
+
         boolean hasVideo = this.renderer.videoExecutor != null;
         boolean hasAudio = this.renderer.audioExecutor != null;
 
@@ -120,5 +122,8 @@ public class LifetimeController {
 
         if (hasVideo) this.renderer.videoExecutor.setup(elapsedSeconds);
         if (hasAudio) this.renderer.audioExecutor.setup(elapsedSeconds);
+
+        long restartDuration = System.nanoTime() - restartStartTime;
+        this.absoluteSetupTime += restartDuration;
     }
 }

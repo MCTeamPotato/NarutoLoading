@@ -80,7 +80,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     }
 
     @Override
-    protected void setupLocalSound() {
+    protected void playLocalSound() {
         if (this.soundTrigger != null) {
             this.soundTrigger.run();
             this.soundTrigger = null;

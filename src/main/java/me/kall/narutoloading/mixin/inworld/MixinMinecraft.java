@@ -27,6 +27,14 @@ public abstract class MixinMinecraft {
                     lifetimeController.pause();
                 }
             }
+        } else {
+            for (ObjectSet<NarutoInWorldRenderer> renderers : ClientScreensRenderer.CLIENT_SCREENS.values()) {
+                for (NarutoInWorldRenderer renderer : renderers) {
+                    LifetimeController lifetimeController = renderer.lifetime;
+                    if (lifetimeController == null) continue;
+                    lifetimeController.resume();
+                }
+            }
         }
     }
 

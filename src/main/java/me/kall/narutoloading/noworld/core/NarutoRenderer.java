@@ -52,7 +52,11 @@ public class NarutoRenderer {
         this.setupSound();
         this.setupTexture();
         this.videoExecutor.setup();
-        if (this.audioExecutor != null) this.audioExecutor.setup();
+        if (this.audioExecutor != null) {
+            this.audioExecutor.setup();
+        } else {
+            this.playLocalSound();
+        }
         this.lifetime.start();
     }
 
@@ -97,7 +101,6 @@ public class NarutoRenderer {
         if (this.lifetime != null && this.lifetime.shouldUpdateFrame(this.fps) && this.videoExecutor != null) {
             NativeImage frame = this.videoExecutor.fetchImage(this.lifetime.elapsedSeconds());
             if (frame != null) {
-                this.setupLocalSound();
                 this.dynamicTexture.setPixels(frame);
                 this.dynamicTexture.upload();
                 frame.close();
@@ -106,7 +109,7 @@ public class NarutoRenderer {
         return this.textureLocation;
     }
 
-    protected void setupLocalSound() {}
+    protected void playLocalSound() {}
 
     public boolean isRunning() {
         return this.lifetime != null && this.lifetime.isRunning();
@@ -116,7 +119,6 @@ public class NarutoRenderer {
         if (this.isEnabled()) {
 
             if (this.lifetime != null) {
-                this.lifetime.resume();
                 this.lifetime.syncSoundEngine();
                 this.lifetime.lagSpikeRestart();
                 this.lifetime.endRestart();
