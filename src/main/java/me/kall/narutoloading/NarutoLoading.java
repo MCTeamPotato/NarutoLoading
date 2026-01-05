@@ -35,8 +35,6 @@ public final class NarutoLoading {
             forgeBus.addListener(NarutoRenderer.INSTANCE.windowSizeChecker::clientTick);
             //noinspection DataFlowIssue
             forgeBus.addListener(NarutoRenderer.INSTANCE.keyChecker::clientTick);
-
-            modBus.addListener(NarutoLoadingClient::onClientSetup);
         }
     }
 
