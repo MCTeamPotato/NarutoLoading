@@ -23,13 +23,9 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
     private @Nullable Runnable soundShutdown;
 
     public final InWorldScreen screen;
-    private final Supplier<String> absoluteVideoPath;
-    private final Supplier<String> absoluteAudioPath;
 
     public NarutoInWorldRenderer(@NotNull InWorldScreen screen) {
         this.screen = screen;
-        this.absoluteVideoPath = () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
-        this.absoluteAudioPath = () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName));
     }
 
     @Override
@@ -64,12 +60,12 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
     @Override
     protected Supplier<String> absoluteVideoPath() {
-        return this.absoluteVideoPath;
+        return () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
     }
 
     @Override
     protected Supplier<String> absoluteAudioPath() {
-        return this.absoluteAudioPath;
+        return () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName));
     }
 
     @Override

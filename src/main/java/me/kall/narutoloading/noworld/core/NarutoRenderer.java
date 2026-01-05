@@ -33,11 +33,6 @@ public class NarutoRenderer {
     public @Nullable WindowSizeChecker windowSizeChecker;
     public @Nullable KeyChecker keyChecker;
 
-    private final IntSupplier textureWidth = () -> BaseEnv.narutoConfig.width();
-    private final IntSupplier textureHeight = () -> BaseEnv.narutoConfig.height();
-    private final Supplier<String> absoluteVideoPath = () -> BaseEnv.narutoConfig.absoluteVideoPath;
-    private final Supplier<String> absoluteAudioPath = () -> BaseEnv.narutoConfig.absoluteAudioPath;
-
     protected double fps;
     protected long duration;
 
@@ -81,19 +76,19 @@ public class NarutoRenderer {
     }
 
     protected Supplier<String> absoluteVideoPath() {
-        return this.absoluteVideoPath;
+        return () -> BaseEnv.narutoConfig.absoluteVideoPath;
     }
 
     protected Supplier<String> absoluteAudioPath() {
-        return this.absoluteAudioPath;
+        return () -> BaseEnv.narutoConfig.absoluteAudioPath;
     }
 
     protected IntSupplier textureWidth() {
-        return this.textureWidth;
+        return () -> BaseEnv.narutoConfig.width();
     }
 
     protected IntSupplier textureHeight() {
-        return this.textureHeight;
+        return () -> BaseEnv.narutoConfig.height();
     }
 
     public ResourceLocation nextFrame() {

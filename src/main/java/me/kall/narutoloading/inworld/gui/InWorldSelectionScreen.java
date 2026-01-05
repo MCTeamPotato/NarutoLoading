@@ -135,29 +135,26 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     protected void onDone() {
         String videoFilename = this.videoBox.getValue();
         String audioFileName = this.audioBox.getValue();
-        InWorldScreen inWorldScreen = this.renderer.screen;
 
         if (videoFilename.startsWith("http")) {
-            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> handleUrlDownload(videoFilename, audioFileName, inWorldScreen, folderName)));
+            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> handleUrlDownload(videoFilename, audioFileName, this.renderer.screen, folderName)));
         } else {
-            handleLocalFiles(videoFilename, audioFileName, inWorldScreen);
+            handleLocalFiles();
             Minecraft.getInstance().setScreen(this.lastScreen);
         }
     }
 
-    private void handleLocalFiles(String videoFilename, @NotNull String audioFileName, @NotNull InWorldScreen inWorldScreen) {
-        inWorldScreen.setPath(videoFilename, audioFileName.isBlank() ? videoFilename : audioFileName);
+    private void handleLocalFiles() {
+        this.renderer.screen.setPath(this.videoBox.getValue(), this.audioBox.getValue().isBlank() ? this.videoBox.getValue() : this.audioBox.getValue());
+        this.renderer.screen.setSize(this.width(), this.height());
+        this.renderer.screen.setHideInner(this.hideInnerCheck.selected());
 
-        inWorldScreen.setSize(this.width(), this.height());
-
-        inWorldScreen.setHideInner(this.hideInnerCheck.selected());
-
-        if (inWorldScreen.hideInner()) {
-            ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(inWorldScreen.dimension(), key -> new LongOpenHashSet()).addAll(inWorldScreen.areaInvolved());
+        if (this.renderer.screen.hideInner()) {
+            ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.renderer.screen.dimension(), key -> new LongOpenHashSet()).addAll(this.renderer.screen.areaInvolved());
         } else {
-            LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(inWorldScreen.dimension());
+            LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(this.renderer.screen.dimension());
             if (hiddenAreas != null) {
-                hiddenAreas.removeAll(inWorldScreen.areaInvolved());
+                hiddenAreas.removeAll(this.renderer.screen.areaInvolved());
             }
         }
 
@@ -166,13 +163,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.renderer.shutdown();
 
         if (this.localSoundCheck.selected()) {
-            setupLocalSound(inWorldScreen);
+            setupLocalSound(this.renderer.screen);
         } else {
-            inWorldScreen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
+            this.renderer.screen.setLocalSound(InWorldScreen.NO_LOCAL_SOUND);
             this.renderer.setup();
         }
 
-        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(inWorldScreen));
+        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
     }
 
     private void handleUrlDownload(String videoUrl, String audioUrl, InWorldScreen inWorldScreen, String folderName) {
@@ -233,8 +230,6 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                     hiddenAreas.removeAll(inWorldScreen.areaInvolved());
                 }
             }
-
-            Minecraft.getInstance().levelRenderer.allChanged();
 
             this.renderer.shutdown();
 

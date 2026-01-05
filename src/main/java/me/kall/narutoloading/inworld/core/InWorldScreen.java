@@ -53,9 +53,10 @@ public final class InWorldScreen {
         return this.relativeAudioPath.isBlank() ? fallback : this.relativeAudioPath;
     }
 
-    public void setPath(String absoluteVideoPath, String absoluteAudioPath) {
-        this.relativeVideoPath = absoluteVideoPath;
-        this.relativeAudioPath = absoluteAudioPath;
+    public void setPath(String relativeVideoPath, String relativeAudioPath) {
+        NarutoLoading.LOGGER.info("{} Video changed from {} to {}. Audio changed from {} to {}",  NarutoLoading.info(), this.relativeVideoPath, relativeVideoPath, this.relativeAudioPath, relativeAudioPath);
+        this.relativeVideoPath = relativeVideoPath;
+        this.relativeAudioPath = relativeAudioPath;
     }
 
     public void setSize(int videoWidth, int videoHeight) {
