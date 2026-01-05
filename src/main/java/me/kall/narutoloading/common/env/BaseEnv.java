@@ -31,8 +31,6 @@ public final class BaseEnv {
                 }
 
                 available = true;
-
-                if (narutoConfig.urlSource) ytDlpProvider.setup(() -> ytDlpProvider.shutdown());
             }
 
             ffmpegProvider.shutdown();
