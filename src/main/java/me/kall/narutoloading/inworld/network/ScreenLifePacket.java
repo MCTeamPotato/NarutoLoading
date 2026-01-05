@@ -119,7 +119,7 @@ public class ScreenLifePacket {
         NarutoInWorldRenderer renderer = new NarutoInWorldRenderer(this.inWorldScreen);
 
         if (this.inWorldScreen.isLocalSound()) {
-            AudioConverter audioConverter = new AudioConverter(this.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg);
+            AudioConverter audioConverter = new AudioConverter(this.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();

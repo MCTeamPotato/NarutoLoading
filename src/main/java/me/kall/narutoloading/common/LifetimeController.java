@@ -1,7 +1,6 @@
 package me.kall.narutoloading.common;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 
 public class LifetimeController {
@@ -80,7 +79,6 @@ public class LifetimeController {
 
     public void endRestart() {
         if (this.elapsedMillis() >= this.duration) {
-            BaseEnv.setupEnv(true);
             this.renderer.shutdown();
             this.renderer.setup();
         }
