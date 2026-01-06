@@ -2,6 +2,14 @@
 ## Knowledge
 - We will auto-download ffmpeg and yt-dlp for you, unless your Minecraft or pc cannot link to GitHub, there is no need to manually download them.
 - We will create resourcepacks using your selected audio source if you enable "Local Sound" in the in-world setting screen, so if you invalidate the resourcepack that our audio player is using in your resourcepack selection gui, things may not work well.
+## Keys
+
+| Key      |Action                                  |
+| ------------------- |--------------------------------------- |
+| <code>F12</code>    |(no-world) Reload current video                    |
+| <code>Shift + F12</code> |(no-world) Roll random source                      |
+| <code>Ctrl + F12</code> |(no-world) Open source selection GUI               |
+| <code>Shift + Right Mouse</code> |(universal for no-world and in-world) Clear text in focused edit box (in GUI) |
 ## Single Video & Audio
 1. Put the video and audio files into the config directory of your game.
 2. Edit the narutoloading.json and adjust the videoFileName and audioFileName values to the files' names.
