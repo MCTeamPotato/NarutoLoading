@@ -41,50 +41,48 @@ public class ServerScreenChecker {
         return dx + dz;
     }
 
-    public static @Nullable BlockPos checkBorder(@NotNull BlockPos leftBottom, int width, int height, boolean isXAxis, @NotNull Predicate<BlockPos.MutableBlockPos> predicate) {
-
-        int minX = leftBottom.getX();
-        int minY = leftBottom.getY();
-        int minZ = leftBottom.getZ();
-        int maxX = isXAxis ? minX + width : minX;
-        int maxZ = isXAxis ? minZ : minZ + width;
-        int topY = minY + height - 1;
-
+    public static @Nullable BlockPos checkBorder(int minX, int y, int minZ, int maxX, int maxZ, int width, int height, boolean isXAxis, @NotNull Predicate<BlockPos.MutableBlockPos> predicate) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
-        for (int i = 0; i <= width; i++) {
+        for (int i = 0; i < width + 1; i++) {
             if (isXAxis) {
-                mutable.set(minX + i, minY, minZ);
+                mutable.set(minX + i, y, minZ);
             } else {
-                mutable.set(minX, minY, minZ + i);
+                mutable.set(minX, y, minZ + i);
             }
+
             if (!predicate.test(mutable)) {
                 return mutable.immutable();
             }
         }
 
-        for (int i = 0; i <= width; i++) {
+        int topY = y + height - 1;
+
+        for (int i = 0; i < width + 1; i++) {
             if (isXAxis) {
                 mutable.set(minX + i, topY, minZ);
             } else {
                 mutable.set(minX, topY, minZ + i);
             }
+
             if (!predicate.test(mutable)) {
                 return mutable.immutable();
             }
         }
 
-        for (int j = 1; j < height - 1; j++) {
-            mutable.set(minX, minY + j, minZ);
+        for (int j = 0; j < height; j++) {
+            mutable.set(minX, y + j, minZ);
+
             if (!predicate.test(mutable)) {
                 return mutable.immutable();
             }
 
             if (isXAxis) {
-                mutable.set(maxX, minY + j, minZ);
+                mutable.set(maxX, y + j, minZ);
             } else {
-                mutable.set(minX, minY + j, maxZ);
+                mutable.set(minX, y + j, maxZ);
             }
+
             if (!predicate.test(mutable)) {
                 return mutable.immutable();
             }
@@ -124,7 +122,7 @@ public class ServerScreenChecker {
                     int y = lastCorner.getY();
 
                     int width = dist(lastCorner, currentCorner);
-                    int height = forHeight(width);
+                    int height = forHeight(width + 1);
 
                     if (height == -1) {
                         player.displayClientMessage(Component.translatable("info.narutoloading.screen.invalid_size", String.valueOf(width + 1)), false);
@@ -135,8 +133,7 @@ public class ServerScreenChecker {
                     if (xAxis && maxX - minX != width) return;
                     if (!xAxis && maxZ - minZ != width) return;
 
-                    BlockPos leftBottom = new BlockPos(minX, y, minZ);
-                    BlockPos failedPos = checkBorder(leftBottom, width, height, xAxis, mutable -> Displayers.isDisplayer(level, mutable.asLong()));
+                    BlockPos failedPos = checkBorder(minX, y, minZ, maxX, maxZ, width, height, xAxis, mutable -> Displayers.isDisplayer(level, mutable.asLong()));
 
                     if (failedPos != null) {
                         player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", failedPos.toShortString()), false);

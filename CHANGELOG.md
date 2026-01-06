@@ -3,3 +3,4 @@
 - A number of bugs are fixed
 # 2.0.1
 - Fix HiddenDisplayers not working properly due to the update delay of level renderer.
+- Fix screen detection logic
