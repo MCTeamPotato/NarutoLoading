@@ -3,11 +3,18 @@ package me.kall.narutoloading.inworld.data;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
+@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class HiddenDisplayers {
     public static final Object2ObjectOpenHashMap<ResourceLocation, Long2IntOpenHashMap> HIDDEN_DISPLAYERS = new Object2ObjectOpenHashMap<>();
 
@@ -34,5 +41,10 @@ public class HiddenDisplayers {
             long next = areaInvolved.nextLong();
             if (displayers.addTo(next, -1) <= 1) displayers.remove(next);
         }
+    }
+
+    @SubscribeEvent
+    public static void logOutClean(ClientPlayerNetworkEvent.LoggingOut event) {
+        Minecraft.getInstance().execute(HiddenDisplayers.HIDDEN_DISPLAYERS::clear);
     }
 }

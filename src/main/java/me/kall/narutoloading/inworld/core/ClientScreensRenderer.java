@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import me.kall.narutoloading.inworld.ext.IFrustum;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -40,7 +39,6 @@ public class ClientScreensRenderer {
                 }
             }
             CLIENT_SCREENS.clear();
-            HiddenDisplayers.HIDDEN_DISPLAYERS.clear();
         });
     }
 
