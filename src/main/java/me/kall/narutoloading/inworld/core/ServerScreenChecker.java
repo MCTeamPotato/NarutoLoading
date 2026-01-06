@@ -1,7 +1,5 @@
 package me.kall.narutoloading.inworld.core;
 
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import me.kall.duplicationless.event.BlockChangeEvent;
 import me.kall.duplicationless.util.Executor;
@@ -23,20 +21,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.function.Predicate;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class ServerScreenChecker {
     private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
-
-    private static final Int2IntMap SCREEN_SIZES = new Int2IntOpenHashMap();
-
-    static {
-        for (int i = 1; i < 4096; i++) {
-            SCREEN_SIZES.put(16 * i, 9 * i);
-        }
-    }
 
     public static int dist(@NotNull BlockPos a, @NotNull BlockPos b) {
         if (a.getY() != b.getY()) return -1;
@@ -48,6 +40,65 @@ public class ServerScreenChecker {
         if (dx == 0 && dz == 0) return 0;
 
         return dx + dz;
+    }
+
+    public static @Nullable BlockPos checkBorder(@NotNull BlockPos leftBottom, int width, int height, boolean isXAxis, @NotNull Predicate<BlockPos.MutableBlockPos> predicate) {
+
+        int minX = leftBottom.getX();
+        int minY = leftBottom.getY();
+        int minZ = leftBottom.getZ();
+        int maxX = isXAxis ? minX + width : minX;
+        int maxZ = isXAxis ? minZ : minZ + width;
+        int topY = minY + height - 1;
+
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+
+        for (int i = 0; i <= width; i++) {
+            if (isXAxis) {
+                mutable.set(minX + i, minY, minZ);
+            } else {
+                mutable.set(minX, minY, minZ + i);
+            }
+            if (!predicate.test(mutable)) {
+                return mutable.immutable();
+            }
+        }
+
+        for (int i = 0; i <= width; i++) {
+            if (isXAxis) {
+                mutable.set(minX + i, topY, minZ);
+            } else {
+                mutable.set(minX, topY, minZ + i);
+            }
+            if (!predicate.test(mutable)) {
+                return mutable.immutable();
+            }
+        }
+
+        for (int j = 1; j < height - 1; j++) {
+            mutable.set(minX, minY + j, minZ);
+            if (!predicate.test(mutable)) {
+                return mutable.immutable();
+            }
+
+            if (isXAxis) {
+                mutable.set(maxX, minY + j, minZ);
+            } else {
+                mutable.set(minX, minY + j, maxZ);
+            }
+            if (!predicate.test(mutable)) {
+                return mutable.immutable();
+            }
+        }
+
+        return null;
+    }
+
+    private static int forHeight(int width) {
+        if (width % 16 != 0 || width < 16 || width >= 16 * 4096) {
+            return -1;
+        }
+        return (width * 9) / 16;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -74,7 +125,7 @@ public class ServerScreenChecker {
                     int y = lastCorner.getY();
 
                     int width = dist(lastCorner, currentCorner);
-                    int height = SCREEN_SIZES.getOrDefault(width + 1, -1);
+                    int height = forHeight(width);
 
                     if (height == -1) {
                         player.displayClientMessage(Component.translatable("info.narutoloading.screen.invalid_size", String.valueOf(width + 1)), false);
@@ -85,53 +136,12 @@ public class ServerScreenChecker {
                     if (xAxis && maxX - minX != width) return;
                     if (!xAxis && maxZ - minZ != width) return;
 
-                    BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+                    BlockPos leftBottom = new BlockPos(minX, y, minZ);
+                    BlockPos failedPos = checkBorder(leftBottom, width, height, xAxis, mutable -> Displayers.isDisplayer(level, mutable.asLong()));
 
-                    for (int i = 0; i < width + 1; i++) {
-                        if (xAxis) {
-                            mutable.set(minX + i, y, minZ);
-                        } else {
-                            mutable.set(minX, y, minZ + i);
-                        }
-
-                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
-                            player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
-                            return;
-                        }
-                    }
-
-                    int topY = y + height - 1;
-
-                    for (int i = 0; i < width + 1; i++) {
-                        if (xAxis) {
-                            mutable.set(minX + i, topY, minZ);
-                        } else {
-                            mutable.set(minX, topY, minZ + i);
-                        }
-
-                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
-                            player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
-                            return;
-                        }
-                    }
-
-                    for (int j = 0; j < height; j++) {
-                        mutable.set(minX, y + j, minZ);
-                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
-                            player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
-                            return;
-                        }
-
-                        if (xAxis) {
-                            mutable.set(maxX, y + j, minZ);
-                        } else {
-                            mutable.set(minX, y + j, maxZ);
-                        }
-
-                        if (!Displayers.isDisplayer(level, mutable.asLong())) {
-                            player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", mutable.toShortString()), false);
-                            return;
-                        }
+                    if (failedPos != null) {
+                        player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", failedPos.toShortString()), false);
+                        return;
                     }
 
                     InWorldScreen inWorldScreen = new InWorldScreen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);

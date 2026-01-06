@@ -1,8 +1,7 @@
 package me.kall.narutoloading.mixin.inworld;
 
-import it.unimi.dsi.fastutil.longs.LongSets;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockOcclusionCache;
-import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
+import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -19,7 +18,7 @@ public abstract class MixinBlockOcclusionCache {
     @Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true)
     private void skip(BlockState selfState, BlockGetter view, BlockPos pos, Direction facing, CallbackInfoReturnable<Boolean> cir) {
         ClientLevel level = Minecraft.getInstance().level;
-        if (level != null && ClientScreensRenderer.HIDDEN_DISPLAYERS.getOrDefault(level.dimension().location(), LongSets.emptySet()).contains(pos.asLong())) {
+        if (level != null && HiddenDisplayers.isHidden(level.dimension().location(), pos)) {
             cir.setReturnValue(false);
         }
     }

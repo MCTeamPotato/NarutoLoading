@@ -1,16 +1,14 @@
 package me.kall.narutoloading.inworld.gui;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
 import me.kall.narutoloading.common.gui.SourceNameScreen;
-import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
+import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import me.kall.narutoloading.inworld.gui.util.AudioConverter;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
@@ -188,12 +186,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.renderer.screen.setSoundVolume(this.volume());
 
         if (this.renderer.screen.hideInner()) {
-            ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.renderer.screen.dimension(), key -> new LongOpenHashSet()).addAll(this.renderer.screen.areaInvolved());
+            HiddenDisplayers.hide(this.renderer.screen);
         } else {
-            LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(this.renderer.screen.dimension());
-            if (hiddenAreas != null) {
-                hiddenAreas.removeAll(this.renderer.screen.areaInvolved());
-            }
+            HiddenDisplayers.reveal(this.renderer.screen);
         }
 
         Minecraft.getInstance().levelRenderer.allChanged();
@@ -263,12 +258,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.screen.setSoundVolume(this.volume());
 
             if (this.renderer.screen.hideInner()) {
-                ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.renderer.screen.dimension(), key -> new LongOpenHashSet()).addAll(this.renderer.screen.areaInvolved());
+                HiddenDisplayers.hide(this.renderer.screen);
             } else {
-                LongSet hiddenAreas = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(this.renderer.screen.dimension());
-                if (hiddenAreas != null) {
-                    hiddenAreas.removeAll(this.renderer.screen.areaInvolved());
-                }
+                HiddenDisplayers.reveal(this.renderer.screen);
             }
 
             this.renderer.pause = true;

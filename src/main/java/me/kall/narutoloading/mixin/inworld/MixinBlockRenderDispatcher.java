@@ -2,8 +2,7 @@ package me.kall.narutoloading.mixin.inworld;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.longs.LongSets;
-import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
+import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderType;
@@ -24,7 +23,7 @@ public abstract class MixinBlockRenderDispatcher {
     private void skip(BlockState state, BlockPos pos, BlockAndTintGetter blockAndTintGetter, PoseStack poseStack, VertexConsumer vertexConsumer, boolean checkSides, RandomSource randomSource, ModelData modelData, RenderType renderType, CallbackInfo ci) {
         ClientLevel clientLevel = Minecraft.getInstance().level;
         if (clientLevel == null) return;
-        if (ClientScreensRenderer.HIDDEN_DISPLAYERS.getOrDefault(clientLevel.dimension().location(), LongSets.emptySet()).contains(pos.asLong())) {
+        if (HiddenDisplayers.isHidden(clientLevel.dimension().location(), pos)) {
             ci.cancel();
         }
     }

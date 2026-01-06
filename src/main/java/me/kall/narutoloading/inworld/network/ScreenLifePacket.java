@@ -1,7 +1,5 @@
 package me.kall.narutoloading.inworld.network;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -11,9 +9,9 @@ import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
+import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import me.kall.narutoloading.inworld.gui.util.AudioConverter;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -64,11 +62,7 @@ public class ScreenLifePacket {
                                 break;
                             }
                         }
-                        LongSet hidden = ClientScreensRenderer.HIDDEN_DISPLAYERS.get(this.inWorldScreen.dimension());
-                        if (hidden != null) {
-                            hidden.removeAll(this.inWorldScreen.areaInvolved());
-                            Minecraft.getInstance().levelRenderer.allChanged();
-                        }
+                        HiddenDisplayers.reveal(this.inWorldScreen);
                         NarutoLoading.LOGGER.info("{}Delivered {} for removal.", NarutoLoading.info(), this.inWorldScreen.toString());
                     }
                 } else {
@@ -92,8 +86,7 @@ public class ScreenLifePacket {
                     NarutoInWorldRenderer renderer = renderer();
                     ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(renderer);
                     if (this.inWorldScreen.hideInner()) {
-                        ClientScreensRenderer.HIDDEN_DISPLAYERS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new LongOpenHashSet()).addAll(this.inWorldScreen.areaInvolved());
-                        Minecraft.getInstance().levelRenderer.allChanged();
+                        HiddenDisplayers.hide(this.inWorldScreen);
                     }
                     NarutoLoading.LOGGER.info("{}Delivered {} for addition.", NarutoLoading.info(), this.inWorldScreen.toString());
                 }

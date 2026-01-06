@@ -2,7 +2,6 @@ package me.kall.narutoloading.inworld.core;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -30,7 +29,6 @@ import org.joml.Matrix4f;
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<NarutoInWorldRenderer>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
-    public static final Object2ObjectMap<ResourceLocation, LongSet> HIDDEN_DISPLAYERS = new Object2ObjectOpenHashMap<>();
 
     @SubscribeEvent
     public static void logOutClean(ClientPlayerNetworkEvent.LoggingOut event) {
@@ -76,6 +74,7 @@ public class ClientScreensRenderer {
         Frustum frustum = minecraft.levelRenderer.getFrustum();
 
         for (NarutoInWorldRenderer renderer : renderers) {
+            if (!IFrustum.isVisible(frustum, renderer.screen)) continue;
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
 
@@ -89,10 +88,8 @@ public class ClientScreensRenderer {
         InWorldScreen inWorldScreen = renderer.screen;
         ResourceLocation nextFrame = renderer.nextFrame();
         if (nextFrame == null) return;
-        RenderType renderType = RenderType.entityTranslucent(nextFrame);
 
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
-        if (!IFrustum.isVisible(frustum, inWorldScreen)) return;
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(nextFrame));
 
         BlockPos leftBottomCorner = inWorldScreen.leftBottomCorner();
         BlockPos leftTopCorner = inWorldScreen.leftTopCorner();
