@@ -24,6 +24,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -287,9 +288,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         @SubscribeEvent
         public static void rightClickScreen(PlayerInteractEvent.@NotNull RightClickBlock event) {
             BlockPos pos = event.getPos();
-            if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong())) {
+            if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong()) && event.getEntity() instanceof ServerPlayer player) {
                 if (interval > 0) return;
-                NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
+                NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SourceSelectionPacket(pos.asLong()));
                 interval = 20;
             }
         }
