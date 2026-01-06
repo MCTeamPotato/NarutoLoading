@@ -7,18 +7,12 @@ pluginManagement {
             name = 'ParchmentMC'
             url = 'https://maven.parchmentmc.org'
         }
-        gradlePluginPortal()
-    }
-}
-
-dependencyResolutionManagement {
-    repositories {
         maven {
             url = uri("https://maven.aliyun.com/repository/public")
         }
         mavenCentral()
+        gradlePluginPortal()
     }
 }
-
 
 rootProject.name = 'narutoloading'
