@@ -9,13 +9,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
+public class SourceSelectionPacket implements CustomPacketPayload {
+    public static final StreamCodec<FriendlyByteBuf, SourceSelectionPacket> CODEC = CustomPacketPayload.codec(SourceSelectionPacket::encode, SourceSelectionPacket::new);
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "source_selection");
+    public static final CustomPacketPayload.Type<SourceSelectionPacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
-public class SourceSelectionPacket {
     private final long position;
 
     public SourceSelectionPacket(long position) {
@@ -30,8 +34,8 @@ public class SourceSelectionPacket {
         buf.writeLong(this.position);
     }
 
-    public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
+    public static void handle(SourceSelectionPacket packet, @NotNull IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
             try {
                 Minecraft minecraft = Minecraft.getInstance();
                 LocalPlayer player = minecraft.player;
@@ -41,7 +45,7 @@ public class SourceSelectionPacket {
                 ObjectSet<NarutoInWorldRenderer> renderers = ClientScreensRenderer.CLIENT_SCREENS.get(dimension);
                 if (renderers == null) return;
                 for (NarutoInWorldRenderer renderer : renderers) {
-                    if (renderer.screen.borderInvolved().contains(this.position)) {
+                    if (renderer.screen.borderInvolved().contains(packet.position)) {
                         minecraft.setScreen(new InWorldSelectionScreen(minecraft.screen, renderer));
                         break;
                     }
@@ -50,6 +54,10 @@ public class SourceSelectionPacket {
                 NarutoLoading.LOGGER.error("Error handling SourceSelectionPacket", exception);
             }
         });
-        ctx.get().setPacketHandled(true);
+    }
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

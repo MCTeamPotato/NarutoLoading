@@ -13,14 +13,20 @@ import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import me.kall.narutoloading.inworld.gui.util.AudioConverter;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Supplier;
 
-public class ScreenLifePacket {
+public class ScreenLifePacket implements CustomPacketPayload{
+    public static final StreamCodec<FriendlyByteBuf, ScreenLifePacket> CODEC = CustomPacketPayload.codec(ScreenLifePacket::encode, ScreenLifePacket::new);
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "screen_life");
+    public static final CustomPacketPayload.Type<ScreenLifePacket> TYPE = new CustomPacketPayload.Type<>(ID);
+
     private final InWorldScreen inWorldScreen;
     private final boolean isRemoval;
 
@@ -47,57 +53,56 @@ public class ScreenLifePacket {
         buf.writeBoolean(this.isRemoval);
     }
 
-    public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
+    public static void handle(ScreenLifePacket packet, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
             try {
-                if (this.isRemoval) {
-                    ObjectSet<NarutoInWorldRenderer> renderers = ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension());
+                if (packet.isRemoval) {
+                    ObjectSet<NarutoInWorldRenderer> renderers = ClientScreensRenderer.CLIENT_SCREENS.get(packet.inWorldScreen.dimension());
                     if (renderers != null) {
                         ObjectIterator<NarutoInWorldRenderer> renderersIterator = renderers.iterator();
                         while (renderersIterator.hasNext()) {
                             NarutoInWorldRenderer renderer = renderersIterator.next();
-                            if (renderer.screen.equals(this.inWorldScreen)) {
+                            if (renderer.screen.equals(packet.inWorldScreen)) {
                                 renderersIterator.remove();
                                 renderer.shutdown();
                                 break;
                             }
                         }
-                        HiddenDisplayers.reveal(this.inWorldScreen);
-                        NarutoLoading.LOGGER.info("{}Delivered {} for removal.", NarutoLoading.info(), this.inWorldScreen.toString());
+                        HiddenDisplayers.reveal(packet.inWorldScreen);
+                        NarutoLoading.LOGGER.info("{}Delivered {} for removal.", NarutoLoading.info(), packet.inWorldScreen.toString());
                     }
                 } else {
-                    String videoPath = NarutoConfig.absolute(this.inWorldScreen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
+                    String videoPath = NarutoConfig.absolute(packet.inWorldScreen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
                     if (!validateVideoPath(videoPath)) {
-                        NarutoLoading.LOGGER.warn("{}Video file does not exist at path: {}. Skipping screen addition for {}", NarutoLoading.info(), videoPath, this.inWorldScreen.toLocalString());
+                        NarutoLoading.LOGGER.warn("{}Video file does not exist at path: {}. Skipping screen addition for {}", NarutoLoading.info(), videoPath, packet.inWorldScreen.toLocalString());
                         return;
                     }
 
-                    Optional.ofNullable(ClientScreensRenderer.CLIENT_SCREENS.get(this.inWorldScreen.dimension())).ifPresent(renderers -> {
+                    Optional.ofNullable(ClientScreensRenderer.CLIENT_SCREENS.get(packet.inWorldScreen.dimension())).ifPresent(renderers -> {
                         ObjectIterator<NarutoInWorldRenderer> renderersIterator = renderers.iterator();
                         while (renderersIterator.hasNext()) {
                             NarutoInWorldRenderer renderer = renderersIterator.next();
-                            if (renderer.screen.equals(this.inWorldScreen)) {
+                            if (renderer.screen.equals(packet.inWorldScreen)) {
                                 renderer.shutdown();
                                 renderersIterator.remove();
                                 break;
                             }
                         }
                     });
-                    NarutoInWorldRenderer renderer = renderer();
-                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(this.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(renderer);
-                    if (this.inWorldScreen.hideInner()) {
-                        HiddenDisplayers.hide(this.inWorldScreen);
+                    NarutoInWorldRenderer renderer = renderer(packet);
+                    ClientScreensRenderer.CLIENT_SCREENS.computeIfAbsent(packet.inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(renderer);
+                    if (packet.inWorldScreen.hideInner()) {
+                        HiddenDisplayers.hide(packet.inWorldScreen);
                     }
-                    NarutoLoading.LOGGER.info("{}Delivered {} for addition.", NarutoLoading.info(), this.inWorldScreen.toString());
+                    NarutoLoading.LOGGER.info("{}Delivered {} for addition.", NarutoLoading.info(), packet.inWorldScreen.toString());
                 }
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ScreenLifePacket", exception);
             }
         });
-        ctx.get().setPacketHandled(true);
     }
 
-    private boolean validateVideoPath(String videoPath) {
+    private static boolean validateVideoPath(String videoPath) {
         if (videoPath == null || videoPath.isBlank()) {
             NarutoLoading.LOGGER.warn("{}Video path is null or blank", NarutoLoading.info());
             return false;
@@ -111,11 +116,11 @@ public class ScreenLifePacket {
         return exists;
     }
 
-    private @NotNull NarutoInWorldRenderer renderer() {
-        NarutoInWorldRenderer renderer = new NarutoInWorldRenderer(this.inWorldScreen);
+    private static @NotNull NarutoInWorldRenderer renderer(ScreenLifePacket packet) {
+        NarutoInWorldRenderer renderer = new NarutoInWorldRenderer(packet.inWorldScreen);
 
-        if (this.inWorldScreen.isLocalSound()) {
-            AudioConverter audioConverter = new AudioConverter(this.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
+        if (packet.inWorldScreen.isLocalSound()) {
+            AudioConverter audioConverter = new AudioConverter(packet.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();
@@ -126,5 +131,10 @@ public class ScreenLifePacket {
         }
 
         return renderer;
+    }
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

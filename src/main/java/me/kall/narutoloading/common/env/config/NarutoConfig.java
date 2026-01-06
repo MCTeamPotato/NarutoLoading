@@ -3,7 +3,7 @@ package me.kall.narutoloading.common.env.config;
 import me.kall.duplicationless.config.JsonConfig;
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;

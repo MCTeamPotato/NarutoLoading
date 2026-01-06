@@ -14,11 +14,11 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
@@ -178,15 +178,8 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        this.videoBox.tick();
-        this.audioBox.tick();
-    }
-
-    @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics);
+        this.renderBackground(graphics, mouseX, mouseY, partialTick);
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
@@ -207,13 +200,12 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         return false;
     }
 
-    @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
     public static final class Trigger {
         public static int interval = 0;
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-            if (event.phase != TickEvent.Phase.START) return;
+        public static void clientTick(ClientTickEvent.Pre event) {
 
             Minecraft mc = Minecraft.getInstance();
 

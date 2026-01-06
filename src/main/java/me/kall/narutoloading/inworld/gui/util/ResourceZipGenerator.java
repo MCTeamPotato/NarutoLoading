@@ -2,13 +2,13 @@ package me.kall.narutoloading.inworld.gui.util;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
-import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -81,7 +81,7 @@ public final class ResourceZipGenerator {
                 minecraft.reloadResourcePacks();
                 NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
 
-                NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
+                PacketDistributor.sendToServer(new ArgUpdatePacket(renderer.screen));
             } catch (Exception e) {
                 NarutoLoading.LOGGER.error("Error activating resource pack", e);
             }

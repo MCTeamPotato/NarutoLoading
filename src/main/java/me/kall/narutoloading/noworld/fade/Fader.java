@@ -5,14 +5,13 @@ import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
 
-@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class Fader {
     private static double lastMouseX = Double.NaN;
     private static double lastMouseY = Double.NaN;
@@ -42,30 +41,34 @@ public final class Fader {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            Minecraft minecraft = Minecraft.getInstance();
+    public static void onClientTick(ClientTickEvent.Pre event) {
+        Minecraft minecraft = Minecraft.getInstance();
 
-            if (Fader.disabled()) return;
+        if (Fader.disabled()) return;
 
-            MouseHandler mouse = minecraft.mouseHandler;
+        MouseHandler mouse = minecraft.mouseHandler;
 
-            double x = mouse.xpos();
-            double y = mouse.ypos();
+        double x = mouse.xpos();
+        double y = mouse.ypos();
 
-            if (Fader.init(x, y)) return;
+        if (Fader.init(x, y)) return;
 
-            stopTickCount = lastMouseX == x && lastMouseY == y ? stopTickCount + 1 : 0;
+        stopTickCount = lastMouseX == x && lastMouseY == y ? stopTickCount + 1 : 0;
 
-            lastMouseX = x;
-            lastMouseY = y;
+        lastMouseX = x;
+        lastMouseY = y;
 
-            fadeAlpha = Fader.shouldFade() ? Math.max(0.0F, fadeAlpha - 0.05F) : Math.min(1.0F, fadeAlpha + 0.05F);
-        }
+        fadeAlpha = Fader.shouldFade() ? Math.max(0.0F, fadeAlpha - 0.05F) : Math.min(1.0F, fadeAlpha + 0.05F);
+
     }
 
-    @SubscribeEvent
-    public static void type(InputEvent event) {
+    @SubscribeEvent public static void type(InputEvent.MouseButton.Pre event) {reset();}
+    @SubscribeEvent public static void type(InputEvent.MouseButton.Post event) {reset();}
+    @SubscribeEvent public static void type(InputEvent.MouseButton.MouseScrollingEvent event) {reset();}
+    @SubscribeEvent public static void type(InputEvent.MouseButton.Key event) {reset();}
+    @SubscribeEvent public static void type(InputEvent.MouseButton.InteractionKeyMappingTriggered event) {reset();}
+
+    private static void reset() {
         if (Minecraft.getInstance().screen != null) {
             fadeAlpha = 1.0F;
             lastMouseX = Double.NaN;

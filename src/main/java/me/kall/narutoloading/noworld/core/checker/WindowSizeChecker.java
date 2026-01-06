@@ -1,12 +1,11 @@
 package me.kall.narutoloading.noworld.core.checker;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraftforge.event.TickEvent;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 public final class WindowSizeChecker {
     private int lastWidth = -1;
@@ -19,9 +18,7 @@ public final class WindowSizeChecker {
         this.renderer = renderer;
     }
 
-    public void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-
+    public void clientTick(ClientTickEvent.Pre event) {
         if (!this.renderer.isRunning() || !this.renderer.isEnabled()) {
             reset();
             return;

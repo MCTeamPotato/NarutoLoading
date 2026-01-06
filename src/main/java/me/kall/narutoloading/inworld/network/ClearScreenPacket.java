@@ -9,14 +9,20 @@ import me.kall.narutoloading.inworld.data.Displayers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
+public class ClearScreenPacket implements CustomPacketPayload {
+    public static final StreamCodec<FriendlyByteBuf, ClearScreenPacket> CODEC = CustomPacketPayload.codec(ClearScreenPacket::encode, ClearScreenPacket::new);
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "clear_screen");
+    public static final CustomPacketPayload.Type<ClearScreenPacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
-public class ClearScreenPacket {
     private final LongSet areaInvolved;
     private final LongSet borderInvolved;
     private final String screenInfo;
@@ -39,16 +45,16 @@ public class ClearScreenPacket {
         buf.writeUtf(this.screenInfo);
     }
 
-    public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
+    public static void handle(ClearScreenPacket packet, @NotNull IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
             try {
-                ServerPlayer player = ctx.get().getSender();
-                if (player != null) {
-                    ServerLevel level = player.serverLevel();
-                    this.areaInvolved.removeIf(this.borderInvolved::contains);
-                    LongIterator positionsToRemove = this.areaInvolved.longIterator();
+                Player player = ctx.player();
+                if (player instanceof ServerPlayer) {
+                    ServerLevel level = ((ServerPlayer) player).serverLevel();
+                    packet.areaInvolved.removeIf(packet.borderInvolved::contains);
+                    LongIterator positionsToRemove = packet.areaInvolved.longIterator();
 
-                    Component start = Component.translatable("info.narutoloading.clear.begin", this.screenInfo);
+                    Component start = Component.translatable("info.narutoloading.clear.begin", packet.screenInfo);
 
                     for (ServerPlayer online : level.players()) {
                         online.displayClientMessage(start, false);
@@ -61,7 +67,7 @@ public class ClearScreenPacket {
                         }
                     }
 
-                    Component end = Component.translatable("info.narutoloading.clear.end", this.screenInfo);
+                    Component end = Component.translatable("info.narutoloading.clear.end", packet.screenInfo);
 
                     for (ServerPlayer online : level.players()) {
                         online.displayClientMessage(end, false);
@@ -71,6 +77,10 @@ public class ClearScreenPacket {
                 NarutoLoading.LOGGER.error("Error handling ClearScreenPacket", exception);
             }
         });
-        ctx.get().setPacketHandled(true);
+    }
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

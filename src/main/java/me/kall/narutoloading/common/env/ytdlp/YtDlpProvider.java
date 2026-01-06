@@ -1,13 +1,13 @@
 package me.kall.narutoloading.common.env.ytdlp;
 
 import me.kall.narutoloading.NarutoLoading;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -75,7 +75,7 @@ public final class YtDlpProvider {
                         case MACOS -> this.macUrl;
                     };
 
-                    try (InputStream in = new URL(downloadUrl).openStream()) {
+                    try (InputStream in = URI.create(downloadUrl).toURL().openStream()) {
                         Files.copy(in, ytDlpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     }
 

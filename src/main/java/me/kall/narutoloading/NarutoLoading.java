@@ -4,14 +4,14 @@ import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import me.kall.narutoloading.inworld.init.NarutoItems;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.common.NeoForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 @Mod(NarutoLoading.MOD_ID)
 public final class NarutoLoading {
@@ -21,16 +21,15 @@ public final class NarutoLoading {
     public static final String BLANK = "";
     private static final String PREFIX = "[NarutoLoading] ";
 
-    public NarutoLoading(@NotNull FMLJavaModLoadingContext context) {
-        IEventBus modBus = context.getModEventBus();
-        IEventBus forgeBus = MinecraftForge.EVENT_BUS;
+    public NarutoLoading(IEventBus modBus, Dist dist, ModContainer container) {
+        IEventBus forgeBus = NeoForge.EVENT_BUS;
         NarutoBlocks.BLOCKS.register(modBus);
         NarutoItems.ITEMS.register(modBus);
-        NarutoPackets.register();
+
+        modBus.addListener(NarutoPackets::register);
+        modBus.addListener(NarutoLoadingClient::onBuildCreativeTab);
 
         if (FMLLoader.getDist().isClient()) {
-            forgeBus.addListener(NarutoLoadingClient::onBuildCreativeTab);
-
             //noinspection DataFlowIssue
             forgeBus.addListener(NarutoRenderer.INSTANCE.windowSizeChecker::clientTick);
             //noinspection DataFlowIssue

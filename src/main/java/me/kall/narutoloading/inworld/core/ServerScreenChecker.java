@@ -7,7 +7,6 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.init.NarutoBlocks;
-import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -15,18 +14,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.function.Predicate;
 
-@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
+@EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class ServerScreenChecker {
     private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
 
@@ -151,7 +150,7 @@ public class ServerScreenChecker {
                         screenData.setDirty();
                     }
 
-                    NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(inWorldScreen, false));
+                    PacketDistributor.sendToAllPlayers(new ScreenLifePacket(inWorldScreen, false));
 
                     player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
                 } else {
@@ -186,7 +185,7 @@ public class ServerScreenChecker {
                         for (ServerPlayer player : level.players()) {
                             player.displayClientMessage(component, false);
                         }
-                        NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(copy, true));
+                        PacketDistributor.sendToAllPlayers(new ScreenLifePacket(copy, true));
                     }
                 }
             });

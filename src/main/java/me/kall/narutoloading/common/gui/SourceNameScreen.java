@@ -74,15 +74,10 @@ public class SourceNameScreen extends EmptiableEditBoxes {
         return extracted.isEmpty() ? "download" : extracted;
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        this.nameBox.tick();
-    }
 
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics);
+        this.renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
 
         int centerX = this.width / 2;

@@ -10,7 +10,6 @@ import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import me.kall.narutoloading.inworld.gui.util.AudioConverter;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
-import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import me.kall.narutoloading.inworld.network.ClearScreenPacket;
 import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
@@ -24,11 +23,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
@@ -89,11 +89,11 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         int checkWidth = 200;
         int checkBoxSpacing = 5;
 
-        this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
+        this.localSoundCheck = Checkbox.builder(LOCAL_SOUND, this.font).pos(centerX - checkWidth / 2, this.currentY).selected(this.renderer.screen.isLocalSound()).maxWidth(checkWidth).build();
         this.addRenderableWidget(this.localSoundCheck);
         this.currentY += boxHeight + checkBoxSpacing;
 
-        this.hideInnerCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, HIDE_INNER, this.renderer.screen.hideInner());
+        this.hideInnerCheck = Checkbox.builder(HIDE_INNER, this.font).pos(centerX - checkWidth / 2, this.currentY).selected(this.renderer.screen.hideInner()).maxWidth(checkWidth).build();
         this.addRenderableWidget(this.hideInnerCheck);
         this.currentY += boxHeight + checkBoxSpacing;
     }
@@ -102,7 +102,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(random);
 
-        Button clear = Button.builder(CLEAR, button -> NarutoPackets.INSTANCE.sendToServer(new ClearScreenPacket(this.renderer.screen))).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build();
+        Button clear = Button.builder(CLEAR, button -> PacketDistributor.sendToServer(new ClearScreenPacket(this.renderer.screen))).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(clear);
         this.currentY += buttonHeight + 5;
     }
@@ -193,7 +193,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.pause = false;
         }
 
-        NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
+        PacketDistributor.sendToServer(new ArgUpdatePacket(this.renderer.screen));
     }
 
     @Override
@@ -250,7 +250,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                 this.renderer.pause = false;
             }
 
-            NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
+            PacketDistributor.sendToServer(new ArgUpdatePacket(this.renderer.screen));
 
             NarutoLoading.LOGGER.info("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), this.renderer.screen.toString());
         });
@@ -266,30 +266,21 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         });
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        if (this.widthBox != null) this.widthBox.tick();
-        if (this.heightBox != null) this.heightBox.tick();
-    }
-
-    @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
+    @EventBusSubscriber(modid = NarutoLoading.MOD_ID)
     public static final class Trigger {
         private static int interval = 0;
 
         @SubscribeEvent
-        public static void serverTick(TickEvent.@NotNull ServerTickEvent event) {
-            if (event.phase == TickEvent.Phase.START) {
-                if (interval > 0) interval--;
-            }
+        public static void serverTick(ServerTickEvent.Pre event) {
+            if (interval > 0) interval--;
         }
 
         @SubscribeEvent
         public static void rightClickScreen(PlayerInteractEvent.@NotNull RightClickBlock event) {
             BlockPos pos = event.getPos();
-            if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong())) {
+            if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong()) && event.getEntity() instanceof ServerPlayer player) {
                 if (interval > 0) return;
-                NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new SourceSelectionPacket(pos.asLong()));
+                PacketDistributor.sendToPlayer(player, new SourceSelectionPacket(pos.asLong()));
                 interval = 20;
             }
         }

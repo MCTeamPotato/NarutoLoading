@@ -4,8 +4,7 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.event.TickEvent;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.lwjgl.glfw.GLFW;
 
 public final class KeyChecker {
@@ -17,9 +16,7 @@ public final class KeyChecker {
         this.renderer = renderer;
     }
 
-    public void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-
+    public void clientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
 
         if (!this.renderer.isRunning() || !this.renderer.isEnabled()) {

@@ -21,11 +21,8 @@
     "noworld.clear.MixinStringRenderOutput",
     "noworld.impl.overlay.MixinForgeLoadingOverlay",
     "noworld.impl.overlay.MixinLoadingOverlay",
-    "noworld.impl.screen.MixinAbstractSelectionList",
-    "noworld.impl.screen.MixinCreateWorldScreen",
+    "noworld.impl.screen.MixinPanoramaRenderer",
     "noworld.impl.screen.MixinScreen",
-    "noworld.impl.screen.MixinScrollPanel",
-    "noworld.impl.screen.MixinTitleScreen",
     "sound.MixinOptions",
     "sound.MixinSoundEngine"
   ]

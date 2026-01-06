@@ -6,14 +6,20 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.data.Screens;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
+public class ArgUpdatePacket implements CustomPacketPayload {
+    public static final StreamCodec<FriendlyByteBuf, ArgUpdatePacket> CODEC = CustomPacketPayload.codec(ArgUpdatePacket::encode, ArgUpdatePacket::new);
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "arg_update");
+    public static final Type<ArgUpdatePacket> TYPE = new Type<>(ID);
 
-public class ArgUpdatePacket {
     private final InWorldScreen argSource;
 
     public ArgUpdatePacket(InWorldScreen argSource) {
@@ -36,25 +42,29 @@ public class ArgUpdatePacket {
         buf.writeInt(this.argSource.videoHeight());
     }
 
-    public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
+    public static void handle(ArgUpdatePacket packet, @NotNull IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
             try {
-                ServerPlayer player = ctx.get().getSender();
-                if (player == null) return;
-                ServerLevel level = player.serverLevel();
+                Player player = ctx.player();
+                if (!(player instanceof ServerPlayer)) return;
+                ServerLevel level = ((ServerPlayer) player).serverLevel();
                 Screens screens = Screens.get(level);
 
                 ObjectSet<InWorldScreen> inWorldScreens = screens.screens.computeIfAbsent(level.dimension().location(), key -> new ObjectOpenHashSet<>());
 
-                inWorldScreens.remove(this.argSource);
-                inWorldScreens.add(this.argSource);
+                inWorldScreens.remove(packet.argSource);
+                inWorldScreens.add(packet.argSource);
 
                 screens.setDirty();
-                NarutoLoading.LOGGER.info("{}Successfully sync the video and audio arguments for {}.", NarutoLoading.info(), this.argSource.toString());
+                NarutoLoading.LOGGER.info("{}Successfully sync the video and audio arguments for {}.", NarutoLoading.info(), packet.argSource.toString());
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ArgUpdatePacket", exception);
             }
         });
-        ctx.get().setPacketHandled(true);
+    }
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

@@ -4,12 +4,12 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -73,12 +73,12 @@ public class SourceCollector {
         }
     }
 
-    @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
     public static final class ManualTrigger {
         public static int interval = 0;
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public static void clientTick(TickEvent.ClientTickEvent event) {
+        public static void clientTick(ClientTickEvent.Pre event) {
             Minecraft mc = Minecraft.getInstance();
 
             if (interval > 0) {
@@ -101,8 +101,8 @@ public class SourceCollector {
     public record Source(String absoluteVideoPath, String absoluteAudioPath) {
         @Override
         public boolean equals(Object object) {
-            if (object instanceof Source source) {
-                return source.absoluteAudioPath.equals(this.absoluteAudioPath) && source.absoluteVideoPath.equals(this.absoluteVideoPath);
+            if (object instanceof Source(String videoPath, String audioPath)) {
+                return audioPath.equals(this.absoluteAudioPath) && videoPath.equals(this.absoluteVideoPath);
             }
             return false;
         }

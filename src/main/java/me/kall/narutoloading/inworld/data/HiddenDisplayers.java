@@ -8,13 +8,13 @@ import me.kall.narutoloading.inworld.core.InWorldScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
-@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class HiddenDisplayers {
     public static final Object2ObjectOpenHashMap<ResourceLocation, Long2IntOpenHashMap> HIDDEN_DISPLAYERS = new Object2ObjectOpenHashMap<>();
 
