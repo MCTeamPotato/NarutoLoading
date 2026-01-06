@@ -25,26 +25,30 @@ public class HiddenDisplayers {
     }
 
     public static void hide(@NotNull InWorldScreen screen) {
-        Long2IntOpenHashMap displayers = HIDDEN_DISPLAYERS.computeIfAbsent(screen.dimension(), key -> new Long2IntOpenHashMap());
-        LongIterator areaInvolved = screen.areaInvolved().iterator();
-        while (areaInvolved.hasNext()) {
-            long next = areaInvolved.nextLong();
-            displayers.addTo(next, 1);
-        }
+        Minecraft.getInstance().execute(() -> {
+            Long2IntOpenHashMap displayers = HIDDEN_DISPLAYERS.computeIfAbsent(screen.dimension(), key -> new Long2IntOpenHashMap());
+            LongIterator areaInvolved = screen.areaInvolved().iterator();
+            while (areaInvolved.hasNext()) {
+                long next = areaInvolved.nextLong();
+                displayers.addTo(next, 1);
+            }
+        });
     }
 
     public static void reveal(@NotNull InWorldScreen screen) {
-        Long2IntOpenHashMap displayers = HIDDEN_DISPLAYERS.get(screen.dimension());
-        if (displayers == null) return;
-        LongIterator areaInvolved = screen.areaInvolved().iterator();
-        while (areaInvolved.hasNext()) {
-            long next = areaInvolved.nextLong();
-            if (displayers.addTo(next, -1) <= 1) displayers.remove(next);
-        }
+        Minecraft.getInstance().execute(() -> {
+            Long2IntOpenHashMap displayers = HIDDEN_DISPLAYERS.get(screen.dimension());
+            if (displayers == null) return;
+            LongIterator areaInvolved = screen.areaInvolved().iterator();
+            while (areaInvolved.hasNext()) {
+                long next = areaInvolved.nextLong();
+                if (displayers.addTo(next, -1) <= 1) displayers.remove(next);
+            }
 
-        if (displayers.isEmpty()) {
-            HIDDEN_DISPLAYERS.remove(screen.dimension());
-        }
+            if (displayers.isEmpty()) {
+                HIDDEN_DISPLAYERS.remove(screen.dimension());
+            }
+        });
     }
 
     @SubscribeEvent
