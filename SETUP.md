@@ -12,6 +12,5 @@
 3. Each sub-directory contains a video file and audio file, and their names must be "video"/"audio".
 4. Launch your game and enjoy!
 ## URL Support
-
-
-
+1. Adjust the enableUrlForSourceSelection config option to true
+2. Then we will automatically download yt-dlp during the launch of your game and you can enter URL in the Video and Audio edit boxes in our source selection screens.
