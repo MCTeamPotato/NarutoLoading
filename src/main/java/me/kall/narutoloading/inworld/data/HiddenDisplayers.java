@@ -30,6 +30,8 @@ public class HiddenDisplayers {
         while (areaInvolved.hasNext()) {
             displayers.addTo(areaInvolved.nextLong(), 1);
         }
+
+        Minecraft.getInstance().levelRenderer.allChanged();
     }
 
     public static void reveal(@NotNull InWorldScreen screen) {
@@ -42,6 +44,8 @@ public class HiddenDisplayers {
         }
 
         if (displayers.isEmpty()) HIDDEN_DISPLAYERS.remove(screen.dimension());
+
+        Minecraft.getInstance().levelRenderer.allChanged();
     }
 
     @SubscribeEvent
