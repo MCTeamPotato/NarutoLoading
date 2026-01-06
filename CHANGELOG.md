@@ -4,3 +4,4 @@
 # 2.0.1
 - Fix HiddenDisplayers not working properly due to the update delay of level renderer.
 - Fix screen detection logic
+- Fix config path relativity/absoluteness
