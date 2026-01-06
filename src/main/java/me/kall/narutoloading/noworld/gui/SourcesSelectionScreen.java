@@ -107,48 +107,53 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         String audioFileName = this.audioBox.getValue();
 
         if (videoFilename.startsWith("http")) {
-            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> handleUrlDownload(videoFilename, audioFileName, folderName)));
+            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> this.download(videoFilename, audioFileName, folderName)));
         } else {
-            BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.absolute(videoFilename)).put("audioFileName", NarutoConfig.absolute(audioFileName)).saveToFile();
-            BaseEnv.setupEnv(false);
-            NarutoRenderer.INSTANCE.shutdown();
-            NarutoRenderer.INSTANCE.setup();
+            this.handleLocalFiles();
             Minecraft.getInstance().setScreen(this.lastScreen);
         }
     }
 
-    private void handleUrlDownload(String videoUrl, String audioUrl, String folderName) {
+    protected void handleLocalFiles() {
+        BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.absolute(this.videoBox.getValue())).put("audioFileName", NarutoConfig.absolute(this.audioBox.getValue())).saveToFile();
+        BaseEnv.setupEnv(false);
+        NarutoRenderer.INSTANCE.shutdown();
+        NarutoRenderer.INSTANCE.setup();
+    }
+
+    protected void download(String videoUrl, String audioUrl, String folderName) {
         Path outputDir = YtDlpDownloader.getDefaultOutputDir(folderName);
 
         NarutoLoading.LOGGER.info("{}Starting URL download with folder name: {}", NarutoLoading.info(), folderName);
 
-        CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> {
-                    NarutoLoading.LOGGER.info("{} Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
-                    if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", downloadResult.videoPath()).saveToFile());
-                }
-        );
+        CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> this.onVideoDownloaded(downloadResult, videoUrl));
 
         if (videoFuture != null) {
             videoFuture.thenRun(() -> {
                 String audioUrlToUse = audioUrl.isBlank() ? videoUrl : audioUrl;
                 if (audioUrlToUse.startsWith("http")) {
-                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioUrlToUse, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> {
-                                NarutoLoading.LOGGER.info("{} Audio download of {} processed. {}", NarutoLoading.info(), audioUrlToUse, downloadResult.toString());
-                                if (downloadResult.success()) {
-                                    Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", downloadResult.audioPath()).saveToFile());
-                                }
-                            }
-                    );
-
+                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioUrlToUse, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> this.onAudioDownloaded(downloadResult, audioUrlToUse));
                     if (audioFuture != null) audioFuture.thenRun(this::finalizeDownload);
                 } else {
-                    finalizeDownload();
+                    this.finalizeDownload();
                 }
             });
         }
     }
 
-    private void finalizeDownload() {
+    protected void onVideoDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String videoUrl) {
+        NarutoLoading.LOGGER.info("{} Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
+        if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", downloadResult.videoPath()).saveToFile());
+    }
+
+    protected void onAudioDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String audioUrlToUse) {
+        NarutoLoading.LOGGER.info("{} Audio download of {} processed. {}", NarutoLoading.info(), audioUrlToUse, downloadResult.toString());
+        if (downloadResult.success()) {
+            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", downloadResult.audioPath()).saveToFile());
+        }
+    }
+
+    protected void finalizeDownload() {
         Minecraft.getInstance().execute(() -> {
             BaseEnv.setupEnv(false);
             NarutoRenderer.INSTANCE.shutdown();
