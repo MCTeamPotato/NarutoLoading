@@ -41,6 +41,10 @@ public class HiddenDisplayers {
             long next = areaInvolved.nextLong();
             if (displayers.addTo(next, -1) <= 1) displayers.remove(next);
         }
+
+        if (displayers.isEmpty()) {
+            HIDDEN_DISPLAYERS.remove(screen.dimension());
+        }
     }
 
     @SubscribeEvent
