@@ -69,7 +69,7 @@ public class SourceCollector {
                 }
             }
         } catch (Exception e) {
-            NarutoLoading.LOGGER.error("Error scanning NarutoLoading sources", e);
+            NarutoLoading.LOGGER.warn("Error scanning NarutoLoading sources: {}", e.getMessage());
         }
     }
 
