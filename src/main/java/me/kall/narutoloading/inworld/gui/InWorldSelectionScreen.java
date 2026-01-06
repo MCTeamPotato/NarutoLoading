@@ -182,13 +182,18 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private void handleLocalFiles() {
         this.renderer.screen.setPath(this.videoBox.getValue(), this.audioBox.getValue().isBlank() ? this.videoBox.getValue() : this.audioBox.getValue());
         this.renderer.screen.setSize(this.width(), this.height());
-        this.renderer.screen.setHideInner(this.hideInnerCheck.selected());
         this.renderer.screen.setSoundVolume(this.volume());
 
-        if (this.renderer.screen.hideInner()) {
-            HiddenDisplayers.hide(this.renderer.screen);
+        if (this.hideInnerCheck.selected()) {
+            if (!this.renderer.screen.hideInner()) {
+                this.renderer.screen.setHideInner(true);
+                HiddenDisplayers.hide(this.renderer.screen);
+            }
         } else {
-            HiddenDisplayers.reveal(this.renderer.screen);
+            if (this.renderer.screen.hideInner()) {
+                this.renderer.screen.setHideInner(false);
+                HiddenDisplayers.reveal(this.renderer.screen);
+            }
         }
 
         Minecraft.getInstance().levelRenderer.allChanged();
@@ -254,13 +259,18 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private void finalizeUrlSetup() {
         Minecraft.getInstance().execute(() -> {
             this.renderer.screen.setSize(this.width(), this.height());
-            this.renderer.screen.setHideInner(this.hideInnerCheck.selected());
             this.renderer.screen.setSoundVolume(this.volume());
 
-            if (this.renderer.screen.hideInner()) {
-                HiddenDisplayers.hide(this.renderer.screen);
+            if (this.hideInnerCheck.selected()) {
+                if (!this.renderer.screen.hideInner()) {
+                    this.renderer.screen.setHideInner(true);
+                    HiddenDisplayers.hide(this.renderer.screen);
+                }
             } else {
-                HiddenDisplayers.reveal(this.renderer.screen);
+                if (this.renderer.screen.hideInner()) {
+                    this.renderer.screen.setHideInner(false);
+                    HiddenDisplayers.reveal(this.renderer.screen);
+                }
             }
 
             this.renderer.pause = true;
