@@ -115,7 +115,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     }
 
     protected void handleLocalFiles() {
-        BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.absolute(this.videoBox.getValue())).put("audioFileName", NarutoConfig.absolute(this.audioBox.getValue())).saveToFile();
+        BaseEnv.narutoConfig.config.put("videoFileName", this.videoBox.getValue()).put("audioFileName", this.audioBox.getValue()).saveToFile();
         BaseEnv.setupEnv(false);
         NarutoRenderer.INSTANCE.shutdown();
         NarutoRenderer.INSTANCE.setup();
@@ -143,13 +143,13 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
 
     protected void onVideoDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String videoUrl) {
         NarutoLoading.LOGGER.info("{} Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
-        if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", downloadResult.videoPath()).saveToFile());
+        if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.relative(downloadResult.videoPath())).saveToFile());
     }
 
     protected void onAudioDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String audioUrlToUse) {
         NarutoLoading.LOGGER.info("{} Audio download of {} processed. {}", NarutoLoading.info(), audioUrlToUse, downloadResult.toString());
         if (downloadResult.success()) {
-            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", downloadResult.audioPath()).saveToFile());
+            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", NarutoConfig.relative(downloadResult.audioPath())).saveToFile());
         }
     }
 
