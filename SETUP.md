@@ -3,7 +3,6 @@
 - We will auto-download ffmpeg and yt-dlp for you, unless your Minecraft or pc cannot link to GitHub, there is no need to manually download them.
 - We will create resourcepacks using your selected audio source if you enable "Local Sound" in the in-world setting screen, so if you invalidate the resourcepack that our audio player is using in your resourcepack selection gui, things may not work well.
 ## Keys
-
 | Key      |Action                                  |
 | ------------------- |--------------------------------------- |
 | <code>F12</code>    |(no-world) Reload current video                    |
@@ -22,3 +21,22 @@
 ## URL Support
 1. Adjust the enableUrlForSourceSelection config option to true
 2. Then we will automatically download yt-dlp during the launch of your game and you can enter URL in the Video and Audio edit boxes in our source selection screens.
+## In-World Screen Construction
+Built with Displayer blocks.
+
+Width: 16/32/48/.../1600
+
+Height: 9/18/27/.../900
+
+But Minecraft building height limit exists. It is MC's limit, not us.
+
+Fast setup for a huge screen (make sure your render distance and simulation distance is 32 before using these): 
+```
+/gamerule commandModificationBlockLimit 9999999
+```
+```
+/fill ~ ~ ~ ~ ~224 ~399 narutoloading:displayer
+```
+After you complete the whole building of it, sneak and right click the two displayers at the bottom corners and we will detect the whole screen automatically based on these two corners.
+
+Right click at any displayer to open its in-world setting gui.
