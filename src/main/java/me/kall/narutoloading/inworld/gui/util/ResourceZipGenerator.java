@@ -72,7 +72,7 @@ public final class ResourceZipGenerator {
                 if (currentSelected.contains(packId)) {
                     NarutoLoading.LOGGER.info("{}Resource pack {} already active, skipping reload", NarutoLoading.info(), packId);
                     renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
-                    NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
+                    PacketDistributor.sendToServer(new ArgUpdatePacket(renderer.screen));
                     ClientScreensRenderer.reload();
                     return;
                 }
