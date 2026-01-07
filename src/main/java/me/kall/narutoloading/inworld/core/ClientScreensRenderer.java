@@ -88,13 +88,13 @@ public class ClientScreensRenderer {
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
 
-            renderScreen(poseStack, bufferSource, renderer, frustum, camera);
+            renderScreen(poseStack, bufferSource, renderer, camera);
 
             poseStack.popPose();
         }
     }
 
-    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull NarutoInWorldRenderer renderer, Frustum frustum, Vec3 camera) {
+    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull NarutoInWorldRenderer renderer, Vec3 camera) {
         InWorldScreen inWorldScreen = renderer.screen;
         ResourceLocation nextFrame = renderer.nextFrame();
         if (nextFrame == null) return;
@@ -111,7 +111,7 @@ public class ClientScreensRenderer {
         double leftBottomCornerZ = leftBottomCorner.getZ();
 
         double leftTopCornerX = leftTopCorner.getX();
-        double leftTopCornerY = leftTopCorner.getY() + 1.0;
+        double leftTopCornerY = leftTopCorner.getY();
         double leftTopCornerZ = leftTopCorner.getZ();
 
         double rightBottomCornerX = rightBottomCorner.getX();
@@ -119,17 +119,113 @@ public class ClientScreensRenderer {
         double rightBottomCornerZ = rightBottomCorner.getZ();
 
         double rightTopCornerX = rightTopCorner.getX();
-        double rightTopCornerY = rightTopCorner.getY() + 1.0;
+        double rightTopCornerY = rightTopCorner.getY();
         double rightTopCornerZ = rightTopCorner.getZ();
 
-        boolean isXAxis = leftBottomCornerX != rightBottomCornerX;
+        boolean widthX = leftBottomCornerX != rightBottomCornerX;
+        boolean widthY = leftBottomCornerY != rightBottomCornerY;
+        boolean widthZ = leftBottomCornerZ != rightBottomCornerZ;
 
-        if (isXAxis) {
-            rightBottomCornerX += 1.0;
-            rightTopCornerX += 1.0;
-        } else {
-            rightBottomCornerZ += 1.0;
-            rightTopCornerZ += 1.0;
+        boolean heightX = leftBottomCornerX != leftTopCornerX;
+        boolean heightY = leftBottomCornerY != leftTopCornerY;
+        boolean heightZ = leftBottomCornerZ != leftTopCornerZ;
+
+        if (widthX && heightY) {
+            if (leftTopCornerY > leftBottomCornerY) {
+                leftTopCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                rightBottomCornerY += 1.0;
+            }
+
+            if (rightBottomCornerX > leftBottomCornerX) {
+                rightBottomCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                leftTopCornerX += 1.0;
+            }
+        } else if (widthZ && heightY) {
+            if (leftTopCornerY > leftBottomCornerY) {
+                leftTopCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                rightBottomCornerY += 1.0;
+            }
+
+            if (rightBottomCornerZ > leftBottomCornerZ) {
+                rightBottomCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                leftTopCornerZ += 1.0;
+            }
+        } else if (widthX && heightZ) {
+            if (leftTopCornerZ > leftBottomCornerZ) {
+                leftTopCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                rightBottomCornerZ += 1.0;
+            }
+
+            if (rightBottomCornerX > leftBottomCornerX) {
+                rightBottomCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                leftTopCornerX += 1.0;
+            }
+        } else if (widthY && heightX) {
+            if (leftTopCornerX > leftBottomCornerX) {
+                leftTopCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                rightBottomCornerX += 1.0;
+            }
+
+            if (rightBottomCornerY > leftBottomCornerY) {
+                rightBottomCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                leftTopCornerY += 1.0;
+            }
+        } else if (widthY && heightZ) {
+            if (leftTopCornerZ > leftBottomCornerZ) {
+                leftTopCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                rightBottomCornerZ += 1.0;
+            }
+
+            if (rightBottomCornerY > leftBottomCornerY) {
+                rightBottomCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                leftTopCornerY += 1.0;
+            }
+        } else if (widthZ && heightX) {
+            if (leftTopCornerX > leftBottomCornerX) {
+                leftTopCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                rightBottomCornerX += 1.0;
+            }
+
+            if (rightBottomCornerZ > leftBottomCornerZ) {
+                rightBottomCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                leftTopCornerZ += 1.0;
+            }
         }
 
         double leftCornerDistX = leftTopCornerX - leftBottomCornerX;
@@ -160,8 +256,6 @@ public class ClientScreensRenderer {
 
         double dot = normalX * toCameraX + normalY * toCameraY + normalZ * toCameraZ;
 
-        double offsetDirection = dot > 0 ? 1.0 : -1.0;
-
         boolean isFrontFacing = dot > 0;
 
         if (dot < 0) {
@@ -170,15 +264,7 @@ public class ClientScreensRenderer {
             normalZ = -normalZ;
         }
 
-        double distCenter = distanceSquared(camera.x, camera.y, camera.z, centerX, centerY, centerZ);
-        double distLeftBottom = distanceSquared(camera.x, camera.y, camera.z, leftBottomCornerX, leftBottomCornerY, leftBottomCornerZ);
-        double distLeftTop = distanceSquared(camera.x, camera.y, camera.z, leftTopCornerX, leftTopCornerY, leftTopCornerZ);
-        double distRightBottom = distanceSquared(camera.x, camera.y, camera.z, rightBottomCornerX, rightBottomCornerY, rightBottomCornerZ);
-        double distRightTop = distanceSquared(camera.x, camera.y, camera.z, rightTopCornerX, rightTopCornerY, rightTopCornerZ);
-
-        double minDistSquared = Math.min(distCenter, Math.min(Math.min(distLeftBottom, distLeftTop), Math.min(distRightBottom, distRightTop)));
-
-        double againstZFighting = (0.01 + Math.sqrt(minDistSquared) * 0.005) * offsetDirection;
+        double againstZFighting = 0.05;
 
         leftBottomCornerX += normalX * againstZFighting;
         leftBottomCornerY += normalY * againstZFighting;
@@ -210,12 +296,5 @@ public class ClientScreensRenderer {
             vertexConsumer.addVertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).setColor(255, 255, 255, 255).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(15728880).setNormal((float)normalX, (float)normalY, (float)normalZ);
             vertexConsumer.addVertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).setColor(255, 255, 255, 255).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(15728880).setNormal((float)normalX, (float)normalY, (float)normalZ);
         }
-    }
-
-    private static double distanceSquared(double x1, double y1, double z1, double x2, double y2, double z2) {
-        double dx = x1 - x2;
-        double dy = y1 - y2;
-        double dz = z1 - z2;
-        return dx * dx + dy * dy + dz * dz;
     }
 }
