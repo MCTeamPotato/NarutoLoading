@@ -10,4 +10,3 @@
 - Optimize Local Sound option implementation by skipping resource pack generation and resource reloading if possible.
 # 2.1.0
 - Now you can build horizontal in-world screen!
-- 
