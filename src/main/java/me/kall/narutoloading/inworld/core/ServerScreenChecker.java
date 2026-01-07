@@ -23,80 +23,79 @@ import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
+import java.util.function.LongPredicate;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class ServerScreenChecker {
     private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
 
     public static int dist(@NotNull BlockPos a, @NotNull BlockPos b) {
-        if (a.getY() != b.getY()) return -1;
-
-        int dx = Math.abs(a.getX() - b.getX());
-        int dz = Math.abs(a.getZ() - b.getZ());
-
-        if (dx != 0 && dz != 0) return -1;
-        if (dx == 0 && dz == 0) return 0;
-
-        return dx + dz;
+        return Math.max(Math.max(Math.abs(a.getX() - b.getX()), Math.abs(a.getY() - b.getY())), Math.abs(a.getZ() - b.getZ()));
     }
 
-    public static @Nullable BlockPos buildVertical(int minX, int y, int minZ, int maxX, int maxZ, int width, int height, boolean isXAxis, @NotNull Predicate<BlockPos.MutableBlockPos> predicate) {
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
-        for (int i = 0; i < width + 1; i++) {
-            if (isXAxis) {
-                mutable.set(minX + i, y, minZ);
-            } else {
-                mutable.set(minX, y, minZ + i);
-            }
+    public static @NotNull List<InWorldScreen> screenCandidates(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int height, @NotNull ResourceLocation dimension) {
+        List<InWorldScreen> result = new ObjectArrayList<>(4);
 
-            if (!predicate.test(mutable)) {
-                return mutable.immutable();
-            }
+        int dx = Integer.compare(currentCorner.getX(), lastCorner.getX());
+        int dy = Integer.compare(currentCorner.getY(), lastCorner.getY());
+        int dz = Integer.compare(currentCorner.getZ(), lastCorner.getZ());
+
+        boolean widthX = dx != 0;
+        boolean widthY = dy != 0;
+        boolean widthZ = dz != 0;
+
+        if (widthX) {
+            tryAddScreens(lastCorner, currentCorner, 0, height, 0, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, 0, -height, 0, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, 0, 0, height, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, 0, 0, -height, dimension, result);
+        } else if (widthY) {
+            tryAddScreens(lastCorner, currentCorner, height, 0, 0, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, -height, 0, 0, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, 0, 0, height, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, 0, 0, -height, dimension, result);
+        } else if (widthZ) {
+            tryAddScreens(lastCorner, currentCorner, height, 0, 0, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, -height, 0, 0, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, 0, height, 0, dimension, result);
+            tryAddScreens(lastCorner, currentCorner, 0, -height, 0, dimension, result);
         }
 
-        int topY = y + height - 1;
+        return result;
+    }
 
-        for (int i = 0; i < width + 1; i++) {
-            if (isXAxis) {
-                mutable.set(minX + i, topY, minZ);
-            } else {
-                mutable.set(minX, topY, minZ + i);
-            }
-
-            if (!predicate.test(mutable)) {
-                return mutable.immutable();
-            }
-        }
-
-        for (int j = 0; j < height; j++) {
-            mutable.set(minX, y + j, minZ);
-
-            if (!predicate.test(mutable)) {
-                return mutable.immutable();
-            }
-
-            if (isXAxis) {
-                mutable.set(maxX, y + j, minZ);
-            } else {
-                mutable.set(minX, y + j, maxZ);
-            }
-
-            if (!predicate.test(mutable)) {
-                return mutable.immutable();
-            }
-        }
-
-        return null;
+    private static void tryAddScreens(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int hx, int hy, int hz, ResourceLocation dimension, @NotNull List<InWorldScreen> result) {
+        result.add(new InWorldScreen(lastCorner, lastCorner.offset(hx, hy, hz), currentCorner, currentCorner.offset(hx, hy, hz), dimension));
     }
 
     private static int forHeight(int width) {
-        if (width % 16 != 0 || width < 16 || width >= 16 * 4096) {
+        if (width % 16 != 0 || width < 16) {
             return -1;
         }
         return (width * 9) / 16;
+    }
+
+    public static @Nullable InWorldScreen validate(@NotNull List<InWorldScreen> screens, @NotNull LongPredicate predicate) {
+        InWorldScreen result = null;
+        for (InWorldScreen screen : screens) {
+            boolean valid = true;
+            for (long pos : screen.borderInvolved()) {
+                if (!predicate.test(pos)) {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (valid) {
+                result = screen;
+                break;
+            }
+        }
+
+        return result;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -120,7 +119,6 @@ public class ServerScreenChecker {
                     int maxX = Math.max(lastCorner.getX(), currentCorner.getX());
                     int minZ = Math.min(lastCorner.getZ(), currentCorner.getZ());
                     int maxZ = Math.max(lastCorner.getZ(), currentCorner.getZ());
-                    int y = lastCorner.getY();
 
                     int width = dist(lastCorner, currentCorner);
                     int height = forHeight(width + 1);
@@ -134,14 +132,12 @@ public class ServerScreenChecker {
                     if (xAxis && maxX - minX != width) return;
                     if (!xAxis && maxZ - minZ != width) return;
 
-                    BlockPos failedPos = ServerScreenChecker.buildVertical(minX, y, minZ, maxX, maxZ, width, height, xAxis, mutable -> Displayers.isDisplayer(level, mutable.asLong()));
+                    InWorldScreen inWorldScreen = validate(screenCandidates(lastCorner, currentCorner, height, dim), posLong -> Displayers.isDisplayer(level, posLong));
 
-                    if (failedPos != null) {
-                        player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", failedPos.toShortString()), false);
+                    if (inWorldScreen == null) {
+                        player.displayClientMessage(Component.translatable("info.narutoloading.screen.fail"), false);
                         return;
                     }
-
-                    InWorldScreen inWorldScreen = new InWorldScreen(new BlockPos(minX, y, minZ), new BlockPos(minX, y + height - 1, minZ), xAxis ? new BlockPos(maxX, y, minZ) : new BlockPos(minX, y, maxZ), xAxis ? new BlockPos(maxX, y + height - 1, minZ) : new BlockPos(minX, y + height - 1, maxZ), dim);
 
                     Screens screenData = Screens.get(level);
                     if (screenData.screens.computeIfAbsent(inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(inWorldScreen)) {
