@@ -162,8 +162,6 @@ public class ClientScreensRenderer {
 
         double dot = normalX * toCameraX + normalY * toCameraY + normalZ * toCameraZ;
 
-        double offsetDirection = dot > 0 ? 1.0 : -1.0;
-
         boolean isFrontFacing = dot > 0;
 
         if (dot < 0) {
@@ -171,32 +169,6 @@ public class ClientScreensRenderer {
             normalY = -normalY;
             normalZ = -normalZ;
         }
-
-        double distCenter = distanceSquared(camera.x, camera.y, camera.z, centerX, centerY, centerZ);
-        double distLeftBottom = distanceSquared(camera.x, camera.y, camera.z, leftBottomCornerX, leftBottomCornerY, leftBottomCornerZ);
-        double distLeftTop = distanceSquared(camera.x, camera.y, camera.z, leftTopCornerX, leftTopCornerY, leftTopCornerZ);
-        double distRightBottom = distanceSquared(camera.x, camera.y, camera.z, rightBottomCornerX, rightBottomCornerY, rightBottomCornerZ);
-        double distRightTop = distanceSquared(camera.x, camera.y, camera.z, rightTopCornerX, rightTopCornerY, rightTopCornerZ);
-
-        double minDistSquared = Math.min(distCenter, Math.min(Math.min(distLeftBottom, distLeftTop), Math.min(distRightBottom, distRightTop)));
-
-        double againstZFighting = (0.01 + Math.sqrt(minDistSquared) * 0.005) * offsetDirection;
-
-        leftBottomCornerX += normalX * againstZFighting;
-        leftBottomCornerY += normalY * againstZFighting;
-        leftBottomCornerZ += normalZ * againstZFighting;
-
-        leftTopCornerX += normalX * againstZFighting;
-        leftTopCornerY += normalY * againstZFighting;
-        leftTopCornerZ += normalZ * againstZFighting;
-
-        rightBottomCornerX += normalX * againstZFighting;
-        rightBottomCornerY += normalY * againstZFighting;
-        rightBottomCornerZ += normalZ * againstZFighting;
-
-        rightTopCornerX += normalX * againstZFighting;
-        rightTopCornerY += normalY * againstZFighting;
-        rightTopCornerZ += normalZ * againstZFighting;
 
         Matrix4f pose = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
@@ -212,12 +184,5 @@ public class ClientScreensRenderer {
             vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
             vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
         }
-    }
-
-    private static double distanceSquared(double x1, double y1, double z1, double x2, double y2, double z2) {
-        double dx = x1 - x2;
-        double dy = y1 - y2;
-        double dz = z1 - z2;
-        return dx * dx + dy * dy + dz * dz;
     }
 }
