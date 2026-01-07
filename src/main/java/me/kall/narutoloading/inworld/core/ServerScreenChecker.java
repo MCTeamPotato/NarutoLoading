@@ -1,5 +1,7 @@
 package me.kall.narutoloading.inworld.core;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
 import me.kall.duplicationless.event.BlockChangeEvent;
 import me.kall.duplicationless.util.Executor;
@@ -69,12 +71,13 @@ public class ServerScreenChecker {
         result.add(new InWorldScreen(lastCorner, lastCorner.offset(hx, hy, hz), currentCorner, currentCorner.offset(hx, hy, hz), dimension));
     }
 
-    private static int forHeight(int width) {
-        if (width % 16 != 0 || width < 16) {
-            return -1;
-        }
-        return (width * 9) / 16 - 1;
+    private static @NotNull IntList forHeights(int width) {
+        IntList result = new IntArrayList(2);
+        if (width >= 16 && width % 16 == 0) result.add((width * 9) / 16 - 1);
+        if (width >= 9 && width % 9 == 0) result.add((width * 16) / 9 - 1);
+        return result;
     }
+
 
     public static @Nullable InWorldScreen validate(@NotNull List<InWorldScreen> screens, @NotNull LongPredicate predicate) {
         InWorldScreen result = null;
@@ -119,9 +122,9 @@ public class ServerScreenChecker {
                     int maxZ = Math.max(lastCorner.getZ(), currentCorner.getZ());
 
                     int width = dist(lastCorner, currentCorner);
-                    int height = forHeight(width + 1);
+                    IntList heights = forHeights(width + 1);
 
-                    if (height == -1) {
+                    if (heights.isEmpty()) {
                         player.displayClientMessage(Component.translatable("info.narutoloading.screen.invalid_size", String.valueOf(width + 1)), false);
                         return;
                     }
@@ -130,7 +133,11 @@ public class ServerScreenChecker {
                     if (xAxis && maxX - minX != width) return;
                     if (!xAxis && maxZ - minZ != width) return;
 
-                    InWorldScreen inWorldScreen = validate(screenCandidates(lastCorner, currentCorner, height, dim), posLong -> Displayers.isDisplayer(level, posLong));
+                    InWorldScreen inWorldScreen = null;
+                    for (int i = 0; i < heights.size(); i++) {
+                        inWorldScreen = validate(screenCandidates(lastCorner, currentCorner, heights.getInt(i), dim), posLong -> Displayers.isDisplayer(level, posLong));
+                        if (inWorldScreen != null) break;
+                    }
 
                     if (inWorldScreen == null) {
                         player.displayClientMessage(Component.translatable("info.narutoloading.screen.fail"), false);
