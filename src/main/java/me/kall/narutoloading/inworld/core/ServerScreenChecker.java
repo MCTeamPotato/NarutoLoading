@@ -42,7 +42,7 @@ public class ServerScreenChecker {
         return dx + dz;
     }
 
-    public static @Nullable BlockPos checkBorder(int minX, int y, int minZ, int maxX, int maxZ, int width, int height, boolean isXAxis, @NotNull Predicate<BlockPos.MutableBlockPos> predicate) {
+    public static @Nullable BlockPos buildVertical(int minX, int y, int minZ, int maxX, int maxZ, int width, int height, boolean isXAxis, @NotNull Predicate<BlockPos.MutableBlockPos> predicate) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
         for (int i = 0; i < width + 1; i++) {
@@ -134,7 +134,7 @@ public class ServerScreenChecker {
                     if (xAxis && maxX - minX != width) return;
                     if (!xAxis && maxZ - minZ != width) return;
 
-                    BlockPos failedPos = checkBorder(minX, y, minZ, maxX, maxZ, width, height, xAxis, mutable -> Displayers.isDisplayer(level, mutable.asLong()));
+                    BlockPos failedPos = ServerScreenChecker.buildVertical(minX, y, minZ, maxX, maxZ, width, height, xAxis, mutable -> Displayers.isDisplayer(level, mutable.asLong()));
 
                     if (failedPos != null) {
                         player.displayClientMessage(Component.translatable("info.narutoloading.screen.displayer_not_found", failedPos.toShortString()), false);
