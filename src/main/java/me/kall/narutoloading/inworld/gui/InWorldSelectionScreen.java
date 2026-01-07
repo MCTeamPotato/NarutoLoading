@@ -129,7 +129,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         if (value.isEmpty()) return true;
         try {
             float vol = Float.parseFloat(value);
-            return vol >= 0.0F && vol <= 10.0F;
+            return vol >= 0.0F;
         } catch (NumberFormatException e) {
             return false;
         }

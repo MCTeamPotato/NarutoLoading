@@ -30,6 +30,19 @@ import org.joml.Matrix4f;
 public class ClientScreensRenderer {
     public static final Object2ObjectMap<ResourceLocation, ObjectSet<NarutoInWorldRenderer>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
 
+    public static void reload() {
+        Minecraft.getInstance().execute(() -> {
+            for (ObjectSet<NarutoInWorldRenderer> renderers : ClientScreensRenderer.CLIENT_SCREENS.values()) {
+                for (NarutoInWorldRenderer renderer : renderers) {
+                    renderer.pause = true;
+                    renderer.shutdown();
+                    renderer.setup();
+                    renderer.pause = false;
+                }
+            }
+        });
+    }
+
     @SubscribeEvent
     public static void logOutClean(ClientPlayerNetworkEvent.LoggingOut event) {
         Minecraft.getInstance().execute(() -> {

@@ -1,6 +1,7 @@
 package me.kall.narutoloading.inworld.gui.util;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import net.minecraft.client.Minecraft;
@@ -41,14 +42,16 @@ public final class ResourceZipGenerator {
             if (!resourcePacksDir.exists()) resourcePacksDir.mkdirs();
 
             File zipFile = new File(resourcePacksDir, packName);
-            if (zipFile.exists()) zipFile.delete();
+            if (zipFile.exists()) {
+                NarutoLoading.LOGGER.info("{}Resource pack already exists: {}, skipping generation", NarutoLoading.info(), zipFile.getAbsolutePath());
+                return;
+            }
 
             try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
                 addPackMcmeta(zos);
                 addAudioFiles(zos);
                 NarutoLoading.LOGGER.info("{}Successfully created resource pack: {}", NarutoLoading.info(), zipFile.getAbsolutePath());
             }
-
         } catch (Exception e) {
             NarutoLoading.LOGGER.error("Failed to generate resource pack", e);
         }
@@ -62,22 +65,33 @@ public final class ResourceZipGenerator {
                 repository.reload();
                 String packId = "file/" + this.packName;
 
+                Collection<String> currentSelected = repository.getSelectedIds();
+
+                ResourceLocation expectedSound = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id);
+
+                if (currentSelected.contains(packId)) {
+                    NarutoLoading.LOGGER.info("{}Resource pack {} already active, skipping reload", NarutoLoading.info(), packId);
+                    renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                    NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
+                    ClientScreensRenderer.reload();
+                    return;
+                }
+
                 Pack pack = repository.getPack(packId);
                 if (pack == null) {
                     NarutoLoading.LOGGER.warn("Could not find pack: {}", packId);
                     return;
                 }
 
-                Collection<String> selected = new ArrayList<>(repository.getSelectedIds());
-                selected.removeIf(s -> s.equals("file/NarutoLoadingAudioSource-" + this.id + ".zip"));
+                Collection<String> selected = new ArrayList<>(currentSelected);
+                selected.removeIf(s -> s.equals("file/" + this.packName));
                 if (!selected.contains(packId)) selected.add(packId);
 
                 repository.setSelected(selected);
-
                 minecraft.options.resourcePacks = new ArrayList<>(selected);
                 minecraft.options.save();
 
-                renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                renderer.screen.setLocalSound(expectedSound);
                 minecraft.reloadResourcePacks();
                 NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
 
