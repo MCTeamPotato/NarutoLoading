@@ -90,13 +90,13 @@ public class ClientScreensRenderer {
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
 
-            renderScreen(poseStack, bufferSource, renderer, frustum, camera);
+            renderScreen(poseStack, bufferSource, renderer, camera);
 
             poseStack.popPose();
         }
     }
 
-    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull NarutoInWorldRenderer renderer, Frustum frustum, Vec3 camera) {
+    private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull NarutoInWorldRenderer renderer, Vec3 camera) {
         InWorldScreen inWorldScreen = renderer.screen;
         ResourceLocation nextFrame = renderer.nextFrame();
         if (nextFrame == null) return;
@@ -113,7 +113,7 @@ public class ClientScreensRenderer {
         double leftBottomCornerZ = leftBottomCorner.getZ();
 
         double leftTopCornerX = leftTopCorner.getX();
-        double leftTopCornerY = leftTopCorner.getY() + 1.0;
+        double leftTopCornerY = leftTopCorner.getY();
         double leftTopCornerZ = leftTopCorner.getZ();
 
         double rightBottomCornerX = rightBottomCorner.getX();
@@ -121,17 +121,113 @@ public class ClientScreensRenderer {
         double rightBottomCornerZ = rightBottomCorner.getZ();
 
         double rightTopCornerX = rightTopCorner.getX();
-        double rightTopCornerY = rightTopCorner.getY() + 1.0;
+        double rightTopCornerY = rightTopCorner.getY();
         double rightTopCornerZ = rightTopCorner.getZ();
 
-        boolean isXAxis = leftBottomCornerX != rightBottomCornerX;
+        boolean widthX = leftBottomCornerX != rightBottomCornerX;
+        boolean widthY = leftBottomCornerY != rightBottomCornerY;
+        boolean widthZ = leftBottomCornerZ != rightBottomCornerZ;
 
-        if (isXAxis) {
-            rightBottomCornerX += 1.0;
-            rightTopCornerX += 1.0;
-        } else {
-            rightBottomCornerZ += 1.0;
-            rightTopCornerZ += 1.0;
+        boolean heightX = leftBottomCornerX != leftTopCornerX;
+        boolean heightY = leftBottomCornerY != leftTopCornerY;
+        boolean heightZ = leftBottomCornerZ != leftTopCornerZ;
+
+        if (widthX && heightY) {
+            if (leftTopCornerY > leftBottomCornerY) {
+                leftTopCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                rightBottomCornerY += 1.0;
+            }
+
+            if (rightBottomCornerX > leftBottomCornerX) {
+                rightBottomCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                leftTopCornerX += 1.0;
+            }
+        } else if (widthZ && heightY) {
+            if (leftTopCornerY > leftBottomCornerY) {
+                leftTopCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                rightBottomCornerY += 1.0;
+            }
+
+            if (rightBottomCornerZ > leftBottomCornerZ) {
+                rightBottomCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                leftTopCornerZ += 1.0;
+            }
+        } else if (widthX && heightZ) {
+            if (leftTopCornerZ > leftBottomCornerZ) {
+                leftTopCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                rightBottomCornerZ += 1.0;
+            }
+
+            if (rightBottomCornerX > leftBottomCornerX) {
+                rightBottomCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                leftTopCornerX += 1.0;
+            }
+        } else if (widthY && heightX) {
+            if (leftTopCornerX > leftBottomCornerX) {
+                leftTopCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                rightBottomCornerX += 1.0;
+            }
+
+            if (rightBottomCornerY > leftBottomCornerY) {
+                rightBottomCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                leftTopCornerY += 1.0;
+            }
+        } else if (widthY && heightZ) {
+            if (leftTopCornerZ > leftBottomCornerZ) {
+                leftTopCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                rightBottomCornerZ += 1.0;
+            }
+
+            if (rightBottomCornerY > leftBottomCornerY) {
+                rightBottomCornerY += 1.0;
+                rightTopCornerY += 1.0;
+            } else {
+                leftBottomCornerY += 1.0;
+                leftTopCornerY += 1.0;
+            }
+        } else if (widthZ && heightX) {
+            if (leftTopCornerX > leftBottomCornerX) {
+                leftTopCornerX += 1.0;
+                rightTopCornerX += 1.0;
+            } else {
+                leftBottomCornerX += 1.0;
+                rightBottomCornerX += 1.0;
+            }
+
+            if (rightBottomCornerZ > leftBottomCornerZ) {
+                rightBottomCornerZ += 1.0;
+                rightTopCornerZ += 1.0;
+            } else {
+                leftBottomCornerZ += 1.0;
+                leftTopCornerZ += 1.0;
+            }
         }
 
         double leftCornerDistX = leftTopCornerX - leftBottomCornerX;
@@ -169,6 +265,24 @@ public class ClientScreensRenderer {
             normalY = -normalY;
             normalZ = -normalZ;
         }
+
+        double againstZFighting = 0.05;
+
+        leftBottomCornerX += normalX * againstZFighting;
+        leftBottomCornerY += normalY * againstZFighting;
+        leftBottomCornerZ += normalZ * againstZFighting;
+
+        leftTopCornerX += normalX * againstZFighting;
+        leftTopCornerY += normalY * againstZFighting;
+        leftTopCornerZ += normalZ * againstZFighting;
+
+        rightBottomCornerX += normalX * againstZFighting;
+        rightBottomCornerY += normalY * againstZFighting;
+        rightBottomCornerZ += normalZ * againstZFighting;
+
+        rightTopCornerX += normalX * againstZFighting;
+        rightTopCornerY += normalY * againstZFighting;
+        rightTopCornerZ += normalZ * againstZFighting;
 
         Matrix4f pose = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
