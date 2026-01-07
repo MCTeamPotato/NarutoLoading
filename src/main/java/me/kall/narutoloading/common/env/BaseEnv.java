@@ -28,8 +28,11 @@ public final class BaseEnv {
             if (ffmpegProvider.absoluteFFmpeg != null) {
                 if (narutoConfig.urlSource) {
                     ytDlpProvider.setup(() -> {
+                        if (ytDlpProvider.absoluteYtDlp != null) {
+                            available = true;
+                        }
+
                         ytDlpProvider.shutdown();
-                        available = true;
                     });
                 } else {
                     available = true;
