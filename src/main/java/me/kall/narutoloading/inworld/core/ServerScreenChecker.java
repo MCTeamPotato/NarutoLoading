@@ -35,7 +35,6 @@ public class ServerScreenChecker {
         return Math.max(Math.max(Math.abs(a.getX() - b.getX()), Math.abs(a.getY() - b.getY())), Math.abs(a.getZ() - b.getZ()));
     }
 
-
     public static @NotNull List<InWorldScreen> screenCandidates(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int height, @NotNull ResourceLocation dimension) {
         List<InWorldScreen> result = new ObjectArrayList<>(4);
 
@@ -75,7 +74,7 @@ public class ServerScreenChecker {
         if (width % 16 != 0 || width < 16) {
             return -1;
         }
-        return (width * 9) / 16;
+        return (width * 9) / 16 - 1;
     }
 
     public static @Nullable InWorldScreen validate(@NotNull List<InWorldScreen> screens, @NotNull LongPredicate predicate) {
