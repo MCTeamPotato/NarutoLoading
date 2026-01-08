@@ -107,7 +107,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         String audioFileName = this.audioBox.getValue();
 
         if (videoFilename.startsWith("http")) {
-            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, videoFilename, folderName -> this.download(videoFilename, audioFileName, folderName)));
+            Minecraft.getInstance().setScreen(new SourceNameScreen(this.lastScreen, folderName -> this.download(videoFilename, audioFileName, folderName)));
         } else {
             this.handleLocalFiles();
             Minecraft.getInstance().setScreen(this.lastScreen);
