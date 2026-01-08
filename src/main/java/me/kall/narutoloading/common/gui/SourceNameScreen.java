@@ -70,12 +70,6 @@ public class SourceNameScreen extends EmptiableEditBoxes {
         Minecraft.getInstance().setScreen(this.lastScreen);
     }
 
-    private static @NotNull String extractLetters(@NotNull String input) {
-        String extracted = input.replaceAll("[^A-Za-z]", "");
-        return extracted.isEmpty() ? "download" : extracted;
-    }
-
-
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(graphics, mouseX, mouseY, partialTick);
