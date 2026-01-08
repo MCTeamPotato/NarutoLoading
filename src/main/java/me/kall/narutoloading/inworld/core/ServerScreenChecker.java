@@ -1,7 +1,5 @@
 package me.kall.narutoloading.inworld.core;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
 import me.kall.duplicationless.event.BlockChangeEvent;
 import me.kall.duplicationless.util.Executor;
@@ -21,10 +19,10 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.function.LongPredicate;
 
@@ -32,12 +30,12 @@ import java.util.function.LongPredicate;
 public class ServerScreenChecker {
     private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
 
-    public static int dist(@NotNull BlockPos a, @NotNull BlockPos b) {
+    private static int dist(@NotNull BlockPos a, @NotNull BlockPos b) {
         return Math.max(Math.max(Math.abs(a.getX() - b.getX()), Math.abs(a.getY() - b.getY())), Math.abs(a.getZ() - b.getZ()));
     }
 
-    public static @NotNull List<InWorldScreen> screenCandidates(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int height, @NotNull ResourceLocation dimension) {
-        List<InWorldScreen> result = new ObjectArrayList<>(4);
+    private static @NotNull InWorldScreen @NotNull [] screenCandidates(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int height, @NotNull ResourceLocation dimension) {
+        InWorldScreen[] screenCandidates = new InWorldScreen[]{null, null, null, null};
 
         int dx = Integer.compare(currentCorner.getX(), lastCorner.getX());
         int dy = Integer.compare(currentCorner.getY(), lastCorner.getY());
@@ -48,38 +46,38 @@ public class ServerScreenChecker {
         boolean widthZ = dz != 0;
 
         if (widthX) {
-            tryAddScreens(lastCorner, currentCorner, 0, height, 0, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, 0, -height, 0, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, 0, 0, height, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, 0, 0, -height, dimension, result);
+            screenCandidates[0] = build(lastCorner, currentCorner, 0, height, 0, dimension);
+            screenCandidates[1] = build(lastCorner, currentCorner, 0, -height, 0, dimension);
+            screenCandidates[2] = build(lastCorner, currentCorner, 0, 0, height, dimension);
+            screenCandidates[3] = build(lastCorner, currentCorner, 0, 0, -height, dimension);
         } else if (widthY) {
-            tryAddScreens(lastCorner, currentCorner, height, 0, 0, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, -height, 0, 0, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, 0, 0, height, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, 0, 0, -height, dimension, result);
+            screenCandidates[0] = build(lastCorner, currentCorner, height, 0, 0, dimension);
+            screenCandidates[1] = build(lastCorner, currentCorner, -height, 0, 0, dimension);
+            screenCandidates[2] = build(lastCorner, currentCorner, 0, 0, height, dimension);
+            screenCandidates[3] = build(lastCorner, currentCorner, 0, 0, -height, dimension);
         } else if (widthZ) {
-            tryAddScreens(lastCorner, currentCorner, height, 0, 0, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, -height, 0, 0, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, 0, height, 0, dimension, result);
-            tryAddScreens(lastCorner, currentCorner, 0, -height, 0, dimension, result);
+            screenCandidates[0] = build(lastCorner, currentCorner, height, 0, 0, dimension);
+            screenCandidates[1] = build(lastCorner, currentCorner, -height, 0, 0, dimension);
+            screenCandidates[2] = build(lastCorner, currentCorner, 0, height, 0, dimension);
+            screenCandidates[3] = build(lastCorner, currentCorner, 0, -height, 0, dimension);
         }
 
-        return result;
+        return screenCandidates;
     }
 
-    private static void tryAddScreens(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int hx, int hy, int hz, ResourceLocation dimension, @NotNull List<InWorldScreen> result) {
-        result.add(new InWorldScreen(lastCorner, lastCorner.offset(hx, hy, hz), currentCorner, currentCorner.offset(hx, hy, hz), dimension));
+    @Contract("_, _, _, _, _, _ -> new")
+    private static @NotNull InWorldScreen build(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int hx, int hy, int hz, ResourceLocation dimension) {
+        return new InWorldScreen(lastCorner, lastCorner.offset(hx, hy, hz), currentCorner, currentCorner.offset(hx, hy, hz), dimension);
     }
 
-    private static @NotNull IntList forHeights(int width) {
-        IntList result = new IntArrayList(2);
-        if (width >= 16 && width % 16 == 0) result.add((width * 9) / 16 - 1);
-        if (width >= 9 && width % 9 == 0) result.add((width * 16) / 9 - 1);
-        return result;
+    private static int @NotNull [] forHeights(int width) {
+        int[] heights = new int[]{0, 0};
+        if (width >= 16 && width % 16 == 0) heights[0] = (width * 9) / 16 - 1;
+        if (width >= 9 && width % 9 == 0) heights[1] = (width * 16) / 9 - 1;
+        return heights;
     }
 
-
-    public static @Nullable InWorldScreen validate(@NotNull List<InWorldScreen> screens, @NotNull LongPredicate predicate) {
+    private static @Nullable InWorldScreen validate(InWorldScreen @NotNull [] screens, @NotNull LongPredicate predicate) {
         InWorldScreen result = null;
         for (InWorldScreen screen : screens) {
             boolean valid = true;
@@ -121,10 +119,10 @@ public class ServerScreenChecker {
                     int minZ = Math.min(lastCorner.getZ(), currentCorner.getZ());
                     int maxZ = Math.max(lastCorner.getZ(), currentCorner.getZ());
 
-                    int width = dist(lastCorner, currentCorner);
-                    IntList heights = forHeights(width + 1);
+                    int width = ServerScreenChecker.dist(lastCorner, currentCorner);
+                    int[] heights = ServerScreenChecker.forHeights(width + 1);
 
-                    if (heights.isEmpty()) {
+                    if (heights[0] == 0 && heights[1] == 0) {
                         player.displayClientMessage(Component.translatable("info.narutoloading.screen.invalid_size", String.valueOf(width + 1)), false);
                         return;
                     }
@@ -134,8 +132,8 @@ public class ServerScreenChecker {
                     if (!xAxis && maxZ - minZ != width) return;
 
                     InWorldScreen inWorldScreen = null;
-                    for (int i = 0; i < heights.size(); i++) {
-                        inWorldScreen = validate(screenCandidates(lastCorner, currentCorner, heights.getInt(i), dim), posLong -> Displayers.isDisplayer(level, posLong));
+                    for (int height : heights) {
+                        inWorldScreen = ServerScreenChecker.validate(ServerScreenChecker.screenCandidates(lastCorner, currentCorner, height, dim), posLong -> Displayers.isDisplayer(level, posLong));
                         if (inWorldScreen != null) break;
                     }
 
@@ -181,9 +179,7 @@ public class ServerScreenChecker {
                         screenData.setDirty();
 
                         Component component = Component.translatable("info.narutoloading.screen.destroy", copy.toLocalString());
-                        for (ServerPlayer player : level.players()) {
-                            player.displayClientMessage(component, false);
-                        }
+                        for (ServerPlayer player : level.players()) player.displayClientMessage(component, false);
                         PacketDistributor.sendToAllPlayers(new ScreenLifePacket(copy, true));
                     }
                 }
