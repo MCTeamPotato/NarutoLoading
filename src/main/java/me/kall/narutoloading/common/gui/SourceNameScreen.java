@@ -15,7 +15,6 @@ import java.util.function.Consumer;
 
 public class SourceNameScreen extends EmptiableEditBoxes {
     private final Screen lastScreen;
-    private final String videoUrl;
     private final Consumer<String> onConfirm;
     private EditBox nameBox;
 
@@ -23,10 +22,9 @@ public class SourceNameScreen extends EmptiableEditBoxes {
     public static final Component NAME_LABEL = new TranslatableComponent("box.narutoloading.folder_name");
     public static final Component HINT = new TranslatableComponent("hint.narutoloading.folder_name");
 
-    public SourceNameScreen(Screen lastScreen, String videoUrl, Consumer<String> onConfirm) {
+    public SourceNameScreen(Screen lastScreen, Consumer<String> onConfirm) {
         super(TITLE);
         this.lastScreen = lastScreen;
-        this.videoUrl = videoUrl;
         this.onConfirm = onConfirm;
     }
 
@@ -55,7 +53,7 @@ public class SourceNameScreen extends EmptiableEditBoxes {
     }
 
     private boolean isValidFolderName(@NotNull String name) {
-        if (name.isEmpty()) return true;
+        if (name.isBlank()) return false;
         return name.matches("[a-zA-Z0-9_-]+");
     }
 
