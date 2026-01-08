@@ -97,6 +97,8 @@ public class SourceNameScreen extends EmptiableEditBoxes {
             Component error = new TranslatableComponent("error.narutoloading.invalid_folder_name");
             this.font.draw(graphics, error, centerX, this.nameBox.y + 45, 0xFF5555);
         }
+
+        this.nameBox.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
