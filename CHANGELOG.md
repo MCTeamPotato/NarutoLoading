@@ -16,3 +16,5 @@
 # 2.1.2
 - Minor cleanup and improvements for ServerScreenCheck (no actual logic change)
 - Backport to 1.16.5!
+# 2.1.3
+- Source name setting screen no longer contains the initial value.

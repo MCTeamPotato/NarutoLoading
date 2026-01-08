@@ -1,5 +1,6 @@
 package me.kall.narutoloading.common.gui;
 
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -39,7 +40,7 @@ public class SourceNameScreen extends EmptiableEditBoxes {
 
         this.nameBox = new EditBox(this.font, centerX - boxWidth / 2, startY + 40, boxWidth, boxHeight, NAME_LABEL);
         this.nameBox.setMaxLength(1024);
-        this.nameBox.setValue(extractLetters(this.videoUrl));
+        this.nameBox.setValue(NarutoLoading.BLANK);
         this.nameBox.setFilter(this::isValidFolderName);
         this.addRenderableWidget(this.nameBox);
 
