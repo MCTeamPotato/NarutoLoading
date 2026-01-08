@@ -13,3 +13,6 @@
 # 2.1.1
 - Postpone BaseEnv availability validation to when ytDlpProvider download task ends if enableUrlForSourceSelection config option is true.
 - Now you can build 9:16 vertical in-world screens for all you phone-recording heathens!
+# 2.1.2
+- Minor cleanup and improvements for ServerScreenCheck (no actual logic change)
+- Backport to 1.16.5!
