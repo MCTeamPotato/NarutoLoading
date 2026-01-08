@@ -1,6 +1,7 @@
 package me.kall.narutoloading.common.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -40,7 +41,7 @@ public class SourceNameScreen extends EmptiableEditBoxes {
 
         this.nameBox = new EditBox(this.font, centerX - boxWidth / 2, startY + 40, boxWidth, boxHeight, NAME_LABEL);
         this.nameBox.setMaxLength(1024);
-        this.nameBox.setValue(extractLetters(this.videoUrl));
+        this.nameBox.setValue(NarutoLoading.BLANK);
         this.nameBox.setFilter(this::isValidFolderName);
         this.addWidget(this.nameBox);
 
@@ -68,11 +69,6 @@ public class SourceNameScreen extends EmptiableEditBoxes {
 
     private void onCancel() {
         Minecraft.getInstance().setScreen(this.lastScreen);
-    }
-
-    private static @NotNull String extractLetters(@NotNull String input) {
-        String extracted = input.replaceAll("[^A-Za-z]", "");
-        return extracted.isEmpty() ? "download" : extracted;
     }
 
     @Override
