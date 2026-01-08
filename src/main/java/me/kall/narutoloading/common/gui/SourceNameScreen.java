@@ -2,6 +2,7 @@ package me.kall.narutoloading.common.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -53,7 +54,7 @@ public class SourceNameScreen extends EmptiableEditBoxes {
     }
 
     private boolean isValidFolderName(@NotNull String name) {
-        if (name.isBlank()) return false;
+        if (Strings.isBlank(name)) return false;
         return name.matches("[a-zA-Z0-9_-]+");
     }
 
