@@ -9,9 +9,10 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.ext.IFrustum;
-import me.kall.narutoloading.mixin.inworld.LevelRendererAccessor;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -81,18 +82,26 @@ public class ClientScreensRenderer {
 
         PoseStack poseStack = event.getMatrixStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-        Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-        Frustum frustum = ((LevelRendererAccessor)minecraft.levelRenderer).naruto$frustum();
+        GameRenderer gameRenderer = Minecraft.getInstance().gameRenderer;
+        Camera mainCamera = gameRenderer.getMainCamera();
+        Vec3 cameraPos = mainCamera.getPosition();
+        Frustum frustum = createFrustum(poseStack, gameRenderer.getProjectionMatrix(mainCamera, event.getPartialTicks(), true), cameraPos);
 
         for (NarutoInWorldRenderer renderer : renderers) {
             if (!IFrustum.isVisible(frustum, renderer.screen)) continue;
             poseStack.pushPose();
-            poseStack.translate(-camera.x, - camera.y, - camera.z);
+            poseStack.translate(-cameraPos.x, - cameraPos.y, - cameraPos.z);
 
-            renderScreen(poseStack, bufferSource, renderer, camera);
+            renderScreen(poseStack, bufferSource, renderer, cameraPos);
 
             poseStack.popPose();
         }
+    }
+
+    private static @NotNull Frustum createFrustum(@NotNull PoseStack matrixStack, Matrix4f projection, @NotNull Vec3 cameraPos) {
+        Frustum frustum = new Frustum(matrixStack.last().pose(), projection);
+        frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
+        return frustum;
     }
 
     private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull NarutoInWorldRenderer renderer, Vec3 camera) {

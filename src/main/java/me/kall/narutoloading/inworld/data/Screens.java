@@ -44,13 +44,13 @@ public class Screens extends SavedData {
 
     @Override
     public void load(@NotNull CompoundTag tag) {
-        Screens screens = new Screens();
-
         ListTag screensList = tag.getList(SCREENS_KEY, Constants.NBT.TAG_COMPOUND);
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
             ResourceLocation dimension = ResourceLocation.tryParse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), ResourceLocation.tryParse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getFloat(SOUND_VOLUME), screenTag.getBoolean(HIDE_INNER_KEY), screenTag.getInt(VIDEO_WIDTH_KEY), screenTag.getInt(VIDEO_HEIGHT_KEY)));
+            InWorldScreen inWorldScreen = InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), ResourceLocation.tryParse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getFloat(SOUND_VOLUME), screenTag.getBoolean(HIDE_INNER_KEY), screenTag.getInt(VIDEO_WIDTH_KEY), screenTag.getInt(VIDEO_HEIGHT_KEY));
+            this.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(inWorldScreen);
+            NarutoLoading.LOGGER.info("{}Loading {} successfully", NarutoLoading.info(), inWorldScreen.toString());
         }
     }
 

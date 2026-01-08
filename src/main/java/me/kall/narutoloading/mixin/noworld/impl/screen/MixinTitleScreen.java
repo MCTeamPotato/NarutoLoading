@@ -21,7 +21,7 @@ public abstract class MixinTitleScreen {
         instance.render(f, deltaT);
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;bind(Lnet/minecraft/resources/ResourceLocation;)V"))
+    @Redirect(method = "render", at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/client/renderer/texture/TextureManager;bind(Lnet/minecraft/resources/ResourceLocation;)V"))
     private void panoramaByeBye(TextureManager instance, ResourceLocation resource) {
         if (BaseEnv.available()) return;
         instance.bind(resource);

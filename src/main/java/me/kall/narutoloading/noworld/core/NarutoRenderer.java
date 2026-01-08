@@ -11,6 +11,7 @@ import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.checker.KeyChecker;
 import me.kall.narutoloading.noworld.core.checker.WindowSizeChecker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -133,11 +134,12 @@ public class NarutoRenderer {
             if (texture == null) return;
 
             if (graphics != null){
-                int w = graphics.guiWidth();
-                int h = graphics.guiHeight();
+                int w = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+                int h = Minecraft.getInstance().getWindow().getGuiScaledHeight();
 
                 if (!this.runInLevel()) {
-                    graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
+                    Minecraft.getInstance().textureManager.bind(texture);
+                    GuiComponent.blit(graphics, 0, 0, 0, 0, w, h, w, h);
                 }
             }
 

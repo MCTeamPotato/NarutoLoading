@@ -11,7 +11,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 @Mod(NarutoLoading.MOD_ID)
 public final class NarutoLoading {
@@ -21,8 +20,9 @@ public final class NarutoLoading {
     public static final String BLANK = "";
     private static final String PREFIX = "[NarutoLoading] ";
 
-    public NarutoLoading(@NotNull FMLJavaModLoadingContext context) {
-        IEventBus modBus = context.getModEventBus();
+    public NarutoLoading() {
+
+        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
         NarutoBlocks.BLOCKS.register(modBus);
         NarutoItems.ITEMS.register(modBus);

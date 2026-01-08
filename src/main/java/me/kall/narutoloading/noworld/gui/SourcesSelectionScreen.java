@@ -12,7 +12,9 @@ import me.kall.narutoloading.common.gui.SourceNameScreen;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -196,6 +198,11 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
 
         this.font.draw(graphics, VIDEO, centerX, this.videoBox.y - 12, 0xFFFFFF);
         this.font.draw(graphics, AUDIO, centerX, this.audioBox.y - 12, 0xFFFFFF);
+
+        for (GuiEventListener guiEventListener : this.children()) {
+            if (guiEventListener instanceof EditBox) ((EditBox)guiEventListener).render(graphics, mouseX, mouseY, partialTick);
+            if (guiEventListener instanceof Checkbox) ((Checkbox)guiEventListener).render(graphics, mouseX, mouseY, partialTick);
+        }
     }
 
     @Override

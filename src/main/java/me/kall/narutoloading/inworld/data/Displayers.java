@@ -1,10 +1,10 @@
 package me.kall.narutoloading.inworld.data;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.data.ChunkData;
 import me.kall.duplicationless.event.BlockChangeEvent;
-import me.kall.duplicationless.fastutil.longs.Long2ObjectMap;
-import me.kall.duplicationless.fastutil.objects.Object2ObjectMap;
-import me.kall.duplicationless.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.util.Executor;
 import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;

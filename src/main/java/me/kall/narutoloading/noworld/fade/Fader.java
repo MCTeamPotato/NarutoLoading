@@ -5,6 +5,7 @@ import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
@@ -20,7 +21,7 @@ public final class Fader {
     private static int stopTickCount = 0;
     private static float fadeAlpha = 1.0F;
 
-    public static final Component EMPTY_COMPONENT = Component.empty();
+    public static final Component EMPTY_COMPONENT = TextComponent.EMPTY;
 
     private static boolean shouldFade() {
         return stopTickCount >= 20 * 5;

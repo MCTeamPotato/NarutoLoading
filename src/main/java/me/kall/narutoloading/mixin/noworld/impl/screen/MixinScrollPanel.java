@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(value = ScrollPanel.class, remap = false)
+@Mixin(value = ScrollPanel.class)
 public abstract class MixinScrollPanel {
-    @Shadow @Final private Minecraft client;
+    @Shadow(remap = false) @Final private Minecraft client;
 
     @Shadow protected abstract void drawGradientRect(PoseStack mStack, int left, int top, int right, int bottom, int color1, int color2);
 
