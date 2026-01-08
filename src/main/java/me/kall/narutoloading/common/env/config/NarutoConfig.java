@@ -2,6 +2,7 @@ package me.kall.narutoloading.common.env.config;
 
 import me.kall.duplicationless.config.JsonConfig;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class NarutoConfig {
     private static final Logger LOGGER = LogManager.getLogger(NarutoConfig.class);
@@ -91,7 +93,7 @@ public final class NarutoConfig {
         this.absoluteVideoPath = NarutoConfig.absolute(this.videoFileName);
 
         this.audioFileName = this.config.getString("audioFileName");
-        this.absoluteAudioPath = this.audioFileName.isBlank() ? NarutoLoading.BLANK : NarutoConfig.absolute(this.audioFileName);
+        this.absoluteAudioPath = Strings.isBlank(this.audioFileName) ? NarutoLoading.BLANK : NarutoConfig.absolute(this.audioFileName);
 
         this.absoluteFFprobePath = this.config.getString("ffprobeExePath");
         this.absoluteFFmpegPath = this.config.getString("ffmpegExePath");
@@ -160,14 +162,14 @@ public final class NarutoConfig {
     }
 
     public static @NotNull String absolute(@NotNull String relativePath) {
-        if (relativePath.isBlank()) return NarutoLoading.BLANK;
+        if (Strings.isBlank(relativePath)) return NarutoLoading.BLANK;
         return FMLLoader.getGamePath().resolve("config").resolve(relativePath).toAbsolutePath().toString();
     }
 
     public static @NotNull String relative(@NotNull String absolutePath) {
-        if (absolutePath.isBlank()) return NarutoLoading.BLANK;
+        if (Strings.isBlank(absolutePath)) return NarutoLoading.BLANK;
         Path configPath = FMLLoader.getGamePath().resolve("config").toAbsolutePath().normalize();
-        Path targetPath = Path.of(absolutePath).toAbsolutePath().normalize();
+        Path targetPath = Paths.get(absolutePath).toAbsolutePath().normalize();
         if (!targetPath.startsWith(configPath)) return NarutoLoading.BLANK;
         return configPath.relativize(targetPath).toString();
     }

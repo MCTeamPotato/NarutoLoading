@@ -9,11 +9,13 @@ import me.kall.narutoloading.inworld.data.Displayers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.LongPredicate;
 import java.util.function.Supplier;
 
 public class ClearScreenPacket {
@@ -28,8 +30,8 @@ public class ClearScreenPacket {
     }
 
     public ClearScreenPacket(@NotNull FriendlyByteBuf buf) {
-        this.areaInvolved = new LongOpenHashSet(buf.readLongArray());
-        this.borderInvolved = new LongOpenHashSet(buf.readLongArray());
+        this.areaInvolved = new LongOpenHashSet(buf.readLongArray(null));
+        this.borderInvolved = new LongOpenHashSet(buf.readLongArray(null));
         this.screenInfo = buf.readUtf();
     }
 
@@ -44,11 +46,12 @@ public class ClearScreenPacket {
             try {
                 ServerPlayer player = ctx.get().getSender();
                 if (player != null) {
-                    ServerLevel level = player.serverLevel();
-                    this.areaInvolved.removeIf(this.borderInvolved::contains);
-                    LongIterator positionsToRemove = this.areaInvolved.longIterator();
+                    ServerLevel level = player.getLevel();
+                    LongPredicate involved = this.borderInvolved::contains;
+                    this.areaInvolved.removeIf(involved);
+                    LongIterator positionsToRemove = this.areaInvolved.iterator();
 
-                    Component start = Component.translatable("info.narutoloading.clear.begin", this.screenInfo);
+                    Component start = new TranslatableComponent("info.narutoloading.clear.begin", this.screenInfo);
 
                     for (ServerPlayer online : level.players()) {
                         online.displayClientMessage(start, false);
@@ -61,7 +64,7 @@ public class ClearScreenPacket {
                         }
                     }
 
-                    Component end = Component.translatable("info.narutoloading.clear.end", this.screenInfo);
+                    Component end = new TranslatableComponent("info.narutoloading.clear.end");
 
                     for (ServerPlayer online : level.players()) {
                         online.displayClientMessage(end, false);

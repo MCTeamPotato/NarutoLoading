@@ -2,11 +2,14 @@ package me.kall.narutoloading.inworld.core;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.ext.IFrustum;
+import me.kall.narutoloading.mixin.inworld.LevelRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -18,13 +21,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class ClientScreensRenderer {
@@ -44,7 +45,7 @@ public class ClientScreensRenderer {
     }
 
     @SubscribeEvent
-    public static void logOutClean(ClientPlayerNetworkEvent.LoggingOut event) {
+    public static void logOutClean(ClientPlayerNetworkEvent.LoggedOutEvent event) {
         Minecraft.getInstance().execute(() -> {
             for (ObjectSet<NarutoInWorldRenderer> renderers : CLIENT_SCREENS.values()) {
                 for (NarutoInWorldRenderer renderer : renderers) {
@@ -69,9 +70,7 @@ public class ClientScreensRenderer {
     }
 
     @SubscribeEvent
-    public static void renderLevel(@NotNull RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS) return;
-
+    public static void renderLevel(@NotNull RenderWorldLastEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         if (level == null) return;
@@ -80,10 +79,10 @@ public class ClientScreensRenderer {
         ObjectSet<NarutoInWorldRenderer> renderers = CLIENT_SCREENS.get(dimension);
         if (renderers == null || renderers.isEmpty()) return;
 
-        PoseStack poseStack = event.getPoseStack();
+        PoseStack poseStack = event.getMatrixStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-        Vec3 camera = event.getCamera().getPosition();
-        Frustum frustum = minecraft.levelRenderer.getFrustum();
+        Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        Frustum frustum = ((LevelRendererAccessor)minecraft.levelRenderer).naruto$frustum();
 
         for (NarutoInWorldRenderer renderer : renderers) {
             if (!IFrustum.isVisible(frustum, renderer.screen)) continue;

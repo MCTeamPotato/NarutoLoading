@@ -28,8 +28,6 @@ public final class NarutoLoading {
         NarutoItems.ITEMS.register(modBus);
         NarutoPackets.register();
 
-        modBus.addListener(NarutoLoadingClient::onBuildCreativeTab);
-
         if (FMLLoader.getDist().isClient()) {
             //noinspection DataFlowIssue
             forgeBus.addListener(NarutoRenderer.INSTANCE.windowSizeChecker::clientTick);

@@ -1,10 +1,11 @@
 package me.kall.narutoloading.mixin.noworld.impl.screen;
 
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.common.env.BaseEnv;
-import net.minecraft.client.gui.GuiGraphics;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.PanoramaRenderer;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,14 +21,14 @@ public abstract class MixinTitleScreen {
         instance.render(f, deltaT);
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
-    private void panoramaByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;bind(Lnet/minecraft/resources/ResourceLocation;)V"))
+    private void panoramaByeBye(TextureManager instance, ResourceLocation resource) {
         if (BaseEnv.available()) return;
-        instance.blit(atlasLocation, x, y, width, height, uOffset, vOffset, uWidth, vHeight, textureWidth, textureHeight);
+        instance.bind(resource);
     }
 
     @Inject(method = "render", at = @At("HEAD"))
-    private void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    private void render(PoseStack graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if (BaseEnv.available()) NarutoRenderer.INSTANCE.renderFrame(graphics);
     }
 }

@@ -49,7 +49,7 @@ public class HiddenDisplayers {
     }
 
     @SubscribeEvent
-    public static void logOutClean(ClientPlayerNetworkEvent.LoggingOut event) {
+    public static void logOutClean(ClientPlayerNetworkEvent.LoggedOutEvent event) {
         Minecraft.getInstance().execute(HiddenDisplayers.HIDDEN_DISPLAYERS::clear);
     }
 }

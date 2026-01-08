@@ -1,6 +1,8 @@
 package me.kall.narutoloading.noworld.gui;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.config.SourceCollector;
@@ -9,11 +11,11 @@ import me.kall.narutoloading.common.gui.EmptiableEditBoxes;
 import me.kall.narutoloading.common.gui.SourceNameScreen;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -31,14 +33,14 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     protected EditBox audioBox;
     protected int currentY;
 
-    public static final Component SCREEN = Component.translatable("screen.narutoloading.selection");
+    public static final Component SCREEN = new TranslatableComponent("screen.narutoloading.selection");
 
-    public static final Component DONE = Component.translatable("button.narutoloading.done");
-    public static final Component CANCEL = Component.translatable("button.narutoloading.cancel");
-    public static final Component RANDOM = Component.translatable("button.narutoloading.random");
+    public static final Component DONE = new TranslatableComponent("button.narutoloading.done");
+    public static final Component CANCEL = new TranslatableComponent("button.narutoloading.cancel");
+    public static final Component RANDOM = new TranslatableComponent("button.narutoloading.random");
 
-    public static final Component VIDEO = Component.translatable("box.narutoloading.video");
-    public static final Component AUDIO = Component.translatable("box.narutoloading.audio");
+    public static final Component VIDEO = new TranslatableComponent("box.narutoloading.video");
+    public static final Component AUDIO = new TranslatableComponent("box.narutoloading.audio");
 
     public SourcesSelectionScreen(Screen lastScreen) {
         super(SCREEN);
@@ -58,13 +60,13 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         this.videoBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, VIDEO);
         this.videoBox.setMaxLength(1024);
         this.videoBox.setValue(this.initVideo());
-        this.addRenderableWidget(this.videoBox);
+        this.addWidget(this.videoBox);
         this.currentY += boxHeight + editBoxSpacing;
 
         this.audioBox = new EditBox(this.font, centerX - boxWidth / 2, this.currentY, boxWidth, boxHeight, AUDIO);
         this.audioBox.setMaxLength(1024);
         this.audioBox.setValue(this.initAudio());
-        this.addRenderableWidget(this.audioBox);
+        this.addWidget(this.audioBox);
         this.currentY += boxHeight + editBoxSpacing;
 
         this.editBoxes(centerX, boxWidth, boxHeight, editBoxSpacing);
@@ -76,8 +78,8 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
         int buttonHeight = 20;
 
         this.buttons(centerX, buttonWidth, buttonHeight);
-        this.addRenderableWidget(Button.builder(DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight).build());
-        this.addRenderableWidget(Button.builder(CANCEL, button -> onCancel()).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build());
+        this.addButton(new Button(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight, DONE, button -> onDone()));
+        this.addButton(new Button(centerX + 5, this.currentY, buttonWidth, buttonHeight, CANCEL, button -> onCancel()));
     }
 
     protected void editBoxes(int centerX, int boxWidth, int boxHeight, int editBoxSpacing) {}
@@ -85,8 +87,8 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     protected void checkBoxes(int centerX, int boxHeight) {}
 
     protected void buttons(int centerX, int buttonWidth, int buttonHeight) {
-        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth * 2 + 10, buttonHeight).build();
-        this.addRenderableWidget(random);
+        Button random = new Button(centerX - buttonWidth - 5, this.currentY, buttonWidth * 2 + 10, buttonHeight, RANDOM, button -> onRandom());
+        this.addButton(random);
         this.currentY += buttonHeight + 5;
     }
 
@@ -130,7 +132,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
 
         if (videoFuture != null) {
             videoFuture.thenRun(() -> {
-                String audioUrlToUse = audioUrl.isBlank() ? videoUrl : audioUrl;
+                String audioUrlToUse = Strings.isBlank(audioUrl) ? videoUrl : audioUrl;
                 if (audioUrlToUse.startsWith("http")) {
                     CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioUrlToUse, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> this.onAudioDownloaded(downloadResult, audioUrlToUse));
                     if (audioFuture != null) audioFuture.thenRun(this::finalizeDownload);
@@ -185,15 +187,15 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull PoseStack graphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(graphics);
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
         int centerX = this.width / 2;
 
-        graphics.drawCenteredString(this.font, VIDEO, centerX, this.videoBox.getY() - 12, 0xFFFFFF);
-        graphics.drawCenteredString(this.font, AUDIO, centerX, this.audioBox.getY() - 12, 0xFFFFFF);
+        this.font.draw(graphics, VIDEO, centerX, this.videoBox.y - 12, 0xFFFFFF);
+        this.font.draw(graphics, AUDIO, centerX, this.audioBox.y - 12, 0xFFFFFF);
     }
 
     @Override

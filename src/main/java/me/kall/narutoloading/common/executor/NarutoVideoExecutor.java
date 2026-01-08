@@ -162,5 +162,21 @@ public final class NarutoVideoExecutor {
         }
     }
 
-    private record Frame(long frameIndex, NativeImage image) {}
+    private static final class Frame {
+        public final long frameIndex;
+        public final NativeImage image;
+
+        private Frame(long frameIndex, NativeImage image) {
+            this.frameIndex = frameIndex;
+            this.image = image;
+        }
+
+        public long frameIndex() {
+            return this.frameIndex;
+        }
+
+        public NativeImage image() {
+            return this.image;
+        }
+    }
 }

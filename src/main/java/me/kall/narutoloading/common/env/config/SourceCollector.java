@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SourceCollector {
@@ -31,7 +32,7 @@ public class SourceCollector {
     public static @Nullable Source roll() {
         scan();
         if (ABSOLUTE_SOURCES.isEmpty()) return null;
-        NarutoLoading.LOGGER.info("{}Start to roll source from {}", NarutoLoading.info(), ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").toList());
+        NarutoLoading.LOGGER.info("{}Start to roll source from {}", NarutoLoading.info(), ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").collect(Collectors.toList()));
         Source source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
         if (ABSOLUTE_SOURCES.size() > 1) {
             while (source.equals(lastSource)) {
@@ -46,14 +47,14 @@ public class SourceCollector {
     public static void scan() {
         ABSOLUTE_SOURCES.clear();
         try (Stream<Path> stream = Files.list(SOURCE_DIRECTORY)) {
-            List<Path> subDirs = stream.filter(Files::isDirectory).toList();
+            List<Path> subDirs = stream.filter(Files::isDirectory).collect(Collectors.toList());
 
             for (Path subDir : subDirs) {
                 Path video = null;
                 Path audio = null;
 
                 try (Stream<Path> files = Files.list(subDir)) {
-                    for (Path file : files.filter(Files::isRegularFile).toList()) {
+                    for (Path file : files.filter(Files::isRegularFile).collect(Collectors.toList())) {
                         String name = file.getFileName().toString();
 
                         if (name.startsWith(VIDEO_FILE_NAME) && !name.endsWith(".ogg")) {
@@ -98,10 +99,27 @@ public class SourceCollector {
         }
     }
 
-    public record Source(String absoluteVideoPath, String absoluteAudioPath) {
+    public static final class Source {
+        public final String absoluteVideoPath;
+        public final String absoluteAudioPath;
+
+        public Source(String absoluteVideoPath, String absoluteAudioPath) {
+            this.absoluteVideoPath = absoluteVideoPath;
+            this.absoluteAudioPath = absoluteAudioPath;
+        }
+
+        public String absoluteVideoPath() {
+            return this.absoluteVideoPath;
+        }
+
+        public String absoluteAudioPath() {
+            return this.absoluteAudioPath;
+        }
+
         @Override
         public boolean equals(Object object) {
-            if (object instanceof Source source) {
+            if (object instanceof Source) {
+                Source source = (Source) object;
                 return source.absoluteAudioPath.equals(this.absoluteAudioPath) && source.absoluteVideoPath.equals(this.absoluteVideoPath);
             }
             return false;

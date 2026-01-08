@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
@@ -13,7 +14,7 @@ import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import me.kall.narutoloading.inworld.gui.util.AudioConverter;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -30,7 +31,7 @@ public class ScreenLifePacket {
     }
 
     public ScreenLifePacket(@NotNull FriendlyByteBuf buf) {
-        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readInt());
+        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(null), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readInt());
         this.isRemoval = buf.readBoolean();
     }
 
@@ -98,7 +99,7 @@ public class ScreenLifePacket {
     }
 
     private boolean validateVideoPath(String videoPath) {
-        if (videoPath == null || videoPath.isBlank()) {
+        if (videoPath == null || Strings.isBlank(videoPath)) {
             NarutoLoading.LOGGER.warn("{}Video path is null or blank", NarutoLoading.info());
             return false;
         }

@@ -1,10 +1,10 @@
 package me.kall.narutoloading.inworld.data;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.data.ChunkData;
 import me.kall.duplicationless.event.BlockChangeEvent;
+import me.kall.duplicationless.fastutil.longs.Long2ObjectMap;
+import me.kall.duplicationless.fastutil.objects.Object2ObjectMap;
+import me.kall.duplicationless.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.util.Executor;
 import me.kall.duplicationless.util.Positions;
 import me.kall.narutoloading.NarutoLoading;
@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -26,6 +26,10 @@ import java.util.function.Predicate;
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class Displayers extends ChunkData.BlockData {
     private final Object2ObjectMap<ResourceLocation, Long2ObjectMap<Set<Long>>> data = new Object2ObjectOpenHashMap<>();
+
+    public Displayers() {
+        super("NarutoDisplayers");
+    }
 
     public static boolean isDisplayer(ServerLevel level, long position) {
         return get(level).has(level, Positions.toChunk(position), position);
@@ -52,7 +56,8 @@ public class Displayers extends ChunkData.BlockData {
 
     @SubscribeEvent
     public static void chunkLoad(ChunkEvent.@NotNull Load event) {
-        if (event.getLevel() instanceof ServerLevel level) {
+        if (event.getWorld() instanceof ServerLevel) {
+            ServerLevel level = (ServerLevel) event.getWorld();
             ChunkPos chunk = event.getChunk().getPos();
             Executor.run(() -> get(level).rebuildChunk(level, chunk));
         }

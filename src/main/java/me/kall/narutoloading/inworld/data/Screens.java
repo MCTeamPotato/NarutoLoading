@@ -10,15 +10,15 @@ import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.fml.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -38,17 +38,20 @@ public class Screens extends SavedData {
 
     public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
 
-    public static @NotNull Screens load(@NotNull CompoundTag tag) {
+    public Screens() {
+        super("NarutoScreens");
+    }
+
+    @Override
+    public void load(@NotNull CompoundTag tag) {
         Screens screens = new Screens();
 
-        ListTag screensList = tag.getList(SCREENS_KEY, Tag.TAG_COMPOUND);
+        ListTag screensList = tag.getList(SCREENS_KEY, Constants.NBT.TAG_COMPOUND);
         for (int i = 0; i < screensList.size(); i++) {
             CompoundTag screenTag = screensList.getCompound(i);
-            ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getFloat(SOUND_VOLUME), screenTag.getBoolean(HIDE_INNER_KEY), screenTag.getInt(VIDEO_WIDTH_KEY), screenTag.getInt(VIDEO_HEIGHT_KEY)));
+            ResourceLocation dimension = ResourceLocation.tryParse(screenTag.getString(DIMENSION_KEY));
+            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), ResourceLocation.tryParse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getFloat(SOUND_VOLUME), screenTag.getBoolean(HIDE_INNER_KEY), screenTag.getInt(VIDEO_WIDTH_KEY), screenTag.getInt(VIDEO_HEIGHT_KEY)));
         }
-
-        return screens;
     }
 
     @Override
@@ -79,12 +82,14 @@ public class Screens extends SavedData {
     }
 
     public static @NotNull Screens get(@NotNull ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(Screens::load, Screens::new, "NarutoScreens");
+        return level.getDataStorage().computeIfAbsent(Screens::new, "NarutoScreens");
     }
 
     @SubscribeEvent
     public static void syncScreens(PlayerEvent.@NotNull PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
+        if (event.getEntity() instanceof ServerPlayer && event.getPlayer().level instanceof ServerLevel) {
+            ServerLevel level = (ServerLevel) event.getPlayer().level;
+            ServerPlayer player = (ServerPlayer) event.getPlayer();
             PacketDistributor.PacketTarget packetTarget = PacketDistributor.PLAYER.with(() -> player);
             for (ObjectSet<InWorldScreen> inWorldScreenSet : get(level).screens.values()) {
                 for (InWorldScreen inWorldScreen : inWorldScreenSet) {

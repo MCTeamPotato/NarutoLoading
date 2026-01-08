@@ -1,6 +1,7 @@
 package me.kall.narutoloading.common.env.ytdlp;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import me.kall.narutoloading.common.env.BaseEnv;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.Contract;
@@ -34,7 +35,7 @@ public class YtDlpDownloader {
     }
 
     public static @Nullable CompletableFuture<Void> download(@NotNull String ytDlpPath, @NotNull String url, @NotNull Path outputDir, @NotNull String outputName, @NotNull DownloadType type, @Nullable Consumer<String> onProgress, @Nullable Consumer<DownloadResult> onComplete) {
-        if (ytDlpPath.isBlank() || !new File(ytDlpPath).exists()) {
+        if (Strings.isBlank(ytDlpPath) || !new File(ytDlpPath).exists()) {
             NarutoLoading.LOGGER.error("{}yt-dlp executable not found at: {}", NarutoLoading.info(), ytDlpPath);
             if (onComplete != null) onComplete.accept(new DownloadResult(false, null, null, "yt-dlp not found"));
             return null;
@@ -46,9 +47,10 @@ public class YtDlpDownloader {
             try {
                 outputDir.toFile().mkdirs();
 
-                switch (type) {
-                    case VIDEO -> result = downloadVideo(ytDlpPath, url, outputDir, outputName, onProgress);
-                    case AUDIO -> result = downloadAudio(ytDlpPath, url, outputDir, outputName, onProgress);
+                if (type == DownloadType.VIDEO) {
+                    result = downloadVideo(ytDlpPath, url, outputDir, outputName, onProgress);
+                } else if (type == DownloadType.AUDIO) {
+                    result = downloadAudio(ytDlpPath, url, outputDir, outputName, onProgress);
                 }
 
             } catch (Exception e) {
@@ -207,13 +209,37 @@ public class YtDlpDownloader {
         EXECUTOR.shutdownNow();
     }
 
-    public record DownloadResult(boolean success, String videoPath, String audioPath, String errorMessage) {
+    public static final class DownloadResult {
+        public final boolean success;
+        public final String videoPath;
+        public final String audioPath;
+        public final String errorMessage;
+
+        public DownloadResult(boolean success, String videoPath, String audioPath, String errorMessage) {
+            this.success = success;
+            this.videoPath = videoPath;
+            this.audioPath = audioPath;
+            this.errorMessage = errorMessage;
+        }
+
         public boolean hasVideo() {
             return videoPath != null && !videoPath.isEmpty();
         }
 
         public boolean hasAudio() {
             return audioPath != null && !audioPath.isEmpty();
+        }
+
+        public boolean success() {
+            return this.success;
+        }
+
+        public String videoPath() {
+            return this.videoPath;
+        }
+
+        public String audioPath() {
+            return this.audioPath;
         }
 
         @Override

@@ -1,6 +1,7 @@
 package me.kall.narutoloading.common.env.ffmpeg;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +42,7 @@ public final class FFmpegProvider {
         String absoluteFFprobePath = Executable.validExe(this.uncheckedAbsoluteFFprobePath);
         String absoluteFFmpegPath = Executable.validExe(this.uncheckedAbsoluteFFmpegPath);
 
-        if (!absoluteFFprobePath.isBlank() && !absoluteFFmpegPath.isBlank()) {
+        if (!Strings.isBlank(absoluteFFprobePath) && !Strings.isBlank(absoluteFFmpegPath)) {
             this.absoluteFFprobe = absoluteFFprobePath;
             this.absoluteFFmpeg = absoluteFFmpegPath;
             NarutoLoading.LOGGER.info("{}Using FFmpeg from config.", NarutoLoading.info());
@@ -101,7 +102,7 @@ public final class FFmpegProvider {
 
     static class Executable {
         static @NotNull String validExe(String path) {
-            if (path == null || path.isBlank()) return NarutoLoading.BLANK;
+            if (path == null || Strings.isBlank(path)) return NarutoLoading.BLANK;
             File file = new File(path);
             return file.exists() ? file.getAbsolutePath() : NarutoLoading.BLANK;
         }

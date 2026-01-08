@@ -55,8 +55,7 @@ public final class NarutoAudioExecutor {
             NarutoLoading.LOGGER.info("{}Synchronizing to Minecraft's OpenAL context successfully.", NarutoLoading.info());
         }
 
-        ALC.createCapabilities(this.device);
-        AL.createCapabilities(ALC.getCapabilities());
+        AL.createCapabilities(ALC.createCapabilities(this.device));
 
         this.source = AL10.alGenSources();
         AL10.alSourcef(this.source, AL10.AL_GAIN, (float) this.volume.getAsDouble());

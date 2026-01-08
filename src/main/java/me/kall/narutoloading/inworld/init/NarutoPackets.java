@@ -6,7 +6,7 @@ import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import me.kall.narutoloading.inworld.network.ClearScreenPacket;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 public class NarutoPackets {
     public static final SimpleChannel INSTANCE = Networker.create(NarutoLoading.MOD_ID, "1");

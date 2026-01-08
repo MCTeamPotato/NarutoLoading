@@ -5,8 +5,9 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Contract;
@@ -36,8 +37,8 @@ public final class InWorldScreen {
 
     private int videoWidth = 1280, videoHeight = 720;
 
-    public static final ResourceLocation NO_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "empty");
-    public static final ResourceLocation HAS_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "pending");
+    public static final ResourceLocation NO_LOCAL_SOUND = new ResourceLocation(NarutoLoading.MOD_ID, "empty");
+    public static final ResourceLocation HAS_LOCAL_SOUND = new ResourceLocation(NarutoLoading.MOD_ID, "pending");
 
     public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
         this.leftBottomCorner = leftBottomCorner;
@@ -48,11 +49,11 @@ public final class InWorldScreen {
     }
 
     public String relativeVideoPath(String fallback) {
-        return this.relativeVideoPath.isBlank() ? fallback : this.relativeVideoPath;
+        return Strings.isBlank(this.relativeVideoPath) ? fallback : this.relativeVideoPath;
     }
 
     public String relativeAudioPath(String fallback) {
-        return this.relativeAudioPath.isBlank() ? fallback : this.relativeAudioPath;
+        return Strings.isBlank(this.relativeAudioPath) ? fallback : this.relativeAudioPath;
     }
 
     public void setPath(String relativeVideoPath, String relativeAudioPath) {
@@ -155,7 +156,8 @@ public final class InWorldScreen {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof InWorldScreen inWorldScreen) {
+        if (obj instanceof InWorldScreen) {
+            InWorldScreen inWorldScreen = (InWorldScreen) obj;
             if (inWorldScreen.hashCode() != this.hashCode()) return false;
             return inWorldScreen.leftBottomCorner().equals(this.leftBottomCorner()) && inWorldScreen.leftTopCorner().equals(this.leftTopCorner()) && inWorldScreen.rightTopCorner().equals(this.rightTopCorner()) && inWorldScreen.rightBottomCorner().equals(this.rightBottomCorner()) && inWorldScreen.dimension().equals(this.dimension());
         }
@@ -173,7 +175,7 @@ public final class InWorldScreen {
     }
 
     public @NotNull String toLocalString() {
-        return Component.translatable("screen.narutoloading.arg", this.leftBottomCorner().toShortString(), this.leftTopCorner().toShortString(), this.rightBottomCorner().toShortString(), this.rightTopCorner().toShortString(), this.dimension().toString()).getString();
+        return new TranslatableComponent("screen.narutoloading.arg", this.leftBottomCorner().toShortString(), this.leftTopCorner().toShortString(), this.rightBottomCorner().toShortString(), this.rightTopCorner().toShortString(), this.dimension().toString()).getString();
     }
 
     @Override

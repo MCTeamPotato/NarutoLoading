@@ -1,12 +1,13 @@
 package me.kall.narutoloading.common.gui;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -17,9 +18,9 @@ public class SourceNameScreen extends EmptiableEditBoxes {
     private final Consumer<String> onConfirm;
     private EditBox nameBox;
 
-    public static final Component TITLE = Component.translatable("screen.narutoloading.name");
-    public static final Component NAME_LABEL = Component.translatable("box.narutoloading.folder_name");
-    public static final Component HINT = Component.translatable("hint.narutoloading.folder_name");
+    public static final Component TITLE = new TranslatableComponent("screen.narutoloading.name");
+    public static final Component NAME_LABEL = new TranslatableComponent("box.narutoloading.folder_name");
+    public static final Component HINT = new TranslatableComponent("hint.narutoloading.folder_name");
 
     public SourceNameScreen(Screen lastScreen, String videoUrl, Consumer<String> onConfirm) {
         super(TITLE);
@@ -41,14 +42,14 @@ public class SourceNameScreen extends EmptiableEditBoxes {
         this.nameBox.setMaxLength(1024);
         this.nameBox.setValue(extractLetters(this.videoUrl));
         this.nameBox.setFilter(this::isValidFolderName);
-        this.addRenderableWidget(this.nameBox);
+        this.addWidget(this.nameBox);
 
         int buttonWidth = 80;
         int buttonHeight = 20;
         int buttonY = startY + 100;
 
-        this.addRenderableWidget(Button.builder(SourcesSelectionScreen.DONE, button -> onDone()).bounds(centerX - buttonWidth - 5, buttonY, buttonWidth, buttonHeight).build());
-        this.addRenderableWidget(Button.builder(SourcesSelectionScreen.CANCEL, button -> onCancel()).bounds(centerX + 5, buttonY, buttonWidth, buttonHeight).build());
+        this.addButton(new Button(centerX - buttonWidth - 5, buttonY, buttonWidth, buttonHeight, SourcesSelectionScreen.DONE, button -> onDone()));
+        this.addButton(new Button(centerX + 5, buttonY, buttonWidth, buttonHeight, SourcesSelectionScreen.CANCEL, button -> onCancel()));
         this.setInitialFocus(this.nameBox);
     }
 
@@ -81,20 +82,20 @@ public class SourceNameScreen extends EmptiableEditBoxes {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull PoseStack graphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
 
         int centerX = this.width / 2;
 
-        graphics.drawCenteredString(this.font, TITLE, centerX, 20, 0xFFFFFF);
-        graphics.drawCenteredString(this.font, NAME_LABEL, centerX, this.nameBox.getY() - 12, 0xFFFFFF);
+        this.font.draw(graphics, TITLE, centerX, 20, 0xFFFFFF);
+        this.font.draw(graphics, NAME_LABEL, centerX, this.nameBox.y - 12, 0xFFFFFF);
 
-        graphics.drawCenteredString(this.font, HINT, centerX, this.nameBox.getY() + 30, 0xAAAAAA);
+        this.font.draw(graphics, HINT, centerX, this.nameBox.y + 30, 0xAAAAAA);
 
         if (!this.nameBox.getValue().isEmpty() && !isValidFolderName(this.nameBox.getValue())) {
-            Component error = Component.translatable("error.narutoloading.invalid_folder_name");
-            graphics.drawCenteredString(this.font, error, centerX, this.nameBox.getY() + 45, 0xFF5555);
+            Component error = new TranslatableComponent("error.narutoloading.invalid_folder_name");
+            this.font.draw(graphics, error, centerX, this.nameBox.y + 45, 0xFF5555);
         }
     }
 

@@ -1,11 +1,13 @@
 package me.kall.narutoloading.mixin.noworld.impl.overlay;
 
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.common.env.BaseEnv;
-import net.minecraft.client.gui.GuiGraphics;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.LoadingOverlay;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.client.ClientModLoader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,28 +18,38 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = LoadingOverlay.class, priority = 500)
 public abstract class MixinLoadingOverlay {
 
-    @Shadow protected abstract void drawProgressBar(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick);
+    @Shadow protected abstract void drawProgressBar(PoseStack guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick);
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
-    private void logoByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;bind(Lnet/minecraft/resources/ResourceLocation;)V"))
+    private void logoByeBye(TextureManager instance, ResourceLocation resource) {
         if (BaseEnv.available()) return;
-        instance.blit(atlasLocation,x, y, uOffset, vOffset, width, height, textureWidth, textureHeight);
+        instance.bind(resource);
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/LoadingOverlay;drawProgressBar(Lnet/minecraft/client/gui/GuiGraphics;IIIIF)V"))
-    private void barByeBye(LoadingOverlay instance, GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/LoadingOverlay;drawProgressBar(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIF)V"))
+    private void barByeBye(LoadingOverlay instance, PoseStack guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick) {
         if (BaseEnv.available()) return;
         this.drawProgressBar(guiGraphics, minX, minY, maxX, maxY, partialTick);
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;fill(Lnet/minecraft/client/renderer/RenderType;IIIII)V"))
-    private void bgByeBye(GuiGraphics instance, RenderType renderType, int minX, int minY, int maxX, int maxY, int color) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", remap = false, target = "Lnet/minecraftforge/fml/client/ClientModLoader;renderProgressText()V"))
+    private void progressTextByeBye() {
         if (BaseEnv.available()) return;
-        instance.fill(renderType, minX, minY, maxX, maxY, color);
+        ClientModLoader.renderProgressText();
+    }
+
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/LoadingOverlay;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIFFIIII)V", ordinal = 0))
+    private void blitByeBye1(PoseStack matrixStack, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+        GuiComponent.blit(matrixStack, x, y, width, height, uOffset, vOffset, uWidth, vHeight, textureWidth, textureHeight);
+    }
+
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/LoadingOverlay;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIFFIIII)V", ordinal = 1))
+    private void blitByeBye2(PoseStack matrixStack, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+        GuiComponent.blit(matrixStack, x, y, width, height, uOffset, vOffset, uWidth, vHeight, textureWidth, textureHeight);
     }
 
     @Inject(method = "render", at = @At("HEAD"))
-    private void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    private void render(PoseStack guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if (BaseEnv.available()) NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
     }
 }

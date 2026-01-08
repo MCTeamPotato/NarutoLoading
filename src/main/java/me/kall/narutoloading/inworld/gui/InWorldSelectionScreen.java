@@ -1,6 +1,8 @@
 package me.kall.narutoloading.inworld.gui;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
@@ -16,20 +18,20 @@ import me.kall.narutoloading.inworld.network.ClearScreenPacket;
 import me.kall.narutoloading.inworld.network.SourceSelectionPacket;
 import me.kall.narutoloading.noworld.gui.SourcesSelectionScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.fml.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
@@ -42,13 +44,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     private EditBox volumeBox;
 
-    public static final Component LOCAL_SOUND = Component.translatable("box.narutoloading.local_sound");
-    public static final Component HIDE_INNER = Component.translatable("box.narutoloading.hide_inner");
-    public static final Component VIDEO_WIDTH = Component.translatable("box.narutoloading.video_width");
-    public static final Component VIDEO_HEIGHT = Component.translatable("box.narutoloading.video_height");
-    public static final Component VOLUME = Component.translatable("box.narutoloading.sound_volume");
+    public static final Component LOCAL_SOUND = new TranslatableComponent("box.narutoloading.local_sound");
+    public static final Component HIDE_INNER = new TranslatableComponent("box.narutoloading.hide_inner");
+    public static final Component VIDEO_WIDTH = new TranslatableComponent("box.narutoloading.video_width");
+    public static final Component VIDEO_HEIGHT = new TranslatableComponent("box.narutoloading.video_height");
+    public static final Component VOLUME = new TranslatableComponent("box.narutoloading.sound_volume");
 
-    public static final Component CLEAR = Component.translatable("button.narutoloading.clear");
+    public static final Component CLEAR = new TranslatableComponent("button.narutoloading.clear");
 
     public InWorldSelectionScreen(Screen lastScreen, NarutoInWorldRenderer renderer) {
         super(lastScreen);
@@ -56,12 +58,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull PoseStack graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        graphics.drawCenteredString(this.font, VIDEO_WIDTH, this.widthBox.getX() + this.widthBox.getInnerWidth() / 2, this.widthBox.getY() - 12, 0xFFFFFF);
-        graphics.drawCenteredString(this.font, VIDEO_HEIGHT, this.heightBox.getX() + this.heightBox.getInnerWidth() / 2, this.heightBox.getY() - 12, 0xFFFFFF);
-        graphics.drawCenteredString(this.font, VOLUME, this.width / 2, this.volumeBox.getY() - 12, 0xFFFFFF);
+        this.font.draw(graphics, VIDEO_WIDTH, this.widthBox.x + (float) this.widthBox.getInnerWidth() / 2, this.widthBox.y - 12, 0xFFFFFF);
+        this.font.draw(graphics, VIDEO_HEIGHT, this.heightBox.x + (float) this.heightBox.getInnerWidth() / 2, this.heightBox.y - 12, 0xFFFFFF);
+        this.font.draw(graphics, VOLUME, (float) this.width / 2, this.volumeBox.y - 12, 0xFFFFFF);
     }
 
     protected void editBoxes(int centerX, int boxWidth, int boxHeight, int editBoxSpacing) {
@@ -69,13 +71,13 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.widthBox.setMaxLength(1024);
         this.widthBox.setValue(String.valueOf(this.renderer.screen.videoWidth()));
         this.widthBox.setFilter(this::validSize);
-        this.addRenderableWidget(this.widthBox);
+        this.addWidget(this.widthBox);
 
         this.heightBox = new EditBox(this.font, centerX + 5, this.currentY, 95, boxHeight, VIDEO_HEIGHT);
         this.heightBox.setMaxLength(1024);
         this.heightBox.setValue(String.valueOf(this.renderer.screen.videoHeight()));
         this.heightBox.setFilter(this::validSize);
-        this.addRenderableWidget(this.heightBox);
+        this.addWidget(this.heightBox);
 
         this.currentY += boxHeight + editBoxSpacing;
 
@@ -83,7 +85,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         this.volumeBox.setMaxLength(1024);
         this.volumeBox.setValue(String.valueOf(this.renderer.screen.soundVolume()));
         this.volumeBox.setFilter(this::validVolume);
-        this.addRenderableWidget(this.volumeBox);
+        this.addWidget(this.volumeBox);
     }
 
     protected void checkBoxes(int centerX, int boxHeight) {
@@ -91,20 +93,20 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         int checkBoxSpacing = 5;
 
         this.localSoundCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, LOCAL_SOUND, this.renderer.screen.isLocalSound());
-        this.addRenderableWidget(this.localSoundCheck);
+        this.addWidget(this.localSoundCheck);
         this.currentY += boxHeight + checkBoxSpacing;
 
         this.hideInnerCheck = new Checkbox(centerX - checkWidth / 2, this.currentY, checkWidth, boxHeight, HIDE_INNER, this.renderer.screen.hideInner());
-        this.addRenderableWidget(this.hideInnerCheck);
+        this.addWidget(this.hideInnerCheck);
         this.currentY += boxHeight + checkBoxSpacing;
     }
 
     protected void buttons(int centerX, int buttonWidth, int buttonHeight) {
-        Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight).build();
-        this.addRenderableWidget(random);
+        Button random = new Button(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight, RANDOM, button -> onRandom());
+        this.addButton(random);
 
-        Button clear = Button.builder(CLEAR, button -> NarutoPackets.INSTANCE.sendToServer(new ClearScreenPacket(this.renderer.screen))).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build();
-        this.addRenderableWidget(clear);
+        Button clear = new Button(centerX + 5, this.currentY, buttonWidth, buttonHeight, CLEAR, button -> NarutoPackets.INSTANCE.sendToServer(new ClearScreenPacket(this.renderer.screen)));
+        this.addButton(clear);
         this.currentY += buttonHeight + 5;
     }
 
@@ -165,7 +167,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     @Override
     protected void handleLocalFiles() {
-        this.renderer.screen.setPath(this.videoBox.getValue(), this.audioBox.getValue().isBlank() ? this.videoBox.getValue() : this.audioBox.getValue());
+        this.renderer.screen.setPath(this.videoBox.getValue(), Strings.isBlank(this.audioBox.getValue()) ? this.videoBox.getValue() : this.audioBox.getValue());
         this.renderer.screen.setSize(this.width(), this.height());
         this.renderer.screen.setSoundVolume(this.volume());
 
@@ -288,9 +290,9 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         @SubscribeEvent
         public static void rightClickScreen(PlayerInteractEvent.@NotNull RightClickBlock event) {
             BlockPos pos = event.getPos();
-            if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong()) && event.getEntity() instanceof ServerPlayer player) {
+            if (event.getPlayer().level instanceof ServerLevel && Displayers.isDisplayer((ServerLevel) event.getPlayer().level, pos.asLong()) && event.getEntity() instanceof ServerPlayer) {
                 if (interval > 0) return;
-                NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SourceSelectionPacket(pos.asLong()));
+                NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> ((ServerPlayer)event.getPlayer())), new SourceSelectionPacket(pos.asLong()));
                 interval = 20;
             }
         }

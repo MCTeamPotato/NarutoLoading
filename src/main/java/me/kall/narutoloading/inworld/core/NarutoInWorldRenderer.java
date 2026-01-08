@@ -9,7 +9,6 @@ import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +37,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 LocalPlayer player = Minecraft.getInstance().player;
                 ClientLevel level = Minecraft.getInstance().level;
                 if (player != null && this.screen.localSound() != InWorldScreen.NO_LOCAL_SOUND && level != null) {
-                    level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.localSound())), SoundSource.BLOCKS, (float) this.soundVolume().getAsDouble(), 1.0F, level.random.nextLong());
+                    level.playSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), new SoundEvent(this.screen.localSound()), SoundSource.BLOCKS, (float) this.soundVolume().getAsDouble(), 1.0F);
                     NarutoLoading.LOGGER.info("{}Local sound {} played at [{}, {}, {}]", NarutoLoading.info(), this.screen.localSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };

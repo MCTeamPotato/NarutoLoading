@@ -9,13 +9,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.resource.VanillaResourceType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +49,7 @@ public final class ResourceZipGenerator {
                 return;
             }
 
-            try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
+            try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFile.toPath()))) {
                 addPackMcmeta(zos);
                 addAudioFiles(zos);
                 NarutoLoading.LOGGER.info("{}Successfully created resource pack: {}", NarutoLoading.info(), zipFile.getAbsolutePath());
@@ -67,11 +69,11 @@ public final class ResourceZipGenerator {
 
                 Collection<String> currentSelected = repository.getSelectedIds();
 
-                ResourceLocation expectedSound = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id);
+                ResourceLocation expectedSound = new ResourceLocation(NarutoLoading.MOD_ID, this.id);
 
                 if (currentSelected.contains(packId)) {
                     NarutoLoading.LOGGER.info("{}Resource pack {} already active, skipping reload", NarutoLoading.info(), packId);
-                    renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                    renderer.screen.setLocalSound(new ResourceLocation(NarutoLoading.MOD_ID, this.id));
                     NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
                     ClientScreensRenderer.reload();
                     return;
@@ -92,7 +94,7 @@ public final class ResourceZipGenerator {
                 minecraft.options.save();
 
                 renderer.screen.setLocalSound(expectedSound);
-                minecraft.reloadResourcePacks();
+                ForgeHooksClient.refreshResources(minecraft, VanillaResourceType.SOUNDS);
                 NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
 
                 NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
@@ -106,13 +108,13 @@ public final class ResourceZipGenerator {
         ZipEntry entry = new ZipEntry("pack.mcmeta");
         zos.putNextEntry(entry);
 
-        String mcmeta = """
-                {
-                  "pack": {
-                    "pack_format": 9,
-                    "description": "NarutoLoading Audio Sources"
-                  }
-                }""";
+        String mcmeta =
+                "{\n" +
+                        "  \"pack\": {\n" +
+                        "    \"pack_format\": 9,\n" +
+                        "    \"description\": \"NarutoLoading Audio Sources\"\n" +
+                        "  }\n" +
+                        "}";
 
         zos.write(mcmeta.getBytes(StandardCharsets.UTF_8));
         zos.closeEntry();
@@ -144,14 +146,18 @@ public final class ResourceZipGenerator {
         ZipEntry entry = new ZipEntry(String.format("assets/%s/sounds.json", NarutoLoading.MOD_ID));
         zos.putNextEntry(entry);
 
-        String json = String.format("""
-                {
-                  "%s": {
-                    "sounds": [
-                      "%s:%s"
-                    ]
-                  }
-                }""", this.id, NarutoLoading.MOD_ID, this.id);
+        String json = String.format(
+                "{\n" +
+                        "  \"%s\": {\n" +
+                        "    \"sounds\": [\n" +
+                        "      \"%s:%s\"\n" +
+                        "    ]\n" +
+                        "  }\n" +
+                        "}",
+                this.id,
+                NarutoLoading.MOD_ID,
+                this.id
+        );
 
         zos.write(json.getBytes(StandardCharsets.UTF_8));
         zos.closeEntry();

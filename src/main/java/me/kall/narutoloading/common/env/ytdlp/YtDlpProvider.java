@@ -1,6 +1,7 @@
 package me.kall.narutoloading.common.env.ytdlp;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.Strings;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +40,7 @@ public final class YtDlpProvider {
     public void setup(Runnable onDone) {
         String absoluteYtDlpPath = Executable.validExe(this.uncheckedAbsoluteYtDlpPath);
 
-        if (!absoluteYtDlpPath.isBlank()) {
+        if (!Strings.isBlank(absoluteYtDlpPath)) {
             this.absoluteYtDlp = absoluteYtDlpPath;
             NarutoLoading.LOGGER.info("{}Using yt-dlp from config.", NarutoLoading.info());
             onDone.run();
@@ -69,11 +70,15 @@ public final class YtDlpProvider {
                 if (!ytDlpFile.exists()) {
                     NarutoLoading.LOGGER.info("{}Downloading yt-dlp for {}...", NarutoLoading.info(), os);
 
-                    String downloadUrl = switch (os) {
-                        case WINDOWS -> this.winUrl;
-                        case LINUX -> this.linuxUrl;
-                        case MACOS -> this.macUrl;
-                    };
+                    String downloadUrl;
+
+                    if (os.equals(OSType.WINDOWS)) {
+                        downloadUrl = this.winUrl;
+                    } else if (os.equals(OSType.LINUX)) {
+                        downloadUrl = this.linuxUrl;
+                    } else {
+                        downloadUrl = this.macUrl;
+                    }
 
                     try (InputStream in = new URL(downloadUrl).openStream()) {
                         Files.copy(in, ytDlpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -109,7 +114,7 @@ public final class YtDlpProvider {
 
     static class Executable {
         static @NotNull String validExe(String path) {
-            if (path == null || path.isBlank()) return NarutoLoading.BLANK;
+            if (path == null || Strings.isBlank(path)) return NarutoLoading.BLANK;
             File file = new File(path);
             return file.exists() ? file.getAbsolutePath() : NarutoLoading.BLANK;
         }

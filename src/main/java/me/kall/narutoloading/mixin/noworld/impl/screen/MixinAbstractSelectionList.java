@@ -1,8 +1,8 @@
 package me.kall.narutoloading.mixin.noworld.impl.screen;
 
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.common.env.BaseEnv;
-import net.minecraft.client.gui.GuiGraphics;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,7 +30,7 @@ public class MixinAbstractSelectionList {
     }
 
     @Inject(method = "renderBackground", at = @At("HEAD"))
-    private void renderBg(GuiGraphics guiGraphics, CallbackInfo ci) {
+    private void renderBg(PoseStack guiGraphics, CallbackInfo ci) {
         if (BaseEnv.available()) NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
     }
 }

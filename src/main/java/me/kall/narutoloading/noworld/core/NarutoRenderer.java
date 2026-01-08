@@ -1,6 +1,7 @@
 package me.kall.narutoloading.noworld.core;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
@@ -10,7 +11,6 @@ import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.noworld.core.checker.KeyChecker;
 import me.kall.narutoloading.noworld.core.checker.WindowSizeChecker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -120,7 +120,7 @@ public class NarutoRenderer {
         return this.lifetime != null && this.lifetime.isRunning();
     }
 
-    public void renderFrame(@Nullable GuiGraphics graphics) {
+    public void renderFrame(@Nullable PoseStack graphics) {
         if (this.isEnabled()) {
 
             if (this.lifetime != null) {
@@ -136,7 +136,9 @@ public class NarutoRenderer {
                 int w = graphics.guiWidth();
                 int h = graphics.guiHeight();
 
-                if (!this.runInLevel()) graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
+                if (!this.runInLevel()) {
+                    graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
+                }
             }
 
             if (this.keyChecker != null) this.keyChecker.reload();

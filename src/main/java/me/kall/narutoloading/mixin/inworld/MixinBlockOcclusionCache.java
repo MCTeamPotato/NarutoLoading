@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.inworld;
 
-import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockOcclusionCache;
+import me.jellysquid.mods.sodium.client.render.occlusion.BlockOcclusionCache;
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;

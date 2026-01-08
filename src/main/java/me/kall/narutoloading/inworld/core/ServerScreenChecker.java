@@ -11,6 +11,7 @@ import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,7 +20,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.fml.network.PacketDistributor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +101,10 @@ public class ServerScreenChecker {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void rightClick(PlayerInteractEvent.@NotNull RightClickBlock event) {
-        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level && player.isShiftKeyDown() && event.getItemStack().is(Items.STICK)) {
+        if (event.getEntity() instanceof ServerPlayer && event.getPlayer().level instanceof ServerLevel && event.getPlayer().isShiftKeyDown() && event.getItemStack().getItem().equals(Items.STICK)) {
+            ServerLevel level = (ServerLevel) event.getPlayer().level;
+            ServerPlayer player = (ServerPlayer) event.getPlayer();
+
             BlockPos currentCorner = event.getPos();
             long corner = event.getPos().asLong();
             ResourceLocation dim = level.dimension().location();
@@ -112,8 +116,8 @@ public class ServerScreenChecker {
                 if (lastCorners.containsKey(playerID)) {
                     BlockPos lastCorner = BlockPos.of(lastCorners.getLong(playerID));
                     lastCorners.removeLong(playerID);
-                    player.displayClientMessage(Component.translatable("info.narutoloading.set.second", currentCorner.toShortString()), false);
-                    player.displayClientMessage(Component.translatable("info.narutoloading.screen"), false);
+                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.set.second", currentCorner.toShortString()), false);
+                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen"), false);
 
                     int minX = Math.min(lastCorner.getX(), currentCorner.getX());
                     int maxX = Math.max(lastCorner.getX(), currentCorner.getX());
@@ -124,7 +128,7 @@ public class ServerScreenChecker {
                     int[] heights = ServerScreenChecker.forHeights(width + 1);
 
                     if (heights[0] == 0 && heights[1] == 0) {
-                        player.displayClientMessage(Component.translatable("info.narutoloading.screen.invalid_size", String.valueOf(width + 1)), false);
+                        player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.invalid_size", String.valueOf(width + 1)), false);
                         return;
                     }
 
@@ -139,7 +143,7 @@ public class ServerScreenChecker {
                     }
 
                     if (inWorldScreen == null) {
-                        player.displayClientMessage(Component.translatable("info.narutoloading.screen.fail"), false);
+                        player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.fail"), false);
                         return;
                     }
 
@@ -150,10 +154,10 @@ public class ServerScreenChecker {
 
                     NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(inWorldScreen, false));
 
-                    player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
+                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
                 } else {
                     lastCorners.put(playerID, corner);
-                    player.displayClientMessage(Component.translatable("info.narutoloading.set.first", currentCorner.toShortString()), false);
+                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.set.first", currentCorner.toShortString()), false);
                 }
             }
         }
@@ -179,7 +183,7 @@ public class ServerScreenChecker {
                         screenIterator.remove();
                         screenData.setDirty();
 
-                        Component component = Component.translatable("info.narutoloading.screen.destroy", copy.toLocalString());
+                        Component component = new TranslatableComponent("info.narutoloading.screen.destroy", copy.toLocalString());
                         for (ServerPlayer player : level.players()) player.displayClientMessage(component, false);
                         NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(copy, true));
                     }

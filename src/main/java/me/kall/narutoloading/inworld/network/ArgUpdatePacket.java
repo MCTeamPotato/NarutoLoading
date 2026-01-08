@@ -8,7 +8,7 @@ import me.kall.narutoloading.inworld.data.Screens;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -21,7 +21,7 @@ public class ArgUpdatePacket {
     }
 
     public ArgUpdatePacket(@NotNull FriendlyByteBuf buf) {
-        this.argSource = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readInt());
+        this.argSource = InWorldScreen.from(buf.readLongArray(null), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readInt());
     }
 
     public void encode(@NotNull FriendlyByteBuf buf) {
@@ -41,7 +41,7 @@ public class ArgUpdatePacket {
             try {
                 ServerPlayer player = ctx.get().getSender();
                 if (player == null) return;
-                ServerLevel level = player.serverLevel();
+                ServerLevel level = player.getLevel();
                 Screens screens = Screens.get(level);
 
                 ObjectSet<InWorldScreen> inWorldScreens = screens.screens.computeIfAbsent(level.dimension().location(), key -> new ObjectOpenHashSet<>());

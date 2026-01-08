@@ -13,38 +13,38 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class MixinFont {
 
     @ModifyVariable(method = {
-            "drawInBatch8xOutline",
-            "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
-            "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
-            "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
-            "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I"
+            "drawInBatch(Ljava/lang/String;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I",
+            "drawInBatch(Ljava/lang/String;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZIIZ)I",
+            "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I",
+            "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I",
+            "drawInternal(Lnet/minecraft/util/FormattedCharSequence;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I"
     }, at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private int modifyColor(int value) {
         return Fader.modifyAlpha(value);
     }
 
-    @ModifyVariable(method = "drawInBatch8xOutline", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private FormattedCharSequence clearDrawInBatch8xOutline(FormattedCharSequence formattedCharSequence) {
-        return Fader.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+    @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private String clearDrawInBatch1(String value) {
+        return Fader.transparency() ? NarutoLoading.BLANK : value;
     }
 
-    @ModifyVariable(method = "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private FormattedCharSequence clearDrawInBatch(FormattedCharSequence formattedCharSequence) {
-        return Fader.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+    @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZIIZ)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private String clearDrawInBatch2(String value) {
+        return Fader.transparency() ? NarutoLoading.BLANK : value;
     }
 
-    @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private String clearDrawInBatch(String string) {
-        return Fader.transparency() ? NarutoLoading.BLANK : string;
+    @ModifyVariable(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private Component clearDrawInBatch3(Component value) {
+        return Fader.transparency() ? Fader.EMPTY_COMPONENT : value;
     }
 
-    @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private String clearDrawInBatch2(String string) {
-        return Fader.transparency() ? NarutoLoading.BLANK : string;
+    @ModifyVariable(method = "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private FormattedCharSequence clearDrawInBatch4(FormattedCharSequence value) {
+        return Fader.transparency() ? FormattedCharSequence.EMPTY : value;
     }
 
-    @ModifyVariable(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private Component clearDrawInBatch(Component component) {
-        return Fader.transparency() ? Fader.EMPTY_COMPONENT : component;
+    @ModifyVariable(method = "drawInternal(Lnet/minecraft/util/FormattedCharSequence;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private FormattedCharSequence clearDrawInternal(FormattedCharSequence value) {
+        return Fader.transparency() ? FormattedCharSequence.EMPTY : value;
     }
 }
