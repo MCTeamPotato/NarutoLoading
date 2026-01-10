@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.data.Displayers;
+import me.kall.narutoloading.inworld.ext.ScreenLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -54,12 +55,16 @@ public class ClearScreenPacket {
                         online.displayClientMessage(start, false);
                     }
 
+                    ((ScreenLevel)level).naruto$setClearingScreens(true);
+
                     while (positionsToRemove.hasNext()) {
                         long next = positionsToRemove.nextLong();
                         if (Displayers.isDisplayer(level, next)) {
                             level.removeBlock(BlockPos.of(next), false);
                         }
                     }
+
+                    ((ScreenLevel)level).naruto$setClearingScreens(false);
 
                     Component end = Component.translatable("info.narutoloading.clear.end", this.screenInfo);
 

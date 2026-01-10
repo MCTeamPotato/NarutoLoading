@@ -28,5 +28,8 @@
     "noworld.impl.screen.MixinTitleScreen",
     "sound.MixinOptions",
     "sound.MixinSoundEngine"
+  ],
+  "mixins": [
+    "inworld.MixinServerLevel"
   ]
 }
