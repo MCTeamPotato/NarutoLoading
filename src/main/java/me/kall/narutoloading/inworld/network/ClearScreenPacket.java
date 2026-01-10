@@ -68,7 +68,7 @@ public class ClearScreenPacket {
                     }
 
                     ((ScreenLevel)level).naruto$setClearingScreens(false);
-                    
+
                     Component end = new TranslatableComponent("info.narutoloading.clear.end");
 
                     for (ServerPlayer online : level.players()) {
