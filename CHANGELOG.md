@@ -18,3 +18,5 @@
 - Backport to 1.16.5!
 # 2.1.3
 - Source name setting screen no longer contains the initial value.
+# 2.1.4
+- Resolve NarutoAudioExecutor OpenAL Cap crash on F3+T resource reloading
