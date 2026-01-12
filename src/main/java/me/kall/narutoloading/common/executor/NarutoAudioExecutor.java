@@ -2,10 +2,10 @@ package me.kall.narutoloading.common.executor;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.openal.AL;
@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class NarutoAudioExecutor {
     private volatile boolean canceled;
     private long device, context;
@@ -163,18 +163,16 @@ public final class NarutoAudioExecutor {
     private static int interval = 20;
 
     @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase.equals(TickEvent.Phase.START)) {
-            interval--;
-            if (interval != 0) return;
-            interval = 20;
-            if (reSetupRequired) {
-                reSetupRequired = false;
-                if (shutdown != null) shutdown.run();
-                if (setup != null) setup.run();
-                shutdown = null;
-                setup = null;
-            }
+    public static void clientTick(ClientTickEvent.Pre event) {
+        interval--;
+        if (interval != 0) return;
+        interval = 20;
+        if (reSetupRequired) {
+            reSetupRequired = false;
+            if (shutdown != null) shutdown.run();
+            if (setup != null) setup.run();
+            shutdown = null;
+            setup = null;
         }
     }
 }
