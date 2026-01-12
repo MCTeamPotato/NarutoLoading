@@ -10,37 +10,35 @@ import net.minecraftforge.client.gui.ScrollPanel;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("deprecation")
-@Mixin(value = ScrollPanel.class, priority = 3000)
+@Mixin(value = ScrollPanel.class, priority = 500)
 public abstract class MixinScrollPanel {
-    @Shadow protected abstract void drawBackground();
+    @Shadow(remap = false) protected abstract void drawBackground();
     @Shadow protected abstract void drawPanel(PoseStack mStack, int entryRight, int relativeY, Tesselator tess, int mouseX, int mouseY);
-    @Shadow protected abstract int getContentHeight();
-    @Shadow protected abstract int getBarHeight();
+    @Shadow(remap = false) protected abstract int getContentHeight();
+    @Shadow(remap = false) protected abstract int getBarHeight();
     @Shadow protected abstract void drawGradientRect(PoseStack mStack, int left, int top, int right, int bottom, int color1, int color2);
 
-    @Shadow @Final private Minecraft client;
-    @Shadow @Final protected int left;
-    @Shadow @Final protected int width;
-    @Shadow @Final protected int bottom;
-    @Shadow @Final protected int height;
-    @Shadow @Final protected int top;
-    @Shadow @Final protected int right;
-    @Shadow protected float scrollDistance;
-    @Shadow @Final protected int border;
-    @Shadow @Final private int barLeft;
-    @Shadow @Final private int barWidth;
+    @Shadow(remap = false) @Final private Minecraft client;
+    @Shadow(remap = false) @Final protected int left;
+    @Shadow(remap = false) @Final protected int width;
+    @Shadow(remap = false) @Final protected int bottom;
+    @Shadow(remap = false) @Final protected int height;
+    @Shadow(remap = false) @Final protected int top;
+    @Shadow(remap = false) @Final protected int right;
+    @Shadow(remap = false) protected float scrollDistance;
+    @Shadow(remap = false) @Final protected int border;
+    @Shadow(remap = false) @Final private int barLeft;
+    @Shadow(remap = false) @Final private int barWidth;
 
-    /**
-     * @author Kall
-     * @reason remove dirt screen rendering
-     */
-    @Overwrite
-    public void render(PoseStack matrix, int mouseX, int mouseY, float partialTicks)
-    {
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+    public void render(PoseStack matrix, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+        ci.cancel();
         this.drawBackground();
 
         Tesselator tess = Tesselator.getInstance();
