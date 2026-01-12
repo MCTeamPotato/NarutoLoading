@@ -70,7 +70,7 @@ public final class NarutoConfig {
                 .put("ffmpegExePath", "D:\\your\\ffmpeg\\file.exe")
                 .put("ffprobeExePath", "D:\\your\\ffprobe\\file.exe")
                 .put("ytdlpExePath", "D:\\your\\yt-dlp\\file.exe")
-                put("ffmpegLinuxDownloadLink", "")
+                .put("ffmpegLinuxDownloadLink", "")
                 .put("ffmpegWindowsDownloadLink", "")
                 .put("ffmpegMacDownloadLink", "")
                 .put("enableUrlForSourceSelection", false)
