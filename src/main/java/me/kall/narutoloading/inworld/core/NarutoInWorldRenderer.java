@@ -4,7 +4,6 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
-import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -49,7 +48,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 }
             };
         } else {
-            this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume());
+            super.setupSound();
         }
     }
 

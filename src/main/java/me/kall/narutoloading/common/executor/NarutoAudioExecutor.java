@@ -2,6 +2,11 @@ package me.kall.narutoloading.common.executor;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -16,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class NarutoAudioExecutor {
     private volatile boolean canceled;
     private long device, context;
@@ -26,12 +32,20 @@ public final class NarutoAudioExecutor {
 
     private final Supplier<String> video, audio, ffmpeg;
     private final DoubleSupplier volume;
+    private final Runnable onSetupFailure, onReSetup;
 
-    public NarutoAudioExecutor(Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume) {
+    private static @Nullable Runnable shutdown;
+    private static @Nullable Runnable setup;
+
+    private static boolean reSetupRequired = false;
+
+    public NarutoAudioExecutor(Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume, @NotNull Runnable onSetupFailure, @NotNull Runnable onReSetup) {
         this.video = video;
         this.audio = audio;
         this.ffmpeg = ffmpeg;
         this.volume = volume;
+        this.onSetupFailure = onSetupFailure;
+        this.onReSetup = onReSetup;
     }
 
     public void setup() {
@@ -55,8 +69,15 @@ public final class NarutoAudioExecutor {
             NarutoLoading.LOGGER.info("{}Synchronizing to Minecraft's OpenAL context successfully.", NarutoLoading.info());
         }
 
-        ALC.createCapabilities(this.device);
-        AL.createCapabilities(ALC.getCapabilities());
+        try {
+            AL.createCapabilities(ALC.createCapabilities(this.device));
+        } catch (Exception exception) {
+            reSetupRequired = true;
+            shutdown = this.onSetupFailure;
+            setup = this.onReSetup;
+            this.canceled = true;
+            return;
+        }
 
         this.source = AL10.alGenSources();
         AL10.alSourcef(this.source, AL10.AL_GAIN, (float) this.volume.getAsDouble());
@@ -135,6 +156,24 @@ public final class NarutoAudioExecutor {
             if (this.device != 0) {
                 ALC10.alcCloseDevice(this.device);
                 this.device = 0;
+            }
+        }
+    }
+
+    private static int interval = 20;
+
+    @SubscribeEvent
+    public static void clientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase.equals(TickEvent.Phase.START)) {
+            interval--;
+            if (interval != 0) return;
+            interval = 20;
+            if (reSetupRequired) {
+                reSetupRequired = false;
+                if (shutdown != null) shutdown.run();
+                if (setup != null) setup.run();
+                shutdown = null;
+                setup = null;
             }
         }
     }
