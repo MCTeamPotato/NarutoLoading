@@ -69,7 +69,7 @@ public class NarutoRenderer {
     }
 
     protected void setupSound() {
-        this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume());
+        this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume(), this::shutdown, this::setup);
     }
 
     protected void setupTexture() {
