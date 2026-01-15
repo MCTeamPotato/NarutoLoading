@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -117,7 +117,7 @@ public final class FFmpegProvider {
     static class Downloader {
         static void download(@NotNull Path gamePath, @NotNull OSType os, String url) throws Exception {
             Path tmp = gamePath.resolve("ffmpeg-download.tmp");
-            try (InputStream in = new URL(url).openStream()) {
+            try (InputStream in = URI.create(url).toURL().openStream()) {
                 Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
             }
 
@@ -140,7 +140,7 @@ public final class FFmpegProvider {
             Path ffmpegZip = gamePath.resolve("ffmpeg-mac-temp.zip");
             NarutoLoading.LOGGER.info("{}Downloading ffmpeg from: {}", NarutoLoading.info(), ffmpegUrl);
 
-            try (InputStream in = new URL(ffmpegUrl).openStream()) {
+            try (InputStream in = URI.create(ffmpegUrl).toURL().openStream()) {
                 Files.copy(in, ffmpegZip, StandardCopyOption.REPLACE_EXISTING);
             }
             Extractor.unzipSingle(ffmpegZip, targetDir, "ffmpeg");
@@ -150,7 +150,7 @@ public final class FFmpegProvider {
             Path ffprobeZip = gamePath.resolve("ffprobe-mac-temp.zip");
             NarutoLoading.LOGGER.info("{}Downloading ffprobe from: {}", NarutoLoading.info(), ffprobeUrl);
 
-            try (InputStream in = new URL(ffprobeUrl).openStream()) {
+            try (InputStream in = URI.create(ffprobeUrl).toURL().openStream()) {
                 Files.copy(in, ffprobeZip, StandardCopyOption.REPLACE_EXISTING);
             }
             Extractor.unzipSingle(ffprobeZip, targetDir, "ffprobe");
