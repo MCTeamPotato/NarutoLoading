@@ -27,7 +27,6 @@ public final class NarutoLoading {
         NarutoItems.ITEMS.register(modBus);
 
         modBus.addListener(NarutoPackets::register);
-        modBus.addListener(NarutoLoadingClient::onBuildCreativeTab);
 
         if (FMLLoader.getDist().isClient()) {
             //noinspection DataFlowIssue
