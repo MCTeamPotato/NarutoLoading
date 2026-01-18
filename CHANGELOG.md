@@ -20,6 +20,6 @@
 - Source name setting screen no longer contains the initial value.
 # 2.1.4
 - Resolve NarutoAudioExecutor OpenAL Cap crash on F3+T resource reloading
-# 2.1.4
+# 2.1.5
 - Port to 1.21.11
 - Update the required version of Duplicationless
