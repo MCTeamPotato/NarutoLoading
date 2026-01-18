@@ -20,6 +20,6 @@ logoFile = "naruto.png"
 [[dependencies.narutoloading]]
 modId="duplicationless"
 mandatory=true
-versionRange="[1.0.13,)"
+versionRange="[1.1.5,)"
 ordering="NONE"
 side="CLIENT"
