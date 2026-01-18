@@ -10,11 +10,11 @@ import me.kall.narutoloading.inworld.ext.IFrustum;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -28,7 +28,7 @@ import org.joml.Matrix4f;
 
 @EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public class ClientScreensRenderer {
-    public static final Object2ObjectMap<ResourceLocation, ObjectSet<NarutoInWorldRenderer>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
+    public static final Object2ObjectMap<Identifier, ObjectSet<NarutoInWorldRenderer>> CLIENT_SCREENS = new Object2ObjectOpenHashMap<>();
 
     public static void reload() {
         Minecraft.getInstance().execute(() -> {
@@ -67,21 +67,19 @@ public class ClientScreensRenderer {
     }
 
     @SubscribeEvent
-    public static void renderLevel(@NotNull RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS) return;
-
+    public static void renderLevel(@NotNull RenderLevelStageEvent.AfterOpaqueBlocks event) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         if (level == null) return;
 
-        ResourceLocation dimension = level.dimension().location();
+        Identifier dimension = level.dimension().identifier();
         ObjectSet<NarutoInWorldRenderer> renderers = CLIENT_SCREENS.get(dimension);
         if (renderers == null || renderers.isEmpty()) return;
 
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-        Vec3 camera = event.getCamera().getPosition();
-        Frustum frustum = minecraft.levelRenderer.getFrustum();
+        Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
+        Frustum frustum = minecraft.levelRenderer.getCapturedFrustum();
 
         for (NarutoInWorldRenderer renderer : renderers) {
             if (!IFrustum.isVisible(frustum, renderer.screen)) continue;
@@ -96,10 +94,10 @@ public class ClientScreensRenderer {
 
     private static void renderScreen(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, @NotNull NarutoInWorldRenderer renderer, Vec3 camera) {
         InWorldScreen inWorldScreen = renderer.screen;
-        ResourceLocation nextFrame = renderer.nextFrame();
+        Identifier nextFrame = renderer.nextFrame();
         if (nextFrame == null) return;
 
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(nextFrame));
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderTypes.entityTranslucent(nextFrame));
 
         BlockPos leftBottomCorner = inWorldScreen.leftBottomCorner();
         BlockPos leftTopCorner = inWorldScreen.leftTopCorner();

@@ -20,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 public class SourceCollector {
-    private static final Path SOURCE_DIRECTORY = FMLLoader.getGamePath().resolve("config").resolve(NarutoLoading.MOD_ID + "-sources");
+    private static final Path SOURCE_DIRECTORY = FMLLoader.getCurrent().getGameDir().resolve("config").resolve(NarutoLoading.MOD_ID + "-sources");
     private static final String VIDEO_FILE_NAME = "video";
     private static final String AUDIO_FILE_NAME = "audio";
 
@@ -86,7 +86,7 @@ public class SourceCollector {
                 return;
             }
 
-            long window = mc.getWindow().getWindow();
+            long window = mc.getWindow().handle();
             int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
             int stateLeftShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT);
             int stateRightShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT);

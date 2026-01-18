@@ -200,7 +200,7 @@ public class YtDlpDownloader {
     }
 
     public static @NotNull Path getDefaultOutputDir(String name) {
-        return FMLLoader.getGamePath().resolve("config").resolve(NarutoLoading.MOD_ID + "-sources").resolve(name);
+        return FMLLoader.getCurrent().getGameDir().resolve("config").resolve(NarutoLoading.MOD_ID + "-sources").resolve(name);
     }
 
     public static void shutdown() {

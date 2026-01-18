@@ -100,7 +100,7 @@ public final class NarutoVideoExecutor {
             int g = buffer[i + 1] & 0xFF;
             int r = buffer[i + 2] & 0xFF;
             int argb = 0xFF000000 | (r << 16) | (g << 8) | b;
-            image.setPixelRGBA(i / 3 % width, i / 3 / width, argb);
+            image.setPixelABGR(i / 3 % width, i / 3 / width, argb);
         }
         return image;
     }

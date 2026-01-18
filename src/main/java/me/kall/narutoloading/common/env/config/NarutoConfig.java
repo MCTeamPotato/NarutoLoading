@@ -161,12 +161,12 @@ public final class NarutoConfig {
 
     public static @NotNull String absolute(@NotNull String relativePath) {
         if (relativePath.isBlank()) return NarutoLoading.BLANK;
-        return FMLLoader.getGamePath().resolve("config").resolve(relativePath).toAbsolutePath().toString();
+        return FMLLoader.getCurrent().getGameDir().resolve("config").resolve(relativePath).toAbsolutePath().toString();
     }
 
     public static @NotNull String relative(@NotNull String absolutePath) {
         if (absolutePath.isBlank()) return NarutoLoading.BLANK;
-        Path configPath = FMLLoader.getGamePath().resolve("config").toAbsolutePath().normalize();
+        Path configPath = FMLLoader.getCurrent().getGameDir().resolve("config").toAbsolutePath().normalize();
         Path targetPath = Path.of(absolutePath).toAbsolutePath().normalize();
         if (!targetPath.startsWith(configPath)) return NarutoLoading.BLANK;
         return configPath.relativize(targetPath).toString();

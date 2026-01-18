@@ -5,7 +5,7 @@ import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.neoforged.fml.loading.FMLLoader;
@@ -27,7 +27,7 @@ public final class ResourceZipGenerator {
     private final String packName;
     public final String id;
 
-    private static final String RESOURCE_PACKS = FMLLoader.getGamePath().resolve("resourcepacks").toAbsolutePath().toString();
+    private static final String RESOURCE_PACKS = FMLLoader.getCurrent().getGameDir().resolve("resourcepacks").toAbsolutePath().toString();
 
     public ResourceZipGenerator(String convertedAudioPath) {
         this.convertedAudioPath = convertedAudioPath;
@@ -67,12 +67,12 @@ public final class ResourceZipGenerator {
 
                 Collection<String> currentSelected = repository.getSelectedIds();
 
-                ResourceLocation expectedSound = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id);
+                Identifier expectedSound = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id);
 
                 if (currentSelected.contains(packId)) {
                     NarutoLoading.LOGGER.info("{}Resource pack {} already active, skipping reload", NarutoLoading.info(), packId);
-                    renderer.screen.setLocalSound(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
-                    PacketDistributor.sendToServer(new ArgUpdatePacket(renderer.screen));
+                    renderer.screen.setLocalSound(Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
+                    PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(renderer.screen));
                     ClientScreensRenderer.reload();
                     return;
                 }
@@ -95,7 +95,7 @@ public final class ResourceZipGenerator {
                 minecraft.reloadResourcePacks();
                 NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
 
-                PacketDistributor.sendToServer(new ArgUpdatePacket(renderer.screen));
+                PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(renderer.screen));
             } catch (Exception e) {
                 NarutoLoading.LOGGER.error("Error activating resource pack", e);
             }

@@ -16,7 +16,6 @@ configurations {
 
 shadowJar {
     configurations = [project.configurations.shadow]
-    relocate "com.llamalad7.mixinextras", "me.kall.${archives_name}.mixinextras"
     mergeServiceFiles()
     archiveClassifier = "dev-shadow"
     exclude "LICENSE_MixinExtras"
@@ -62,6 +61,17 @@ repositories {
         url = "https://cursemaven.com"
         content { includeGroup "curse.maven" }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name "caffeinemcRepository"
+                url "https://maven.caffeinemc.net/snapshots"
+            }
+        }
+        filter {
+            includeGroup "net.caffeinemc"
+        }
+    }
 }
 
 def versionMap = [
@@ -91,7 +101,7 @@ dependencies {
     modImplementation("curse.maven:duplicationless-1380105:${versionInfo.duplicationless}")
 
     if (minecraft_version == "1.21.11") {
-        modImplementation("curse.maven:sodium-394468:${versionInfo.sodium}")
+        modImplementation("net.caffeinemc:sodium-neoforge-mod:0.8.3-SNAPSHOT+mc1.21.11-build.823")
     } else {
         modImplementation("curse.maven:embeddium-908741:${versionInfo.embeddium}")
     }

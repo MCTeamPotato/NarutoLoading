@@ -1,11 +1,11 @@
 package me.kall.narutoloading.mixin.noworld.impl.overlay;
 
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.LoadingOverlay;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,10 +18,10 @@ public abstract class MixinLoadingOverlay {
 
     @Shadow protected abstract void drawProgressBar(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick);
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIFFIIII)V"))
-    private void logoByeBye(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIIIII)V"))
+    private void logoByeBye(GuiGraphics instance, RenderPipeline pipeline, Identifier atlas, int x, int y, float u, float v, int width, int height, int uWidth, int vHeight, int textureWidth, int textureHeight, int color) {
         if (BaseEnv.available()) return;
-        instance.blit(atlasLocation,x, y, uOffset, vOffset, width, height, textureWidth, textureHeight);
+        instance.blit(pipeline, atlas, x, y, u, v, width, height, uWidth, vHeight, textureWidth, textureHeight, color);
     }
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/LoadingOverlay;drawProgressBar(Lnet/minecraft/client/gui/GuiGraphics;IIIIF)V"))
@@ -30,10 +30,10 @@ public abstract class MixinLoadingOverlay {
         this.drawProgressBar(guiGraphics, minX, minY, maxX, maxY, partialTick);
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;fill(Lnet/minecraft/client/renderer/RenderType;IIIII)V"))
-    private void bgByeBye(GuiGraphics instance, RenderType renderType, int minX, int minY, int maxX, int maxY, int color) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;fill(IIIII)V"))
+    private void bgByeBye(GuiGraphics instance, int minX, int minY, int maxX, int maxY, int color) {
         if (BaseEnv.available()) return;
-        instance.fill(renderType, minX, minY, maxX, maxY, color);
+        instance.fill(minX, minY, maxX, maxY, color);
     }
 
     @Inject(method = "render", at = @At("HEAD"))

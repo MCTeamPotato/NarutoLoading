@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Screen.class)
 public abstract class MixinScreen extends AbstractContainerEventHandler implements Renderable {
     @Inject(method = "renderBlurredBackground", at = @At("HEAD"), cancellable = true)
-    private void dirtScreenByeBye(float partialTick, CallbackInfo ci) {
+    private void dirtScreenByeBye(CallbackInfo ci) {
         if (BaseEnv.available()) {
             ci.cancel();
         }

@@ -47,7 +47,7 @@ public final class YtDlpProvider {
         }
 
         OSType os = OSType.CURRENT;
-        Path gamePath = FMLLoader.getGamePath();
+        Path gamePath = FMLLoader.getCurrent().getGameDir();
 
         if (os == null) {
             NarutoLoading.LOGGER.error("{}Unsupported operating system for yt-dlp", NarutoLoading.info());

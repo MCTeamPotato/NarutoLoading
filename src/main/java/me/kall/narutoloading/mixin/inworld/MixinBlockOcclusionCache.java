@@ -1,13 +1,13 @@
 package me.kall.narutoloading.mixin.inworld;
 
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockOcclusionCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import org.embeddedt.embeddium.impl.render.chunk.compile.pipeline.BlockOcclusionCache;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,7 +18,7 @@ public abstract class MixinBlockOcclusionCache {
     @Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true)
     private void skip(BlockState selfState, BlockGetter view, BlockPos pos, Direction facing, CallbackInfoReturnable<Boolean> cir) {
         ClientLevel level = Minecraft.getInstance().level;
-        if (level != null && HiddenDisplayers.isHidden(level.dimension().location(), pos)) {
+        if (level != null && HiddenDisplayers.isHidden(level.dimension().identifier(), pos)) {
             cir.setReturnValue(false);
         }
     }

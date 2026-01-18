@@ -12,8 +12,9 @@ import me.kall.narutoloading.noworld.core.checker.WindowSizeChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericMessageScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.DoubleSupplier;
@@ -24,7 +25,7 @@ public class NarutoRenderer {
     public static final NarutoRenderer INSTANCE = new NarutoRenderer();
 
     public @Nullable DynamicTexture dynamicTexture;
-    public @Nullable ResourceLocation textureLocation;
+    public @Nullable Identifier textureLocation;
 
     public @Nullable NarutoAudioExecutor audioExecutor;
     public @Nullable NarutoVideoExecutor videoExecutor;
@@ -73,9 +74,10 @@ public class NarutoRenderer {
 
     protected void setupTexture() {
         if (this.dynamicTexture != null) return;
-        this.dynamicTexture = new DynamicTexture(this.textureWidth().getAsInt(), this.textureHeight().getAsInt(), false);
+        this.dynamicTexture = new DynamicTexture("narutoloading:naruto_video_dynamic", this.textureWidth().getAsInt(), this.textureHeight().getAsInt(), false);
         if (this.textureLocation == null) {
-            this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
+            this.textureLocation = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "naruto_video_dynamic");
+            Minecraft.getInstance().getTextureManager().register(this.textureLocation, this.dynamicTexture);
             NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }
     }
@@ -100,7 +102,7 @@ public class NarutoRenderer {
         return () -> BaseEnv.narutoConfig.height();
     }
 
-    public ResourceLocation nextFrame() {
+    public Identifier nextFrame() {
         if (!this.isEnabled()) return this.textureLocation;
         if (this.dynamicTexture == null) this.setup();
         if (this.lifetime != null && this.lifetime.shouldUpdateFrame(this.fps) && this.videoExecutor != null) {
@@ -129,14 +131,14 @@ public class NarutoRenderer {
                 this.lifetime.endRestart();
             }
 
-            ResourceLocation texture = this.nextFrame();
+            Identifier texture = this.nextFrame();
             if (texture == null) return;
 
             if (graphics != null){
                 int w = graphics.guiWidth();
                 int h = graphics.guiHeight();
 
-                if (!this.runInLevel()) graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
+                if (!this.runInLevel()) graphics.blit(RenderPipelines.GUI_TEXTURED, texture, 0, 0, 0.0F, 0.0F, w, h, 16, 128, 16, 128);
             }
 
             if (this.keyChecker != null) this.keyChecker.reload();

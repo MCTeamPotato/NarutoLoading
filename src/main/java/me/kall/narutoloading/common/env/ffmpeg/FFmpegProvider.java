@@ -50,7 +50,7 @@ public final class FFmpegProvider {
         }
 
         OSType os = OSType.CURRENT;
-        Path gamePath = FMLLoader.getGamePath();
+        Path gamePath = FMLLoader.getCurrent().getGameDir();
 
         boolean windows = os == OSType.WINDOWS;
         String ffmpegName = windows ? "ffmpeg.exe" : "ffmpeg";
@@ -108,9 +108,9 @@ public final class FFmpegProvider {
 
         static @NotNull File getExe(String baseDir, String fileName, OSType os) {
             if (os == OSType.MACOS) {
-                return FMLLoader.getGamePath().resolve(baseDir).resolve(fileName).toFile();
+                return FMLLoader.getCurrent().getGameDir().resolve(baseDir).resolve(fileName).toFile();
             }
-            return FMLLoader.getGamePath().resolve(baseDir).resolve("bin").resolve(fileName).toFile();
+            return FMLLoader.getCurrent().getGameDir().resolve(baseDir).resolve("bin").resolve(fileName).toFile();
         }
     }
 

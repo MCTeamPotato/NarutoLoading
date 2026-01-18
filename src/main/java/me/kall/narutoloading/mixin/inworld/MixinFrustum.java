@@ -7,10 +7,11 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Frustum.class)
 public abstract class MixinFrustum implements IFrustum {
-    @Shadow protected abstract boolean cubeInFrustum(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
+    @Shadow protected abstract int cubeInFrustum(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 
     @Override
     public boolean naruto$isVisible(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.cubeInFrustum(minX, minY, minZ, maxX, maxY, maxZ);
+        int i = this.cubeInFrustum(minX, minY, minZ, maxX, maxY, maxZ);
+        return i == -2 || i == -1;
     }
 }

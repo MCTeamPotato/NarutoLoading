@@ -13,12 +13,12 @@
   "client": [
     "inworld.MixinBlockOcclusionCache",
     "inworld.MixinBlockRenderDispatcher",
+    "inworld.MixinFramerateLimitTracker",
     "inworld.MixinFrustum",
     "inworld.MixinMinecraft",
     "inworld.MixinResourceLoadStateTracker",
     "noworld.clear.MixinFont",
     "noworld.clear.MixinGuiGraphics",
-    "noworld.clear.MixinStringRenderOutput",
     "noworld.impl.overlay.MixinForgeLoadingOverlay",
     "noworld.impl.overlay.MixinLoadingOverlay",
     "noworld.impl.screen.MixinPanoramaRenderer",

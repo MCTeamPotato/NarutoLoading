@@ -5,6 +5,7 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 public final class WindowSizeChecker {
@@ -68,8 +69,9 @@ public final class WindowSizeChecker {
 
             if (this.renderer.dynamicTexture != null) this.renderer.dynamicTexture.close();
 
-            this.renderer.dynamicTexture = new DynamicTexture(BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
-            this.renderer.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.renderer.dynamicTexture);
+            this.renderer.dynamicTexture = new DynamicTexture("narutoloading:naruto_video_dynamic", BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
+            this.renderer.textureLocation = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "naruto_video_dynamic");
+            Minecraft.getInstance().getTextureManager().register(this.renderer.textureLocation, this.renderer.dynamicTexture);
         }
     }
 }

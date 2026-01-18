@@ -13,10 +13,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = NeoForgeLoadingOverlay.class, priority = 500)
 public abstract class MixinForgeLoadingOverlay {
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/neoforged/fml/earlydisplay/DisplayWindow;render(I)V", remap = false))
-    private void windowByeBye(DisplayWindow instance, int alpha) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/neoforged/fml/earlydisplay/DisplayWindow;renderToFramebuffer()V", remap = false))
+    private void windowByeBye(DisplayWindow instance) {
         if (BaseEnv.available()) return;
-        instance.render(alpha);
+        instance.renderToFramebuffer();
     }
 
     @Inject(method = "render", at = @At("HEAD"))

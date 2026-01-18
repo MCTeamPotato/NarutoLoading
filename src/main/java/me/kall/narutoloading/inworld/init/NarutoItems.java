@@ -1,7 +1,10 @@
 package me.kall.narutoloading.inworld.init;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.inworld.block.Displayer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -16,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 public class NarutoItems {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, NarutoLoading.MOD_ID);
 
-    public static final DeferredHolder<Item, Item> DISPLAYER = ITEMS.register("displayer", () -> new BlockItem(NarutoBlocks.DISPLAYER.get(), new Item.Properties().fireResistant()));
+    public static final DeferredHolder<Item, @NotNull Item> DISPLAYER = ITEMS.register("displayer", () -> new BlockItem(NarutoBlocks.DISPLAYER.get(), new Item.Properties().fireResistant().setId(ResourceKey.create(Registries.ITEM, Displayer.ID))));
 
     @SubscribeEvent
     public static void onBuildCreativeTab(@NotNull BuildCreativeModeTabContentsEvent event) {

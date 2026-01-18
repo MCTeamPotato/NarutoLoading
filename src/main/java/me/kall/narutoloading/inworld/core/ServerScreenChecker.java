@@ -11,7 +11,7 @@ import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
@@ -29,13 +29,13 @@ import java.util.function.LongPredicate;
 
 @EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class ServerScreenChecker {
-    private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectMap<Identifier, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
 
     private static int dist(@NotNull BlockPos a, @NotNull BlockPos b) {
         return Math.max(Math.max(Math.abs(a.getX() - b.getX()), Math.abs(a.getY() - b.getY())), Math.abs(a.getZ() - b.getZ()));
     }
 
-    private static @NotNull InWorldScreen @NotNull [] screenCandidates(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int height, @NotNull ResourceLocation dimension) {
+    private static @NotNull InWorldScreen @NotNull [] screenCandidates(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int height, @NotNull Identifier dimension) {
         InWorldScreen[] screenCandidates = new InWorldScreen[]{null, null, null, null};
 
         int dx = Integer.compare(currentCorner.getX(), lastCorner.getX());
@@ -67,7 +67,7 @@ public class ServerScreenChecker {
     }
 
     @Contract("_, _, _, _, _, _ -> new")
-    private static @NotNull InWorldScreen build(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int hx, int hy, int hz, ResourceLocation dimension) {
+    private static @NotNull InWorldScreen build(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int hx, int hy, int hz, Identifier dimension) {
         return new InWorldScreen(lastCorner, lastCorner.offset(hx, hy, hz), currentCorner, currentCorner.offset(hx, hy, hz), dimension);
     }
 
@@ -103,7 +103,7 @@ public class ServerScreenChecker {
         if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level && player.isShiftKeyDown() && event.getItemStack().is(Items.STICK)) {
             BlockPos currentCorner = event.getPos();
             long corner = event.getPos().asLong();
-            ResourceLocation dim = level.dimension().location();
+            Identifier dim = level.dimension().identifier();
             UUID playerID = player.getUUID();
 
             if (Displayers.isDisplayer(level, corner)) {
@@ -162,7 +162,7 @@ public class ServerScreenChecker {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void blockChange(@NotNull BlockChangeEvent event) {
         ServerLevel level = event.level();
-        ResourceLocation dimension = level.dimension().location();
+        Identifier dimension = level.dimension().identifier();
         long block = event.blockPos();
         if (event.oldState().is(NarutoBlocks.DISPLAYER.get())) {
             Executor.run(() -> {

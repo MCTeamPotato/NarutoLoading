@@ -214,7 +214,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
                 return;
             }
 
-            long window = mc.getWindow().getWindow();
+            long window = mc.getWindow().handle();
             int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
             int stateLeftCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
             int stateRightCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_CONTROL);

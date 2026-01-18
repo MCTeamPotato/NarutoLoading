@@ -11,11 +11,11 @@ import org.spongepowered.asm.mixin.Mixin;
 @Mixin(PanoramaRenderer.class)
 public abstract class MixinPanoramaRenderer {
     @WrapMethod(method = "render")
-    private void onRender(GuiGraphics guiGraphics, int width, int height, float fade, float partialTick, Operation<Void> original) {
+    private void onRender(GuiGraphics guiGraphics, int width, int height, boolean spin, Operation<Void> original) {
         if (BaseEnv.available()) {
             NarutoRenderer.INSTANCE.renderFrame(guiGraphics);
         } else {
-            original.call(guiGraphics, width, height, fade, partialTick);
+            original.call(guiGraphics, width, height, spin);
         }
     }
 }

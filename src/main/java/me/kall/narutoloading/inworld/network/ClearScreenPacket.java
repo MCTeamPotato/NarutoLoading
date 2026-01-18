@@ -12,7 +12,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -21,8 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class ClearScreenPacket implements CustomPacketPayload {
     public static final StreamCodec<FriendlyByteBuf, ClearScreenPacket> CODEC = CustomPacketPayload.codec(ClearScreenPacket::encode, ClearScreenPacket::new);
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "clear_screen");
-    public static final CustomPacketPayload.Type<ClearScreenPacket> TYPE = new CustomPacketPayload.Type<>(ID);
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "clear_screen");
+    public static final CustomPacketPayload.Type<@NotNull ClearScreenPacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
     private final LongSet areaInvolved;
     private final LongSet borderInvolved;
@@ -51,7 +51,7 @@ public class ClearScreenPacket implements CustomPacketPayload {
             try {
                 Player player = ctx.player();
                 if (player instanceof ServerPlayer) {
-                    ServerLevel level = ((ServerPlayer) player).serverLevel();
+                    ServerLevel level = ((ServerPlayer) player).level();
                     packet.areaInvolved.removeIf(packet.borderInvolved::contains);
                     LongIterator positionsToRemove = packet.areaInvolved.longIterator();
 
@@ -85,7 +85,7 @@ public class ClearScreenPacket implements CustomPacketPayload {
     }
 
     @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends @NotNull CustomPacketPayload> type() {
         return TYPE;
     }
 }

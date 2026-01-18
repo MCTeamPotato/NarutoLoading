@@ -1,5 +1,9 @@
 package me.kall.narutoloading.inworld.data;
 
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -7,14 +11,14 @@ import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -22,6 +26,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class Screens extends SavedData {
@@ -36,27 +41,24 @@ public class Screens extends SavedData {
     private static final String VIDEO_WIDTH_KEY = "VideoWidth";
     private static final String VIDEO_HEIGHT_KEY = "VideoHeight";
 
-    public final Object2ObjectMap<ResourceLocation, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
+    public final Object2ObjectMap<Identifier, ObjectSet<InWorldScreen>> screens = new Object2ObjectOpenHashMap<>();
 
-    public static @NotNull Screens load(@NotNull CompoundTag tag) {
-        Screens screens = new Screens();
-
-        ListTag screensList = tag.getList(SCREENS_KEY, Tag.TAG_COMPOUND);
+    public @NotNull Screens load(@NotNull CompoundTag tag) {
+        ListTag screensList = tag.getList(SCREENS_KEY).orElseThrow();
         for (int i = 0; i < screensList.size(); i++) {
-            CompoundTag screenTag = screensList.getCompound(i);
-            ResourceLocation dimension = ResourceLocation.parse(screenTag.getString(DIMENSION_KEY));
-            screens.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY), dimension, screenTag.getString(VIDEO_KEY), screenTag.getString(AUDIO_KEY), ResourceLocation.parse(screenTag.getString(LOCAL_SOUND_KEY)), screenTag.getFloat(SOUND_VOLUME), screenTag.getBoolean(HIDE_INNER_KEY), screenTag.getInt(VIDEO_WIDTH_KEY), screenTag.getInt(VIDEO_HEIGHT_KEY)));
+            CompoundTag screenTag = screensList.getCompound(i).orElseThrow();
+            Identifier dimension = Identifier.parse(screenTag.getString(DIMENSION_KEY).orElseThrow());
+            this.screens.computeIfAbsent(dimension, key -> new ObjectOpenHashSet<>()).add(InWorldScreen.from(screenTag.getLongArray(CORNERS_KEY).orElseThrow(), dimension, screenTag.getString(VIDEO_KEY).orElseThrow(), screenTag.getString(AUDIO_KEY).orElseThrow(), Identifier.parse(screenTag.getString(LOCAL_SOUND_KEY).orElseThrow()), screenTag.getFloat(SOUND_VOLUME).orElseThrow(), screenTag.getBoolean(HIDE_INNER_KEY).orElseThrow(), screenTag.getInt(VIDEO_WIDTH_KEY).orElseThrow(), screenTag.getInt(VIDEO_HEIGHT_KEY).orElseThrow()));
         }
 
-        return screens;
+        return this;
     }
 
-    @Override
-    public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
+    public @NotNull CompoundTag save(@NotNull CompoundTag tag) {
         ListTag screensList = new ListTag();
 
-        for (Object2ObjectMap.Entry<ResourceLocation, ObjectSet<InWorldScreen>> entry : this.screens.object2ObjectEntrySet()) {
-            ResourceLocation dimension = entry.getKey();
+        for (Object2ObjectMap.Entry<Identifier, ObjectSet<InWorldScreen>> entry : this.screens.object2ObjectEntrySet()) {
+            Identifier dimension = entry.getKey();
 
             for (InWorldScreen inWorldScreen : entry.getValue()) {
                 CompoundTag screenTag = new CompoundTag();
@@ -79,7 +81,19 @@ public class Screens extends SavedData {
     }
 
     public static @NotNull Screens get(@NotNull ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(new Factory<>(Screens::new, (tag, provider) -> load(tag)), "NarutoScreens");
+        Supplier<Screens> constructor = Screens::new;
+        return level.getDataStorage().computeIfAbsent(new SavedDataType<>("NarutoScreens", constructor, new Codec<>() {
+            @Override
+            public <T> DataResult<Pair<Screens, T>> decode(DynamicOps<T> dynamicOps, T t) {
+                return DataResult.success(Pair.of(constructor.get().load((CompoundTag) dynamicOps.convertTo(NbtOps.INSTANCE, t)), t));
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> DataResult<T> encode(Screens screens, DynamicOps<T> dynamicOps, T t) {
+                return DataResult.success((T) screens.save(new CompoundTag()));
+            }
+        }));
     }
 
     @SubscribeEvent

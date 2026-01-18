@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.NarutoLoading;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -20,12 +20,12 @@ public final class InWorldScreen {
     private final BlockPos leftTopCorner;
     private final BlockPos rightBottomCorner;
     private final BlockPos rightTopCorner;
-    private final ResourceLocation dimension;
+    private final Identifier dimension;
 
     private String relativeVideoPath = NarutoLoading.BLANK, relativeAudioPath = NarutoLoading.BLANK;
     private boolean hideInner = true;
 
-    private ResourceLocation localSound = NO_LOCAL_SOUND;
+    private Identifier localSound = NO_LOCAL_SOUND;
     private float soundVolume = 4.0F;
 
     private LongSet areaInvolved;
@@ -36,10 +36,10 @@ public final class InWorldScreen {
 
     private int videoWidth = 1280, videoHeight = 720;
 
-    public static final ResourceLocation NO_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "empty");
-    public static final ResourceLocation HAS_LOCAL_SOUND = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "pending");
+    public static final Identifier NO_LOCAL_SOUND = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "empty");
+    public static final Identifier HAS_LOCAL_SOUND = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "pending");
 
-    public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
+    public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, Identifier dimension) {
         this.leftBottomCorner = leftBottomCorner;
         this.leftTopCorner = leftTopCorner;
         this.rightBottomCorner = rightBottomCorner;
@@ -65,7 +65,7 @@ public final class InWorldScreen {
         this.videoHeight = videoHeight;
     }
 
-    public void setLocalSound(ResourceLocation localSound) {
+    public void setLocalSound(Identifier localSound) {
         this.localSound = localSound;
     }
 
@@ -93,7 +93,7 @@ public final class InWorldScreen {
         return this.rightTopCorner;
     }
 
-    public ResourceLocation dimension() {
+    public Identifier dimension() {
         return this.dimension;
     }
 
@@ -111,7 +111,7 @@ public final class InWorldScreen {
         return !this.localSound.equals(NO_LOCAL_SOUND);
     }
 
-    public ResourceLocation localSound() {
+    public Identifier localSound() {
         return this.localSound;
     }
 
@@ -209,7 +209,7 @@ public final class InWorldScreen {
         return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
     }
 
-    public static @NotNull InWorldScreen from(long @NotNull [] corners, ResourceLocation dimension, @Nullable String video, @Nullable String audio, ResourceLocation localSound, float soundVolume, boolean hideInner, int videoWidth, int videoHeight) {
+    public static @NotNull InWorldScreen from(long @NotNull [] corners, Identifier dimension, @Nullable String video, @Nullable String audio, Identifier localSound, float soundVolume, boolean hideInner, int videoWidth, int videoHeight) {
         InWorldScreen inWorldScreen = new InWorldScreen(BlockPos.of(corners[0]), BlockPos.of(corners[1]), BlockPos.of(corners[2]), BlockPos.of(corners[3]), dimension);
         inWorldScreen.setPath(video == null ? NarutoLoading.BLANK : video, audio == null ? NarutoLoading.BLANK : audio);
         inWorldScreen.setLocalSound(localSound);

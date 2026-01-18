@@ -11,14 +11,14 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
 public class SourceSelectionPacket implements CustomPacketPayload {
     public static final StreamCodec<FriendlyByteBuf, SourceSelectionPacket> CODEC = CustomPacketPayload.codec(SourceSelectionPacket::encode, SourceSelectionPacket::new);
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "source_selection");
-    public static final CustomPacketPayload.Type<SourceSelectionPacket> TYPE = new CustomPacketPayload.Type<>(ID);
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "source_selection");
+    public static final CustomPacketPayload.Type<@NotNull SourceSelectionPacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
     private final long position;
 
@@ -41,7 +41,7 @@ public class SourceSelectionPacket implements CustomPacketPayload {
                 LocalPlayer player = minecraft.player;
                 ClientLevel level = minecraft.level;
                 if (player == null || level == null) return;
-                ResourceLocation dimension = level.dimension().location();
+                Identifier dimension = level.dimension().identifier();
                 ObjectSet<NarutoInWorldRenderer> renderers = ClientScreensRenderer.CLIENT_SCREENS.get(dimension);
                 if (renderers == null) return;
                 for (NarutoInWorldRenderer renderer : renderers) {
@@ -57,7 +57,7 @@ public class SourceSelectionPacket implements CustomPacketPayload {
     }
 
     @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends @NotNull CustomPacketPayload> type() {
         return TYPE;
     }
 }

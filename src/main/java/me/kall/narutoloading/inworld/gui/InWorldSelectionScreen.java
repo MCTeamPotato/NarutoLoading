@@ -102,7 +102,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         Button random = Button.builder(RANDOM, button -> onRandom()).bounds(centerX - buttonWidth - 5, this.currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(random);
 
-        Button clear = Button.builder(CLEAR, button -> PacketDistributor.sendToServer(new ClearScreenPacket(this.renderer.screen))).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build();
+        Button clear = Button.builder(CLEAR, button -> PacketDistributor.sendToAllPlayers(new ClearScreenPacket(this.renderer.screen))).bounds(centerX + 5, this.currentY, buttonWidth, buttonHeight).build();
         this.addRenderableWidget(clear);
         this.currentY += buttonHeight + 5;
     }
@@ -193,7 +193,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.pause = false;
         }
 
-        PacketDistributor.sendToServer(new ArgUpdatePacket(this.renderer.screen));
+        PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(this.renderer.screen));
     }
 
     @Override
@@ -250,7 +250,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                 this.renderer.pause = false;
             }
 
-            PacketDistributor.sendToServer(new ArgUpdatePacket(this.renderer.screen));
+            PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(this.renderer.screen));
 
             NarutoLoading.LOGGER.info("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), this.renderer.screen.toString());
         });

@@ -15,7 +15,7 @@ import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,8 +24,8 @@ import java.util.Optional;
 
 public class ScreenLifePacket implements CustomPacketPayload{
     public static final StreamCodec<FriendlyByteBuf, ScreenLifePacket> CODEC = CustomPacketPayload.codec(ScreenLifePacket::encode, ScreenLifePacket::new);
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "screen_life");
-    public static final CustomPacketPayload.Type<ScreenLifePacket> TYPE = new CustomPacketPayload.Type<>(ID);
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "screen_life");
+    public static final CustomPacketPayload.Type<@NotNull ScreenLifePacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
     private final InWorldScreen inWorldScreen;
     private final boolean isRemoval;
@@ -36,16 +36,16 @@ public class ScreenLifePacket implements CustomPacketPayload{
     }
 
     public ScreenLifePacket(@NotNull FriendlyByteBuf buf) {
-        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readResourceLocation(), buf.readUtf(), buf.readUtf(), buf.readResourceLocation(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readInt());
+        this.inWorldScreen = InWorldScreen.from(buf.readLongArray(), buf.readIdentifier(), buf.readUtf(), buf.readUtf(), buf.readIdentifier(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readInt());
         this.isRemoval = buf.readBoolean();
     }
 
     public void encode(@NotNull FriendlyByteBuf buf) {
         buf.writeLongArray(this.inWorldScreen.toLongArray());
-        buf.writeResourceLocation(this.inWorldScreen.dimension());
+        buf.writeIdentifier(this.inWorldScreen.dimension());
         buf.writeUtf(this.inWorldScreen.relativeVideoPath(NarutoLoading.BLANK));
         buf.writeUtf(this.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK));
-        buf.writeResourceLocation(this.inWorldScreen.localSound());
+        buf.writeIdentifier(this.inWorldScreen.localSound());
         buf.writeFloat(this.inWorldScreen.soundVolume());
         buf.writeBoolean(this.inWorldScreen.hideInner());
         buf.writeInt(this.inWorldScreen.videoWidth());
@@ -134,7 +134,7 @@ public class ScreenLifePacket implements CustomPacketPayload{
     }
 
     @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends @NotNull CustomPacketPayload> type() {
         return TYPE;
     }
 }
