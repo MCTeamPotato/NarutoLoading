@@ -69,8 +69,8 @@ public final class WindowSizeChecker {
 
             if (this.renderer.dynamicTexture != null) this.renderer.dynamicTexture.close();
 
-            this.renderer.dynamicTexture = new DynamicTexture("narutoloading:naruto_video_dynamic", BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
-            this.renderer.textureLocation = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "naruto_video_dynamic");
+            this.renderer.dynamicTexture = new DynamicTexture(NarutoLoading.VIDEO_TEXTURE_LABEL, BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
+            this.renderer.textureLocation = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "naruto_video_dynamic" + NarutoLoading.TEXTURE_ID.getAndIncrement());
             Minecraft.getInstance().getTextureManager().register(this.renderer.textureLocation, this.renderer.dynamicTexture);
         }
     }

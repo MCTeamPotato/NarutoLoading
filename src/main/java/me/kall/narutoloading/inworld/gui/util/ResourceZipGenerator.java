@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -72,7 +72,7 @@ public final class ResourceZipGenerator {
                 if (currentSelected.contains(packId)) {
                     NarutoLoading.LOGGER.info("{}Resource pack {} already active, skipping reload", NarutoLoading.info(), packId);
                     renderer.screen.setLocalSound(Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, this.id));
-                    PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(renderer.screen));
+                    ClientPacketDistributor.sendToServer(new ArgUpdatePacket(renderer.screen));
                     ClientScreensRenderer.reload();
                     return;
                 }
@@ -95,7 +95,7 @@ public final class ResourceZipGenerator {
                 minecraft.reloadResourcePacks();
                 NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
 
-                PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(renderer.screen));
+                ClientPacketDistributor.sendToServer(new ArgUpdatePacket(renderer.screen));
             } catch (Exception e) {
                 NarutoLoading.LOGGER.error("Error activating resource pack", e);
             }

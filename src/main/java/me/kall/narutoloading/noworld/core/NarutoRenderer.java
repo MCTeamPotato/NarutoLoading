@@ -74,9 +74,9 @@ public class NarutoRenderer {
 
     protected void setupTexture() {
         if (this.dynamicTexture != null) return;
-        this.dynamicTexture = new DynamicTexture("narutoloading:naruto_video_dynamic", this.textureWidth().getAsInt(), this.textureHeight().getAsInt(), false);
+        this.dynamicTexture = new DynamicTexture(NarutoLoading.VIDEO_TEXTURE_LABEL, this.textureWidth().getAsInt(), this.textureHeight().getAsInt(), false);
         if (this.textureLocation == null) {
-            this.textureLocation = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "naruto_video_dynamic");
+            this.textureLocation = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "naruto_video_dynamic_" + NarutoLoading.TEXTURE_ID.getAndIncrement());
             Minecraft.getInstance().getTextureManager().register(this.textureLocation, this.dynamicTexture);
             NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }

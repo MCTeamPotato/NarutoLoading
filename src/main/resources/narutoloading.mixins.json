@@ -14,7 +14,6 @@
     "inworld.MixinBlockOcclusionCache",
     "inworld.MixinBlockRenderDispatcher",
     "inworld.MixinFramerateLimitTracker",
-    "inworld.MixinFrustum",
     "inworld.MixinMinecraft",
     "inworld.MixinResourceLoadStateTracker",
     "noworld.clear.MixinFont",

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "narutoloading:block/displayer"
+    "layer0": "narutoloading:block/displayer"
   }
 }

@@ -6,11 +6,9 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.inworld.ext.IFrustum;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -79,15 +77,11 @@ public class ClientScreensRenderer {
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource bufferSource = minecraft.renderBuffers().bufferSource();
         Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
-        Frustum frustum = minecraft.levelRenderer.getCapturedFrustum();
 
         for (NarutoInWorldRenderer renderer : renderers) {
-            if (!IFrustum.isVisible(frustum, renderer.screen)) continue;
             poseStack.pushPose();
             poseStack.translate(-camera.x, - camera.y, - camera.z);
-
             renderScreen(poseStack, bufferSource, renderer, camera);
-
             poseStack.popPose();
         }
     }

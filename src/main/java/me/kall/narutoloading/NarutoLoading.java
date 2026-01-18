@@ -13,10 +13,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Mod(NarutoLoading.MOD_ID)
 public final class NarutoLoading {
     public static final String MOD_ID = "narutoloading";
     public static final Logger LOGGER = LogManager.getLogger(NarutoLoading.class);
+
+    public static final AtomicInteger TEXTURE_ID = new AtomicInteger(0);
+    public static final String VIDEO_TEXTURE_LABEL = "Naruto Video Dynamic";
 
     public static final String BLANK = "";
     private static final String PREFIX = "[NarutoLoading] ";

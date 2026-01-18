@@ -26,6 +26,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -193,7 +194,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             this.renderer.pause = false;
         }
 
-        PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(this.renderer.screen));
+        ClientPacketDistributor.sendToServer(new ArgUpdatePacket(this.renderer.screen));
     }
 
     @Override
@@ -250,7 +251,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
                 this.renderer.pause = false;
             }
 
-            PacketDistributor.sendToAllPlayers(new ArgUpdatePacket(this.renderer.screen));
+            ClientPacketDistributor.sendToServer(new ArgUpdatePacket(this.renderer.screen));
 
             NarutoLoading.LOGGER.info("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), this.renderer.screen.toString());
         });

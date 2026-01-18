@@ -1,39 +1,35 @@
 package me.kall.narutoloading.mixin.noworld.clear;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.textures.GpuTextureView;
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.fade.Fader;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = GuiGraphics.class, priority = 500)
 public abstract class MixinGuiGraphics {
-    @ModifyVariable(method = "fill(IIIII)V", at = @At("HEAD"), ordinal = 4, argsOnly = true)
-    private int modifyColor(int color) {
+    @ModifyVariable(method = "submitColoredRectangle", at = @At(value = "HEAD"), ordinal = 4, argsOnly = true)
+    private int modifyColorFrom(int colorFrom) {
+        return Fader.modifyAlpha(colorFrom);
+    }
+
+    @ModifyVariable(method = "submitColoredRectangle", at = @At(value = "HEAD"), ordinal = 0, argsOnly = true)
+    private Integer modifyColorTo(Integer colorFrom) {
+        if (colorFrom == null) return null;
+        return Fader.modifyAlpha(colorFrom);
+    }
+
+    @ModifyVariable(method = "submitBlit", at = @At("HEAD"), ordinal = 4, argsOnly = true)
+    private int modifyBlitColor(int color, @Local(argsOnly = true) GpuTextureView atlasTexture) {
+        if (atlasTexture.texture().getLabel().equals(NarutoLoading.VIDEO_TEXTURE_LABEL)) return color;
         return Fader.modifyAlpha(color);
     }
 
-    @ModifyVariable(method = "fillGradient", at = @At("HEAD"), argsOnly = true, ordinal = 4)
-    private int modifyColorFrom(int color) {
+    @ModifyVariable(method = "submitTiledBlit", at = @At("HEAD"), ordinal = 6, argsOnly = true)
+    private int modifyTiledBlitColor(int color) {
         return Fader.modifyAlpha(color);
-    }
-
-    @ModifyVariable(method = "fillGradient", at = @At("HEAD"), argsOnly = true, ordinal = 5)
-    private int modifyColorTo(int color) {
-        return Fader.modifyAlpha(color);
-    }
-
-    @Inject(method = "innerBlit", at = @At("HEAD"), cancellable = true)
-    private void hideTexture(RenderPipeline pipeline, Identifier atlasLocation, int x0, int x1, int y0, int y1, float u0, float u1, float v0, float v1, int color, CallbackInfo ci) {
-        Identifier texture = NarutoRenderer.INSTANCE.textureLocation;
-        if (texture == null) return;
-        if (Fader.transparency() && !atlasLocation.equals(texture)) {
-            ci.cancel();
-        }
     }
 }
