@@ -3,6 +3,7 @@ package me.kall.narutoloading.common.env.config;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -93,6 +94,8 @@ public class SourceCollector {
 
             if (state == GLFW.GLFW_PRESS && (stateLeftShift == GLFW.GLFW_PRESS || stateRightShift == GLFW.GLFW_PRESS)) {
                 BaseEnv.setupEnv(true);
+                NarutoRenderer.INSTANCE.shutdown();
+                NarutoRenderer.INSTANCE.setup();
                 interval = 20;
             }
         }
