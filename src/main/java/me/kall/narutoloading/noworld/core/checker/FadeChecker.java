@@ -1,4 +1,4 @@
-package me.kall.narutoloading.noworld.fade;
+package me.kall.narutoloading.noworld.core.checker;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
-public final class Fader {
+public final class FadeChecker {
     private static double lastMouseX = Double.NaN;
     private static double lastMouseY = Double.NaN;
 
@@ -46,21 +46,21 @@ public final class Fader {
         if (event.phase == TickEvent.Phase.START) {
             Minecraft minecraft = Minecraft.getInstance();
 
-            if (Fader.disabled()) return;
+            if (FadeChecker.disabled()) return;
 
             MouseHandler mouse = minecraft.mouseHandler;
 
             double x = mouse.xpos();
             double y = mouse.ypos();
 
-            if (Fader.init(x, y)) return;
+            if (FadeChecker.init(x, y)) return;
 
             stopTickCount = lastMouseX == x && lastMouseY == y ? stopTickCount + 1 : 0;
 
             lastMouseX = x;
             lastMouseY = y;
 
-            fadeAlpha = Fader.shouldFade() ? Math.max(0.0F, fadeAlpha - 0.05F) : Math.min(1.0F, fadeAlpha + 0.05F);
+            fadeAlpha = FadeChecker.shouldFade() ? Math.max(0.0F, fadeAlpha - 0.05F) : Math.min(1.0F, fadeAlpha + 0.05F);
         }
     }
 

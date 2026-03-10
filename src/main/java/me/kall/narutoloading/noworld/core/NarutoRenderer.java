@@ -8,8 +8,6 @@ import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
 import me.kall.narutoloading.common.executor.Restarter;
-import me.kall.narutoloading.noworld.core.checker.KeyChecker;
-import me.kall.narutoloading.noworld.core.checker.WindowSizeChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
@@ -32,16 +30,8 @@ public class NarutoRenderer {
 
     public @Nullable LifetimeController lifetime;
 
-    public @Nullable WindowSizeChecker windowSizeChecker;
-    public @Nullable KeyChecker keyChecker;
-
     protected double fps;
     protected long duration;
-
-    public NarutoRenderer() {
-        this.windowSizeChecker = this.runInLevel() ? null : new WindowSizeChecker(this);
-        this.keyChecker = this.runInLevel() ? null : new KeyChecker(this);
-    }
 
     public void setup() {
         if (!this.isEnabled()) return;
@@ -149,9 +139,6 @@ public class NarutoRenderer {
 
                 if (!this.runInLevel()) graphics.blit(texture, 0, 0, 0, 0, w, h, w, h);
             }
-
-            if (this.keyChecker != null) this.keyChecker.reload();
-            if (this.windowSizeChecker != null) this.windowSizeChecker.resize();
         }
     }
 

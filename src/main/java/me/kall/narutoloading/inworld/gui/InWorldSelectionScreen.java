@@ -8,7 +8,7 @@ import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
-import me.kall.narutoloading.inworld.gui.util.AudioConverter;
+import me.kall.narutoloading.common.env.ffmpeg.AudioConverter;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;

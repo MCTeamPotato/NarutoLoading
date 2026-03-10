@@ -5,24 +5,24 @@ import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.common.env.BaseEnv;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID)
 public final class WindowSizeChecker {
-    private int lastWidth = -1;
-    private int lastHeight = -1;
+    private static int lastWidth = -1;
+    private static int lastHeight = -1;
 
-    private boolean resizable = false;
-    private final NarutoRenderer renderer;
+    private static boolean resizable = false;
 
-    public WindowSizeChecker(NarutoRenderer renderer) {
-        this.renderer = renderer;
-    }
-
-    public void clientTick(TickEvent.@NotNull ClientTickEvent event) {
+    @SubscribeEvent
+    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
-        if (!this.renderer.isRunning() || !this.renderer.isEnabled()) {
+        if (!NarutoRenderer.INSTANCE.isRunning() || !NarutoRenderer.INSTANCE.isEnabled()) {
             reset();
             return;
         }
@@ -30,49 +30,51 @@ public final class WindowSizeChecker {
         int width = BaseEnv.narutoConfig.width();
         int height = BaseEnv.narutoConfig.height();
 
-        if (this.lastWidth == -1 && this.lastHeight == -1) {
-            this.lastWidth = width;
-            this.lastHeight = height;
+        if (lastWidth == -1 && lastHeight == -1) {
+            lastWidth = width;
+            lastHeight = height;
             return;
         }
 
-        if (width != this.lastWidth || height != this.lastHeight) {
+        if (width != lastWidth || height != lastHeight) {
             NarutoLoading.LOGGER.info("{}Window size changed from [{}, {}] to [{}, {}]", NarutoLoading.info(), lastWidth, lastHeight, width, height);
 
-            this.lastWidth = width;
-            this.lastHeight = height;
-            this.resizable = true;
+           lastWidth = width;
+           lastHeight = height;
+           resizable = true;
         }
+
+        resize();
     }
 
-    private void reset() {
-        this.lastWidth = -1;
-        this.lastHeight = -1;
-        this.resizable = false;
+    private static void reset() {
+        lastWidth = -1;
+        lastHeight = -1;
+        resizable = false;
     }
 
-    public void resize() {
-        if (this.resizable){
-            this.resizable = false;
-            if (this.renderer.lifetime != null){
-                String currentSecond = String.valueOf(this.renderer.lifetime.elapsedSeconds());
+    public static void resize() {
+        if (resizable){
+            resizable = false;
+            if (NarutoRenderer.INSTANCE.lifetime != null){
+                String currentSecond = String.valueOf(NarutoRenderer.INSTANCE.lifetime.elapsedSeconds());
                 NarutoLoading.LOGGER.info("{}Resizing video and resyncing audio from {} seconds", NarutoLoading.info(), currentSecond);
 
-                if (this.renderer.videoExecutor != null) {
-                    this.renderer.videoExecutor.shutdown();
-                    this.renderer.videoExecutor.setup(currentSecond);
+                if (NarutoRenderer.INSTANCE.videoExecutor != null) {
+                    NarutoRenderer.INSTANCE.videoExecutor.shutdown();
+                    NarutoRenderer.INSTANCE.videoExecutor.setup(currentSecond);
                 }
 
-                if (this.renderer.audioExecutor != null) {
-                    this.renderer.audioExecutor.shutdown();
-                    this.renderer.audioExecutor.setup(currentSecond);
+                if (NarutoRenderer.INSTANCE.audioExecutor != null) {
+                    NarutoRenderer.INSTANCE.audioExecutor.shutdown();
+                    NarutoRenderer.INSTANCE.audioExecutor.setup(currentSecond);
                 }
             }
 
-            if (this.renderer.dynamicTexture != null) this.renderer.dynamicTexture.close();
+            if (NarutoRenderer.INSTANCE.dynamicTexture != null) NarutoRenderer.INSTANCE.dynamicTexture.close();
 
-            this.renderer.dynamicTexture = new DynamicTexture(BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
-            this.renderer.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.renderer.dynamicTexture);
+            NarutoRenderer.INSTANCE.dynamicTexture = new DynamicTexture(BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
+            NarutoRenderer.INSTANCE.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", NarutoRenderer.INSTANCE.dynamicTexture);
         }
     }
 }

@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.noworld.clear;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.noworld.fade.Fader;
+import me.kall.narutoloading.noworld.core.checker.FadeChecker;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -20,31 +20,31 @@ public abstract class MixinFont {
             "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I"
     }, at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private int modifyColor(int value) {
-        return Fader.modifyAlpha(value);
+        return FadeChecker.modifyAlpha(value);
     }
 
     @ModifyVariable(method = "drawInBatch8xOutline", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private FormattedCharSequence clearDrawInBatch8xOutline(FormattedCharSequence formattedCharSequence) {
-        return Fader.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+        return FadeChecker.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
     }
 
     @ModifyVariable(method = "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private FormattedCharSequence clearDrawInBatch(FormattedCharSequence formattedCharSequence) {
-        return Fader.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+        return FadeChecker.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
     }
 
     @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private String clearDrawInBatch(String string) {
-        return Fader.transparency() ? NarutoLoading.BLANK : string;
+        return FadeChecker.transparency() ? NarutoLoading.BLANK : string;
     }
 
     @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private String clearDrawInBatch2(String string) {
-        return Fader.transparency() ? NarutoLoading.BLANK : string;
+        return FadeChecker.transparency() ? NarutoLoading.BLANK : string;
     }
 
     @ModifyVariable(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private Component clearDrawInBatch(Component component) {
-        return Fader.transparency() ? Fader.EMPTY_COMPONENT : component;
+        return FadeChecker.transparency() ? FadeChecker.EMPTY_COMPONENT : component;
     }
 }
