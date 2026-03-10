@@ -1,7 +1,10 @@
 package me.kall.narutoloading.common;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class LifetimeController {
     private long absoluteSetupTime;
@@ -16,24 +19,28 @@ public class LifetimeController {
 
     public volatile boolean syncSoundEngine = false;
 
-    protected NarutoRenderer renderer;
+    private final Supplier<Runnable> restarter;
+    private final Supplier<Consumer<String>> synchronizer;
     private final long duration;
+    private final BooleanSupplier audioAvailable;
 
-    public LifetimeController(NarutoRenderer renderer, long duration, long absoluteSetupTime) {
-        this.renderer = renderer;
+    public LifetimeController(long duration, long absoluteSetupTime, Supplier<Runnable> restarter, Supplier<Consumer<String>> synchronizer, BooleanSupplier audioAvailable) {
         this.duration = duration;
         this.absoluteSetupTime = absoluteSetupTime;
+        this.restarter = restarter;
+        this.synchronizer = synchronizer;
+        this.audioAvailable = audioAvailable;
     }
 
     public void pause() {
-        if (!this.paused && this.running && this.renderer.audioExecutor == null) {
+        if (!this.paused && this.running && !this.audioAvailable.getAsBoolean()) {
             this.paused = true;
             this.pausedAt = System.nanoTime();
         }
     }
 
     public void resume() {
-        if (this.paused && this.running && this.renderer.audioExecutor == null) {
+        if (this.paused && this.running && !this.audioAvailable.getAsBoolean()) {
             this.paused = false;
             this.absoluteSetupTime += System.nanoTime() - this.pausedAt;
         }
@@ -79,8 +86,7 @@ public class LifetimeController {
 
     public void endRestart() {
         if (this.elapsedMillis() >= this.duration) {
-            this.renderer.shutdown();
-            this.renderer.setup();
+            this.restarter.get().run();
         }
     }
 
@@ -94,7 +100,7 @@ public class LifetimeController {
 
             if (System.nanoTime() - this.lastLagSpikeRestart > 2_000_000_000L) {
                 NarutoLoading.LOGGER.warn("Lag spike detected, restarting video and audio from {} seconds", this.elapsedSeconds());
-                this.restart();
+                this.synchronize();
                 this.lastLagSpikeRestart = System.nanoTime();
             }
         }
@@ -103,27 +109,16 @@ public class LifetimeController {
     public void syncSoundEngine() {
         if (this.syncSoundEngine) {
             this.syncSoundEngine = false;
-            if (this.renderer.audioExecutor != null) {
-                this.restart();
+            if (this.audioAvailable.getAsBoolean()) {
+                this.synchronize();
                 NarutoLoading.LOGGER.info("{}Syncing audio to {} seconds after sound engine reload", NarutoLoading.info(), this.elapsedSeconds());
             }
         }
     }
 
-    private void restart() {
+    private void synchronize() {
         long restartStartTime = System.nanoTime();
-        String elapsedSeconds = String.valueOf(this.elapsedSeconds());
-
-        boolean hasVideo = this.renderer.videoExecutor != null;
-        boolean hasAudio = this.renderer.audioExecutor != null;
-
-        if (hasVideo) this.renderer.videoExecutor.shutdown();
-        if (hasAudio) this.renderer.audioExecutor.shutdown();
-
-        if (hasVideo) this.renderer.videoExecutor.setup(elapsedSeconds);
-        if (hasAudio) this.renderer.audioExecutor.setup(elapsedSeconds);
-
-        long restartDuration = System.nanoTime() - restartStartTime;
-        this.absoluteSetupTime += restartDuration;
+        this.synchronizer.get().accept(String.valueOf(this.elapsedSeconds()));
+        this.absoluteSetupTime += (System.nanoTime() - restartStartTime);
     }
 }

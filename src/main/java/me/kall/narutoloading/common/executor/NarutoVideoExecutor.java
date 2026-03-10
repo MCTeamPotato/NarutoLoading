@@ -2,7 +2,6 @@ package me.kall.narutoloading.common.executor;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,14 +28,14 @@ public final class NarutoVideoExecutor {
     private @Nullable InputStream inputStream;
     private @Nullable ReadableByteChannel channel;
 
-    private final LifetimeController lifetime;
+    private final Supplier<Runnable> lagSpikeHandler;
 
     private final Supplier<String> ffmpeg, video;
     private final IntSupplier width, height;
     private final DoubleSupplier fps;
 
-    public NarutoVideoExecutor(LifetimeController lifetime, Supplier<String> ffmpeg, Supplier<String> video, IntSupplier width, IntSupplier height, DoubleSupplier fps) {
-        this.lifetime = lifetime;
+    public NarutoVideoExecutor(Supplier<Runnable> lagSpikeHandler, Supplier<String> ffmpeg, Supplier<String> video, IntSupplier width, IntSupplier height, DoubleSupplier fps) {
+        this.lagSpikeHandler = lagSpikeHandler;
         this.ffmpeg = ffmpeg;
         this.video = video;
         this.width = width;
@@ -122,7 +121,7 @@ public final class NarutoVideoExecutor {
             hasSkipping = true;
         }
 
-        if (hasSkipping && frame == null) this.lifetime.lagSpikeDetected = true;
+        if (hasSkipping && frame == null) this.lagSpikeHandler.get().run();
 
         return frame == null ? null : frame.image();
     }
