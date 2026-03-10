@@ -1,7 +1,7 @@
 package me.kall.narutoloading.common.executor;
 
-import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.env.BaseEnv;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -13,10 +13,13 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 public final class NarutoAudioExecutor {
+    private static final Logger LOGGER = LogManager.getLogger(NarutoAudioExecutor.class);
+
     private volatile boolean canceled;
     private long device, context;
     private int source;
@@ -28,13 +31,15 @@ public final class NarutoAudioExecutor {
 
     private final Supplier<String> video, audio, ffmpeg;
     private final DoubleSupplier volume;
+    private final BooleanSupplier debug;
 
-    public NarutoAudioExecutor(Supplier<Runnable> alErrorHandler, Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume) {
+    public NarutoAudioExecutor(Supplier<Runnable> alErrorHandler, Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume, BooleanSupplier debug) {
         this.alErrorHandler = alErrorHandler;
         this.video = video;
         this.audio = audio;
         this.ffmpeg = ffmpeg;
         this.volume = volume;
+        this.debug = debug;
     }
 
     public void setup() {
@@ -51,11 +56,11 @@ public final class NarutoAudioExecutor {
             this.context = ALC10.alcCreateContext(this.device, (int[]) null);
             ALC10.alcMakeContextCurrent(this.context);
             this.selfContext = true;
-            NarutoLoading.LOGGER.info("{}Failed to get Minecraft's OpenAL context. Creating one by ourselves.", NarutoLoading.info());
+            LOGGER.info("[NarutoAudioExecutor] Failed to get Minecraft's OpenAL context. Creating one by ourselves.");
         } else {
             this.context = currentContext;
             this.device = ALC10.alcGetContextsDevice(this.context);
-            NarutoLoading.LOGGER.info("{}Synchronizing to Minecraft's OpenAL context successfully.", NarutoLoading.info());
+            LOGGER.info("[NarutoAudioExecutor] Synchronizing to Minecraft's OpenAL context successfully.");
         }
 
         try {
@@ -104,7 +109,7 @@ public final class NarutoAudioExecutor {
                     while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
                 }
             } catch (Exception exception) {
-                if (BaseEnv.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
+                if (this.debug.getAsBoolean()) LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
             }
         });
     }

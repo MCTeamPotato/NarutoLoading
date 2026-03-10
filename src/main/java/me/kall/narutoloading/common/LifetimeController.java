@@ -1,12 +1,15 @@
 package me.kall.narutoloading.common;
 
-import me.kall.narutoloading.NarutoLoading;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class LifetimeController {
+    private static final Logger LOGGER = LogManager.getLogger(LifetimeController.class);
+
     private long absoluteSetupTime;
     private long pausedAt = 0L;
     private long lastFetchFrameTime = -1;
@@ -99,7 +102,7 @@ public class LifetimeController {
             }
 
             if (System.nanoTime() - this.lastLagSpikeRestart > 2_000_000_000L) {
-                NarutoLoading.LOGGER.warn("Lag spike detected, restarting video and audio from {} seconds", this.elapsedSeconds());
+                LOGGER.warn("[NarutoLoading] Lag spike detected, restarting video and audio from {} seconds", this.elapsedSeconds());
                 this.synchronize();
                 this.lastLagSpikeRestart = System.nanoTime();
             }
@@ -111,7 +114,7 @@ public class LifetimeController {
             this.syncSoundEngine = false;
             if (this.audioAvailable.getAsBoolean()) {
                 this.synchronize();
-                NarutoLoading.LOGGER.info("{}Syncing audio to {} seconds after sound engine reload", NarutoLoading.info(), this.elapsedSeconds());
+                LOGGER.info("[NarutoLoading] Syncing audio to {} seconds after sound engine reload", this.elapsedSeconds());
             }
         }
     }

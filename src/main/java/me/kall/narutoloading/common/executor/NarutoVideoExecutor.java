@@ -1,8 +1,8 @@
 package me.kall.narutoloading.common.executor;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.env.BaseEnv;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,11 +13,14 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 public final class NarutoVideoExecutor {
+    private static final Logger LOGGER = LogManager.getLogger(NarutoVideoExecutor.class);
+
     private @Nullable LinkedBlockingQueue<Frame> frameQueue;
 
     private @Nullable ExecutorService executor;
@@ -33,14 +36,18 @@ public final class NarutoVideoExecutor {
     private final Supplier<String> ffmpeg, video;
     private final IntSupplier width, height;
     private final DoubleSupplier fps;
+    private final IntSupplier bufferSize;
+    private final BooleanSupplier debug;
 
-    public NarutoVideoExecutor(Supplier<Runnable> lagSpikeHandler, Supplier<String> ffmpeg, Supplier<String> video, IntSupplier width, IntSupplier height, DoubleSupplier fps) {
+    public NarutoVideoExecutor(Supplier<Runnable> lagSpikeHandler, Supplier<String> ffmpeg, Supplier<String> video, IntSupplier width, IntSupplier height, DoubleSupplier fps, IntSupplier bufferSize, BooleanSupplier debug) {
         this.lagSpikeHandler = lagSpikeHandler;
         this.ffmpeg = ffmpeg;
         this.video = video;
         this.width = width;
         this.height = height;
         this.fps = fps;
+        this.bufferSize = bufferSize;
+        this.debug = debug;
     }
 
     public void setup(String sec) {
@@ -51,7 +58,7 @@ public final class NarutoVideoExecutor {
             return thread;
         });
         this.frameIndex = (long) (Double.parseDouble(sec) * this.fps.getAsDouble());
-        this.frameQueue = new LinkedBlockingQueue<>(BaseEnv.narutoConfig.bufferSize);
+        this.frameQueue = new LinkedBlockingQueue<>(this.bufferSize.getAsInt());
         this.executor.submit(() -> {
             ProcessBuilder processBuilder = new ProcessBuilder(
                     this.ffmpeg.get(),
@@ -85,7 +92,7 @@ public final class NarutoVideoExecutor {
                     this.frameQueue.put(new Frame(this.frameIndex, buildImage(buffer)));
                 }
             } catch (Exception exception) {
-                if (BaseEnv.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
+                if (this.debug.getAsBoolean()) LOGGER.error("Error occurs in NarutoVideoExecutor but hopefully this is ignorable.", exception);
             }
         });
     }
@@ -150,7 +157,7 @@ public final class NarutoVideoExecutor {
                 this.channel = null;
             }
         } catch (Exception exception) {
-            NarutoLoading.LOGGER.error("Error occurs in NarutoVideoExecutor resources cleanup during shutdown", exception);
+            LOGGER.error("Error occurs in NarutoVideoExecutor resources cleanup during shutdown", exception);
         }
 
         if (this.frameQueue != null) {

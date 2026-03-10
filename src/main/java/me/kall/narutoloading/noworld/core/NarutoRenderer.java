@@ -49,7 +49,7 @@ public class NarutoRenderer {
             if (hasAudio) this.audioExecutor.setup(elapsedSeconds);
             if (hasVideo) this.videoExecutor.setup(elapsedSeconds);
         }, () -> this.audioExecutor != null);
-        this.videoExecutor = new NarutoVideoExecutor(() -> () -> this.lifetime.lagSpikeDetected = true, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps);
+        this.videoExecutor = new NarutoVideoExecutor(() -> () -> this.lifetime.lagSpikeDetected = true, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps, () -> BaseEnv.narutoConfig.bufferSize, () -> BaseEnv.narutoConfig.debug);
 
         this.setupSound();
         this.setupTexture();
@@ -69,7 +69,7 @@ public class NarutoRenderer {
     }
 
     protected void setupSound() {
-        this.audioExecutor = new NarutoAudioExecutor(() -> () -> Restarter.pend(this::shutdown, this::setup), this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume());
+        this.audioExecutor = new NarutoAudioExecutor(() -> () -> Restarter.pend(this::shutdown, this::setup), this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume(), () -> BaseEnv.narutoConfig.debug);
     }
 
     protected void setupTexture() {
