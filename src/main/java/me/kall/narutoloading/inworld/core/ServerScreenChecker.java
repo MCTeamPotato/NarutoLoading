@@ -6,17 +6,22 @@ import me.kall.duplicationless.util.Executor;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.Screens;
+import me.kall.narutoloading.inworld.ext.Leaving;
 import me.kall.narutoloading.inworld.ext.ScreenLevel;
 import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.event.entity.EntityLeaveWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,12 +31,33 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.LongPredicate;
 
 @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class ServerScreenChecker {
-    private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> CORNERS = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> BLOCK_CORNERS = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectMap<ResourceLocation, Map<UUID, EntityCorner>> ENTITY_CORNERS = new Object2ObjectOpenHashMap<>();
+
+    private static final class EntityCorner {
+        public final long wallBlockPos;
+        public final Direction facing;
+
+        private EntityCorner(long wallBlockPos, Direction facing) {
+            this.wallBlockPos = wallBlockPos;
+            this.facing = facing;
+        }
+
+        public long wallBlockPos() {
+            return this.wallBlockPos;
+        }
+
+        public Direction facing() {
+            return this.facing;
+        }
+    }
 
     private static int dist(@NotNull BlockPos a, @NotNull BlockPos b) {
         return Math.max(Math.max(Math.abs(a.getX() - b.getX()), Math.abs(a.getY() - b.getY())), Math.abs(a.getZ() - b.getZ()));
@@ -40,13 +66,9 @@ public class ServerScreenChecker {
     private static @NotNull InWorldScreen @NotNull [] screenCandidates(@NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, int height, @NotNull ResourceLocation dimension) {
         InWorldScreen[] screenCandidates = new InWorldScreen[]{null, null, null, null};
 
-        int dx = Integer.compare(currentCorner.getX(), lastCorner.getX());
-        int dy = Integer.compare(currentCorner.getY(), lastCorner.getY());
-        int dz = Integer.compare(currentCorner.getZ(), lastCorner.getZ());
-
-        boolean widthX = dx != 0;
-        boolean widthY = dy != 0;
-        boolean widthZ = dz != 0;
+        boolean widthX = currentCorner.getX() != lastCorner.getX();
+        boolean widthY = currentCorner.getY() != lastCorner.getY();
+        boolean widthZ = currentCorner.getZ() != lastCorner.getZ();
 
         if (widthX) {
             screenCandidates[0] = build(lastCorner, currentCorner, 0, height, 0, dimension);
@@ -73,16 +95,9 @@ public class ServerScreenChecker {
         return new InWorldScreen(lastCorner, lastCorner.offset(hx, hy, hz), currentCorner, currentCorner.offset(hx, hy, hz), dimension);
     }
 
-    private static int @NotNull [] forHeights(int width) {
-        int[] heights = new int[]{0, 0};
-        if (width >= 16 && width % 16 == 0) heights[0] = (width * 9) / 16 - 1;
-        if (width >= 9 && width % 9 == 0) heights[1] = (width * 16) / 9 - 1;
-        return heights;
-    }
-
     private static @Nullable InWorldScreen validate(InWorldScreen @NotNull [] screens, @NotNull LongPredicate predicate) {
-        InWorldScreen result = null;
         for (InWorldScreen screen : screens) {
+            if (screen == null) continue;
             boolean valid = true;
             for (long pos : screen.borderInvolved()) {
                 if (!predicate.test(pos)) {
@@ -90,78 +105,166 @@ public class ServerScreenChecker {
                     break;
                 }
             }
+            if (valid) return screen;
+        }
+        return null;
+    }
 
-            if (valid) {
-                result = screen;
-                break;
+    private static boolean isHangingEntityAt(@NotNull ServerLevel level, long entityPosLong) {
+        BlockPos pos = BlockPos.of(entityPosLong);
+        AABB box = new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+        return !level.getEntitiesOfClass(ItemFrame.class, box).isEmpty();
+    }
+
+    private static void setHangingEntitiesInvisible(@NotNull ServerLevel level, @NotNull InWorldScreen screen, @NotNull Direction facing, boolean invisible) {
+        for (long wallPosLong : screen.borderInvolved()) {
+            BlockPos entityPos = BlockPos.of(wallPosLong).relative(facing);
+            AABB box = new AABB(entityPos.getX(), entityPos.getY(), entityPos.getZ(), entityPos.getX() + 1, entityPos.getY() + 1, entityPos.getZ() + 1);
+            for (ItemFrame entity : level.getEntitiesOfClass(ItemFrame.class, box)) {
+                entity.setInvisible(invisible);
             }
         }
+    }
 
-        return result;
+    private static @Nullable InWorldScreen tryBuildScreen(@NotNull ServerPlayer player, @NotNull ServerLevel level, @NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, @NotNull LongPredicate borderPredicate) {
+        player.displayClientMessage(new TranslatableComponent("info.narutoloading.set.second", currentCorner.toShortString()), false);
+        player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen"), false);
+
+        int minX = Math.min(lastCorner.getX(), currentCorner.getX());
+        int maxX = Math.max(lastCorner.getX(), currentCorner.getX());
+        int minZ = Math.min(lastCorner.getZ(), currentCorner.getZ());
+        int maxZ = Math.max(lastCorner.getZ(), currentCorner.getZ());
+
+        int width = ServerScreenChecker.dist(lastCorner, currentCorner);
+
+        boolean xAxis = minX != maxX;
+        if (xAxis && maxX - minX != width) return null;
+        if (!xAxis && maxZ - minZ != width) return null;
+
+        ResourceLocation dim = level.dimension().location();
+        InWorldScreen inWorldScreen = null;
+        for (int height = level.getMaxBuildHeight(); height >= 1 && inWorldScreen == null; height--) {
+            inWorldScreen = ServerScreenChecker.validate(ServerScreenChecker.screenCandidates(lastCorner, currentCorner, height, dim), borderPredicate);
+        }
+
+        if (inWorldScreen == null) {
+            player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.fail"), false);
+            return null;
+        }
+
+        Screens screenData = Screens.get(level);
+        if (screenData.screens.computeIfAbsent(inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(inWorldScreen)) {
+            screenData.setDirty();
+        }
+
+        NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(inWorldScreen, false));
+        player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
+        return inWorldScreen;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void rightClick(PlayerInteractEvent.@NotNull RightClickBlock event) {
-        if (event.getEntity() instanceof ServerPlayer && event.getPlayer().level instanceof ServerLevel && event.getPlayer().isShiftKeyDown() && event.getItemStack().getItem().equals(Items.STICK)) {
-            ServerLevel level = (ServerLevel) event.getPlayer().level;
-            ServerPlayer player = (ServerPlayer) event.getPlayer();
+    public static void rightClickBlock(PlayerInteractEvent.@NotNull RightClickBlock event) {
+        if (!(event.getEntity() instanceof ServerPlayer)) return;
+        ServerPlayer player = (ServerPlayer) event.getEntity();
+        if (!(player.level instanceof ServerLevel)) return;
+        ServerLevel level = (ServerLevel) player.level;
+        if (!player.isShiftKeyDown()) return;
+        if (!event.getItemStack().getItem().equals(Items.STICK)) return;
 
-            BlockPos currentCorner = event.getPos();
-            long corner = event.getPos().asLong();
-            ResourceLocation dim = level.dimension().location();
-            UUID playerID = player.getUUID();
+        BlockPos currentCorner = event.getPos();
+        long corner = currentCorner.asLong();
+        ResourceLocation dim = level.dimension().location();
+        UUID playerID = player.getUUID();
 
-            if (Displayers.isDisplayer(level, corner)) {
-                Object2LongMap<UUID> lastCorners = CORNERS.computeIfAbsent(dim, key -> new Object2LongOpenHashMap<>());
+        if (!Displayers.isDisplayer(level, corner)) return;
 
-                if (lastCorners.containsKey(playerID)) {
-                    BlockPos lastCorner = BlockPos.of(lastCorners.getLong(playerID));
-                    lastCorners.removeLong(playerID);
-                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.set.second", currentCorner.toShortString()), false);
-                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen"), false);
+        Object2LongMap<UUID> lastCorners = BLOCK_CORNERS.computeIfAbsent(dim, key -> new Object2LongOpenHashMap<>());
 
-                    int minX = Math.min(lastCorner.getX(), currentCorner.getX());
-                    int maxX = Math.max(lastCorner.getX(), currentCorner.getX());
-                    int minZ = Math.min(lastCorner.getZ(), currentCorner.getZ());
-                    int maxZ = Math.max(lastCorner.getZ(), currentCorner.getZ());
+        if (lastCorners.containsKey(playerID)) {
+            BlockPos lastCorner = BlockPos.of(lastCorners.getLong(playerID));
+            lastCorners.removeLong(playerID);
+            tryBuildScreen(player, level, lastCorner, currentCorner, posLong -> Displayers.isDisplayer(level, posLong));
+        } else {
+            lastCorners.put(playerID, corner);
+            player.displayClientMessage(new TranslatableComponent("info.narutoloading.set.first", currentCorner.toShortString()), false);
+        }
+    }
 
-                    int width = ServerScreenChecker.dist(lastCorner, currentCorner);
-                    int[] heights = ServerScreenChecker.forHeights(width + 1);
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void rightClickEntity(PlayerInteractEvent.@NotNull EntityInteract event) {
+        if (!(event.getTarget() instanceof ItemFrame)) return;
+        ItemFrame hanging = (ItemFrame) event.getTarget();
+        if (!(event.getEntity() instanceof ServerPlayer)) return;
+        ServerPlayer player = (ServerPlayer) event.getEntity();
+        if (!(player.level instanceof ServerLevel)) return;
+        ServerLevel level = (ServerLevel) player.level;
+        if (!player.isShiftKeyDown()) return;
+        if (!event.getItemStack().getItem().equals(Items.STICK)) return;
 
-                    if (heights[0] == 0 && heights[1] == 0) {
-                        player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.invalid_size", String.valueOf(width + 1)), false);
-                        return;
-                    }
+        event.setCanceled(true);
 
-                    boolean xAxis = minX != maxX;
-                    if (xAxis && maxX - minX != width) return;
-                    if (!xAxis && maxZ - minZ != width) return;
+        Direction facing = hanging.getDirection();
+        BlockPos wallCorner = hanging.blockPosition().relative(facing.getOpposite());
+        ResourceLocation dim = level.dimension().location();
+        UUID playerID = player.getUUID();
 
-                    InWorldScreen inWorldScreen = null;
-                    for (int height : heights) {
-                        inWorldScreen = ServerScreenChecker.validate(ServerScreenChecker.screenCandidates(lastCorner, currentCorner, height, dim), posLong -> Displayers.isDisplayer(level, posLong));
-                        if (inWorldScreen != null) break;
-                    }
+        Map<UUID, EntityCorner> lastCorners = ENTITY_CORNERS.computeIfAbsent(dim, key -> new HashMap<>());
 
-                    if (inWorldScreen == null) {
-                        player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.fail"), false);
-                        return;
-                    }
+        if (lastCorners.containsKey(playerID)) {
+            EntityCorner first = lastCorners.remove(playerID);
 
-                    Screens screenData = Screens.get(level);
-                    if (screenData.screens.computeIfAbsent(inWorldScreen.dimension(), key -> new ObjectOpenHashSet<>()).add(inWorldScreen)) {
-                        screenData.setDirty();
-                    }
+            if (first.facing() != facing) {
+                player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.facing_mismatch"), false);
+                return;
+            }
 
-                    NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(inWorldScreen, false));
+            BlockPos firstWallCorner = BlockPos.of(first.wallBlockPos());
 
-                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
-                } else {
-                    lastCorners.put(playerID, corner);
-                    player.displayClientMessage(new TranslatableComponent("info.narutoloading.set.first", currentCorner.toShortString()), false);
+            LongPredicate borderPredicate = posLong -> isHangingEntityAt(level, BlockPos.of(posLong).relative(facing).asLong());
+
+            InWorldScreen built = tryBuildScreen(player, level, firstWallCorner, wallCorner, borderPredicate);
+            if (built != null) setHangingEntitiesInvisible(level, built, facing, true);
+        } else {
+            lastCorners.put(playerID, new EntityCorner(wallCorner.asLong(), facing));
+            player.displayClientMessage(new TranslatableComponent("info.narutoloading.set.first.frame", wallCorner.toShortString()), false);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void entityLeave(@NotNull EntityLeaveWorldEvent event) {
+        if (!(event.getEntity() instanceof ItemFrame)) return;
+        ItemFrame hanging = (ItemFrame) event.getEntity();
+        if (!(event.getWorld() instanceof ServerLevel)) return;
+        ServerLevel level = (ServerLevel) event.getWorld();
+
+        if (((Leaving)hanging).naruto$keepData()) return;
+
+        Direction facing = hanging.getDirection();
+        long wallBlock = hanging.blockPosition().relative(facing.getOpposite()).asLong();
+        ResourceLocation dimension = level.dimension().location();
+
+        Executor.run(() -> {
+            Screens screenData = Screens.get(level);
+            ObjectSet<InWorldScreen> inWorldScreens = screenData.screens.get(dimension);
+            if (inWorldScreens == null || inWorldScreens.isEmpty()) return;
+
+            ObjectIterator<InWorldScreen> screenIterator = inWorldScreens.iterator();
+            while (screenIterator.hasNext()) {
+                InWorldScreen nextInWorldScreen = screenIterator.next();
+                if (nextInWorldScreen.borderInvolved().contains(wallBlock)) {
+                    InWorldScreen copy = nextInWorldScreen.finalCopy();
+
+                    screenIterator.remove();
+                    screenData.setDirty();
+
+                    setHangingEntitiesInvisible(level, copy, facing, false);
+
+                    Component component = new TranslatableComponent("info.narutoloading.screen.destroy", copy.toLocalString());
+                    for (ServerPlayer player : level.players()) player.displayClientMessage(component, false);
+                    NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(copy, true));
                 }
             }
-        }
+        });
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -171,7 +274,7 @@ public class ServerScreenChecker {
         long block = event.blockPos();
         if (event.oldState().is(NarutoBlocks.DISPLAYER.get())) {
             Executor.run(() -> {
-                if (((ScreenLevel)level).naruto$isClearingScreens()) return;
+                if (((ScreenLevel) level).naruto$isClearingScreens()) return;
 
                 Screens screenData = Screens.get(level);
                 ObjectSet<InWorldScreen> inWorldScreens = screenData.screens.get(dimension);

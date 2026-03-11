@@ -10,7 +10,8 @@ import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
-import me.kall.narutoloading.inworld.gui.util.AudioConverter;
+import me.kall.narutoloading.common.env.ffmpeg.AudioConverter;
+import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
@@ -23,16 +24,21 @@ import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.decoration.HangingEntity;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private final NarutoInWorldRenderer renderer;
@@ -288,13 +294,41 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         }
 
         @SubscribeEvent
-        public static void rightClickScreen(PlayerInteractEvent.@NotNull RightClickBlock event) {
+        public static void rightClickDisplayer(PlayerInteractEvent.@NotNull RightClickBlock event) {
             BlockPos pos = event.getPos();
-            if (event.getPlayer().level instanceof ServerLevel && Displayers.isDisplayer((ServerLevel) event.getPlayer().level, pos.asLong()) && event.getEntity() instanceof ServerPlayer) {
-                if (interval > 0) return;
-                NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> ((ServerPlayer)event.getPlayer())), new SourceSelectionPacket(pos.asLong()));
-                interval = 20;
-            }
+            if (!(event.getWorld() instanceof ServerLevel)) return;
+            ServerLevel level = (ServerLevel) event.getWorld();
+            if (!(event.getEntity() instanceof ServerPlayer)) return;
+            ServerPlayer player = (ServerPlayer) event.getEntity();
+            if (!Displayers.isDisplayer(level, pos.asLong())) return;
+            if (interval > 0) return;
+
+            NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SourceSelectionPacket(pos.asLong()));
+            interval = 20;
+        }
+
+        @SubscribeEvent
+        public static void rightClickHangingEntity(PlayerInteractEvent.@NotNull EntityInteract event) {
+            if (!(event.getTarget() instanceof HangingEntity)) return;
+            HangingEntity hanging = (HangingEntity) event.getTarget();
+            if (!(event.getWorld() instanceof ServerLevel)) return;
+            ServerLevel level = (ServerLevel) event.getWorld();
+            if (!(event.getEntity() instanceof ServerPlayer)) return;
+            ServerPlayer player = (ServerPlayer) event.getEntity();
+            if (interval > 0) return;
+
+            if (player.isShiftKeyDown() && player.getMainHandItem().getItem().equals(Items.STICK)) return;
+
+            Direction facing = hanging.getDirection();
+            long wallPos = hanging.blockPosition().relative(facing.getOpposite()).asLong();
+
+            boolean belongsToScreen = Screens.get(level).screens.values().stream().flatMap(Collection::stream).anyMatch(s -> s.borderInvolved().contains(wallPos));
+
+            if (!belongsToScreen) return;
+
+            event.setCanceled(true);
+            NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SourceSelectionPacket(wallPos));
+            interval = 20;
         }
     }
 }
