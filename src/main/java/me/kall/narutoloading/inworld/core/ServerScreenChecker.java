@@ -36,8 +36,8 @@ import java.util.function.LongPredicate;
 
 @EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public class ServerScreenChecker {
-    private static final Object2ObjectMap<ResourceLocation, Object2LongMap<UUID>> BLOCK_CORNERS = new Object2ObjectOpenHashMap<>();
-    private static final Object2ObjectMap<ResourceLocation, Map<UUID, EntityCorner>> ENTITY_CORNERS = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectMap<Identifier, Object2LongMap<UUID>> BLOCK_CORNERS = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectMap<Identifier, Map<UUID, EntityCorner>> ENTITY_CORNERS = new Object2ObjectOpenHashMap<>();
 
     private record EntityCorner(long wallBlockPos, Direction facing) {}
 
@@ -123,9 +123,9 @@ public class ServerScreenChecker {
         if (xAxis && maxX - minX != width) return null;
         if (!xAxis && maxZ - minZ != width) return null;
 
-        ResourceLocation dim = level.dimension().location();
+        Identifier dim = level.dimension().identifier();
         InWorldScreen inWorldScreen = null;
-        for (int height = level.getMaxBuildHeight(); height >= 1 && inWorldScreen == null; height--) {
+        for (int height = level.getLogicalHeight(); height >= 1 && inWorldScreen == null; height--) {
             inWorldScreen = ServerScreenChecker.validate(ServerScreenChecker.screenCandidates(lastCorner, currentCorner, height, dim), borderPredicate);
         }
 
@@ -147,13 +147,13 @@ public class ServerScreenChecker {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void rightClickBlock(PlayerInteractEvent.@NotNull RightClickBlock event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!(player.level() instanceof ServerLevel level)) return;
+        ServerLevel level = player.level();
         if (!player.isShiftKeyDown()) return;
         if (!event.getItemStack().is(Items.STICK)) return;
 
         BlockPos currentCorner = event.getPos();
         long corner = currentCorner.asLong();
-        ResourceLocation dim = level.dimension().location();
+        Identifier dim = level.dimension().identifier();
         UUID playerID = player.getUUID();
 
         if (!Displayers.isDisplayer(level, corner)) return;
@@ -174,7 +174,7 @@ public class ServerScreenChecker {
     public static void rightClickEntity(PlayerInteractEvent.@NotNull EntityInteract event) {
         if (!(event.getTarget() instanceof ItemFrame hanging)) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!(player.level() instanceof ServerLevel level)) return;
+        ServerLevel level = player.level();
         if (!player.isShiftKeyDown()) return;
         if (!player.getMainHandItem().is(Items.STICK)) return;
 
@@ -182,7 +182,7 @@ public class ServerScreenChecker {
 
         Direction facing = hanging.getDirection();
         BlockPos wallCorner = hanging.blockPosition().relative(facing.getOpposite());
-        ResourceLocation dim = level.dimension().location();
+        Identifier dim = level.dimension().identifier();
         UUID playerID = player.getUUID();
 
         Map<UUID, EntityCorner> lastCorners = ENTITY_CORNERS.computeIfAbsent(dim, key -> new HashMap<>());
@@ -217,7 +217,7 @@ public class ServerScreenChecker {
 
         Direction facing = hanging.getDirection();
         long wallBlock = hanging.blockPosition().relative(facing.getOpposite()).asLong();
-        ResourceLocation dimension = level.dimension().location();
+        Identifier dimension = level.dimension().identifier();
 
         Executor.run(() -> {
             Screens screenData = Screens.get(level);
