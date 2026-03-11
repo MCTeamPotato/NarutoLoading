@@ -192,7 +192,7 @@ public class ServerScreenChecker {
             EntityCorner first = lastCorners.remove(playerID);
 
             if (first.facing() != facing) {
-                player.displayClientMessage(Component.translatable("info.narutoloading.screen.fail"), false);
+                player.displayClientMessage(Component.translatable("info.narutoloading.screen.facing_mismatch"), false);
                 return;
             }
 
@@ -204,7 +204,7 @@ public class ServerScreenChecker {
             if (built != null) setHangingEntitiesInvisible(level, built, facing, true);
         } else {
             lastCorners.put(playerID, new EntityCorner(wallCorner.asLong(), facing));
-            player.displayClientMessage(Component.translatable("info.narutoloading.set.first", wallCorner.toShortString()), false);
+            player.displayClientMessage(Component.translatable("info.narutoloading.set.first.frame", wallCorner.toShortString()), false);
         }
     }
 
