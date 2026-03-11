@@ -146,7 +146,7 @@ public class ServerScreenChecker {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void rightClick(PlayerInteractEvent.@NotNull RightClickBlock event) {
+    public static void rightClickBlock(PlayerInteractEvent.@NotNull RightClickBlock event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
         if (!player.isShiftKeyDown()) return;
@@ -209,7 +209,7 @@ public class ServerScreenChecker {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void hangingEntityLeave(@NotNull EntityLeaveLevelEvent event) {
+    public static void entityLeave(@NotNull EntityLeaveLevelEvent event) {
         if (!(event.getEntity() instanceof ItemFrame hanging)) return;
         if (!(event.getLevel() instanceof ServerLevel level)) return;
 
