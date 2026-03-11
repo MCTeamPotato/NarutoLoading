@@ -7,8 +7,7 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.common.executor.NarutoAudioExecutor;
 import me.kall.narutoloading.common.executor.NarutoVideoExecutor;
-import me.kall.narutoloading.noworld.core.checker.KeyChecker;
-import me.kall.narutoloading.noworld.core.checker.WindowSizeChecker;
+import me.kall.narutoloading.common.executor.Restarter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericMessageScreen;
@@ -32,24 +31,26 @@ public class NarutoRenderer {
 
     public @Nullable LifetimeController lifetime;
 
-    public @Nullable WindowSizeChecker windowSizeChecker;
-    public @Nullable KeyChecker keyChecker;
-
     protected double fps;
     protected long duration;
-
-    public NarutoRenderer() {
-        this.windowSizeChecker = this.runInLevel() ? null : new WindowSizeChecker(this);
-        this.keyChecker = this.runInLevel() ? null : new KeyChecker(this);
-    }
 
     public void setup() {
         if (!this.isEnabled()) return;
         long absoluteSetupTime = System.nanoTime();
 
         this.readVideoArg();
-        this.lifetime = new LifetimeController(this, this.duration, absoluteSetupTime);
-        this.videoExecutor = new NarutoVideoExecutor(this.lifetime, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps);
+        this.lifetime = new LifetimeController(this.duration, absoluteSetupTime, () -> () -> {
+            this.shutdown();
+            this.setup();
+        }, () -> (elapsedSeconds) -> {
+            boolean hasVideo = this.videoExecutor != null;
+            boolean hasAudio = this.audioExecutor != null;
+            if (hasAudio) this.audioExecutor.shutdown();
+            if (hasVideo) this.videoExecutor.shutdown();
+            if (hasAudio) this.audioExecutor.setup(elapsedSeconds);
+            if (hasVideo) this.videoExecutor.setup(elapsedSeconds);
+        }, () -> this.audioExecutor != null);
+        this.videoExecutor = new NarutoVideoExecutor(() -> () -> this.lifetime.lagSpikeDetected = true, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps, () -> BaseEnv.narutoConfig.bufferSize, () -> BaseEnv.narutoConfig.debug);
 
         this.setupSound();
         this.setupTexture();
@@ -69,7 +70,7 @@ public class NarutoRenderer {
     }
 
     protected void setupSound() {
-        this.audioExecutor = new NarutoAudioExecutor(this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume(), this::shutdown, this::setup);
+        this.audioExecutor = new NarutoAudioExecutor(() -> () -> Restarter.pend(this::shutdown, this::setup), this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume(), () -> BaseEnv.narutoConfig.debug);
     }
 
     protected void setupTexture() {
@@ -140,9 +141,6 @@ public class NarutoRenderer {
 
                 if (!this.runInLevel()) graphics.blit(RenderPipelines.GUI_TEXTURED, texture, 0, 0, 0.0F, 0.0F, w, h, 16, 128, 16, 128);
             }
-
-            if (this.keyChecker != null) this.keyChecker.reload();
-            if (this.windowSizeChecker != null) this.windowSizeChecker.resize();
         }
     }
 

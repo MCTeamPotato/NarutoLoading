@@ -3,12 +3,13 @@ package me.kall.narutoloading.inworld.gui;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.common.env.ffmpeg.AudioConverter;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
-import me.kall.narutoloading.inworld.gui.util.AudioConverter;
+import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
 import me.kall.narutoloading.inworld.network.ClearScreenPacket;
@@ -21,9 +22,12 @@ import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.decoration.HangingEntity;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -31,6 +35,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 public class InWorldSelectionScreen extends SourcesSelectionScreen {
     private final NarutoInWorldRenderer renderer;
@@ -277,13 +283,36 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         }
 
         @SubscribeEvent
-        public static void rightClickScreen(PlayerInteractEvent.@NotNull RightClickBlock event) {
+        public static void rightClickDisplayer(PlayerInteractEvent.RightClickBlock event) {
             BlockPos pos = event.getPos();
-            if (event.getLevel() instanceof ServerLevel level && Displayers.isDisplayer(level, pos.asLong()) && event.getEntity() instanceof ServerPlayer player) {
-                if (interval > 0) return;
-                PacketDistributor.sendToPlayer(player, new SourceSelectionPacket(pos.asLong()));
-                interval = 20;
-            }
+            if (!(event.getLevel() instanceof ServerLevel level)) return;
+            if (!(event.getEntity() instanceof ServerPlayer player)) return;
+            if (!Displayers.isDisplayer(level, pos.asLong())) return;
+            if (interval > 0) return;
+
+            PacketDistributor.sendToPlayer(player, new SourceSelectionPacket(pos.asLong()));
+            interval = 20;
+        }
+
+        @SubscribeEvent
+        public static void rightClickHangingEntity(PlayerInteractEvent.@NotNull EntityInteract event) {
+            if (!(event.getTarget() instanceof HangingEntity hanging)) return;
+            if (!(event.getLevel() instanceof ServerLevel level)) return;
+            if (!(event.getEntity() instanceof ServerPlayer player)) return;
+            if (interval > 0) return;
+
+            if (player.isShiftKeyDown() && player.getMainHandItem().is(Items.STICK)) return;
+
+            Direction facing = hanging.getDirection();
+            long wallPos = hanging.blockPosition().relative(facing.getOpposite()).asLong();
+
+            boolean belongsToScreen = Screens.get(level).screens.values().stream().flatMap(Collection::stream).anyMatch(s -> s.borderInvolved().contains(wallPos));
+
+            if (!belongsToScreen) return;
+
+            event.setCanceled(true);
+            PacketDistributor.sendToPlayer(player, new SourceSelectionPacket(wallPos));
+            interval = 20;
         }
     }
 }

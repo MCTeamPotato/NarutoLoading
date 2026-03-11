@@ -1,12 +1,7 @@
 package me.kall.narutoloading.common.executor;
 
-import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.common.env.BaseEnv;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import org.jetbrains.annotations.NotNull;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -18,11 +13,13 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-@EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class NarutoAudioExecutor {
+    private static final Logger LOGGER = LogManager.getLogger(NarutoAudioExecutor.class);
+
     private volatile boolean canceled;
     private long device, context;
     private int source;
@@ -30,22 +27,19 @@ public final class NarutoAudioExecutor {
     private @Nullable Process process;
     private boolean selfContext = false;
 
+    private final Supplier<Runnable> alErrorHandler;
+
     private final Supplier<String> video, audio, ffmpeg;
     private final DoubleSupplier volume;
-    private final Runnable onSetupFailure, onReSetup;
+    private final BooleanSupplier debug;
 
-    private static @Nullable Runnable shutdown;
-    private static @Nullable Runnable setup;
-
-    private static boolean reSetupRequired = false;
-
-    public NarutoAudioExecutor(Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume, @NotNull Runnable onSetupFailure, @NotNull Runnable onReSetup) {
+    public NarutoAudioExecutor(Supplier<Runnable> alErrorHandler, Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume, BooleanSupplier debug) {
+        this.alErrorHandler = alErrorHandler;
         this.video = video;
         this.audio = audio;
         this.ffmpeg = ffmpeg;
         this.volume = volume;
-        this.onSetupFailure = onSetupFailure;
-        this.onReSetup = onReSetup;
+        this.debug = debug;
     }
 
     public void setup() {
@@ -62,19 +56,17 @@ public final class NarutoAudioExecutor {
             this.context = ALC10.alcCreateContext(this.device, (int[]) null);
             ALC10.alcMakeContextCurrent(this.context);
             this.selfContext = true;
-            NarutoLoading.LOGGER.info("{}Failed to get Minecraft's OpenAL context. Creating one by ourselves.", NarutoLoading.info());
+            LOGGER.info("[NarutoAudioExecutor] Failed to get Minecraft's OpenAL context. Creating one by ourselves.");
         } else {
             this.context = currentContext;
             this.device = ALC10.alcGetContextsDevice(this.context);
-            NarutoLoading.LOGGER.info("{}Synchronizing to Minecraft's OpenAL context successfully.", NarutoLoading.info());
+            LOGGER.info("[NarutoAudioExecutor] Synchronizing to Minecraft's OpenAL context successfully.");
         }
 
         try {
             AL.createCapabilities(ALC.createCapabilities(this.device));
         } catch (Exception exception) {
-            reSetupRequired = true;
-            shutdown = this.onSetupFailure;
-            setup = this.onReSetup;
+            this.alErrorHandler.get().run();
             this.canceled = true;
             return;
         }
@@ -117,7 +109,7 @@ public final class NarutoAudioExecutor {
                     while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
                 }
             } catch (Exception exception) {
-                if (BaseEnv.narutoConfig.debug) NarutoLoading.LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
+                if (this.debug.getAsBoolean()) LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
             }
         });
     }
@@ -157,22 +149,6 @@ public final class NarutoAudioExecutor {
                 ALC10.alcCloseDevice(this.device);
                 this.device = 0;
             }
-        }
-    }
-
-    private static int interval = 20;
-
-    @SubscribeEvent
-    public static void clientTick(ClientTickEvent.Pre event) {
-        interval--;
-        if (interval != 0) return;
-        interval = 20;
-        if (reSetupRequired) {
-            reSetupRequired = false;
-            if (shutdown != null) shutdown.run();
-            if (setup != null) setup.run();
-            shutdown = null;
-            setup = null;
         }
     }
 }
