@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.noworld.clear;
 
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
-import me.kall.narutoloading.noworld.fade.Fader;
+import me.kall.narutoloading.noworld.core.checker.FadeChecker;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,6 +15,6 @@ public class MixinTextureManager {
     private void onBind(ResourceLocation resource, CallbackInfo ci) {
         ResourceLocation texture = NarutoRenderer.INSTANCE.textureLocation;
         if (texture == null) return;
-        if (Fader.transparency() && !resource.equals(texture)) ci.cancel();
+        if (FadeChecker.transparency() && !resource.equals(texture)) ci.cancel();
     }
 }

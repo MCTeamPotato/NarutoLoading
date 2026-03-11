@@ -19,7 +19,7 @@
 
   "box.narutoloading.folder_name": "文件夹名称",
 
-  "hint.narutoloading.folder_name": "只允许字母、数字、横线和下划线。点击"完成"开始下载该视频",
+  "hint.narutoloading.folder_name": "只允许字母、数字、横线和下划线。点击'完成'开始下载该视频",
 
   "error.narutoloading.invalid_folder_name": "无效的文件夹名！只允许字母、数字、- 和 _",
 

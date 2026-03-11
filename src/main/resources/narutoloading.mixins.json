@@ -29,6 +29,7 @@
     "sound.MixinSoundEngine"
   ],
   "mixins": [
+    "inworld.MixinEntity",
     "inworld.MixinServerLevel"
   ]
 }

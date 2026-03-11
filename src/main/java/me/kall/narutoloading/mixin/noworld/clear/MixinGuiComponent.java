@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.noworld.clear;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import me.kall.narutoloading.noworld.fade.Fader;
+import me.kall.narutoloading.noworld.core.checker.FadeChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGuiComponent {
     @Inject(method = {"fill", "fillGradient(Lcom/mojang/math/Matrix4f;Lcom/mojang/blaze3d/vertex/BufferBuilder;IIIIIII)V"}, at = @At("HEAD"), cancellable = true)
     private static void onFill(CallbackInfo ci) {
-        if (Fader.transparency()) ci.cancel();
+        if (FadeChecker.transparency()) ci.cancel();
     }
 
     @Inject(method = "innerBlit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIIIIFFII)V", at = @At("HEAD"), cancellable = true)
@@ -21,6 +21,6 @@ public abstract class MixinGuiComponent {
         int w = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int h = Minecraft.getInstance().getWindow().getGuiScaledHeight();
         if (textureWidth == w && textureHeight == h) return;
-        if (Fader.transparency()) ci.cancel();
+        if (FadeChecker.transparency()) ci.cancel();
     }
 }
