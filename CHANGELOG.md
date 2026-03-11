@@ -24,4 +24,5 @@
 - Port to 1.21.11
 - Update the required version of Duplicationless
 # 2.2.0
-- Technical refactor. No actual change for players.
+- No more 16:9 or 9:16 limit. Now screens can be built as you like.
+- Now supports item frame for in world screens building!
