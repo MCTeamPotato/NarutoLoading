@@ -11,7 +11,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 
-@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class FadeChecker {
     private static double lastMouseX = Double.NaN;
     private static double lastMouseY = Double.NaN;

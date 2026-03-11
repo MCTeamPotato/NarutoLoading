@@ -3,12 +3,12 @@ package me.kall.narutoloading.inworld.gui;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.common.env.ffmpeg.AudioConverter;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
-import me.kall.narutoloading.common.env.ffmpeg.AudioConverter;
 import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.network.ArgUpdatePacket;
@@ -28,11 +28,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -282,14 +282,14 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
         }
 
         @SubscribeEvent
-        public static void rightClickDisplayer(PlayerInteractEvent.@NotNull RightClickBlock event) {
+        public static void rightClickDisplayer(PlayerInteractEvent.RightClickBlock event) {
             BlockPos pos = event.getPos();
             if (!(event.getLevel() instanceof ServerLevel level)) return;
             if (!(event.getEntity() instanceof ServerPlayer player)) return;
             if (!Displayers.isDisplayer(level, pos.asLong())) return;
             if (interval > 0) return;
 
-            NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SourceSelectionPacket(pos.asLong()));
+            PacketDistributor.sendToPlayer(player, new SourceSelectionPacket(pos.asLong()));
             interval = 20;
         }
 
@@ -310,7 +310,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
             if (!belongsToScreen) return;
 
             event.setCanceled(true);
-            NarutoPackets.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SourceSelectionPacket(wallPos));
+            PacketDistributor.sendToPlayer(player, new SourceSelectionPacket(wallPos));
             interval = 20;
         }
     }

@@ -5,13 +5,12 @@ import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID)
+@EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID)
 public final class WindowSizeChecker {
     private static int lastWidth = -1;
     private static int lastHeight = -1;
@@ -19,9 +18,7 @@ public final class WindowSizeChecker {
     private static boolean resizable = false;
 
     @SubscribeEvent
-    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-
+    public static void clientTick(ClientTickEvent.Pre event) {
         if (!NarutoRenderer.INSTANCE.isRunning() || !NarutoRenderer.INSTANCE.isEnabled()) {
             reset();
             return;

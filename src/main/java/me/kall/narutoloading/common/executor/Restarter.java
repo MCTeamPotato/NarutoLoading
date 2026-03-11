@@ -2,15 +2,14 @@ package me.kall.narutoloading.common.executor;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import me.kall.narutoloading.NarutoLoading;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import java.util.Map;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class Restarter {
     public static final Map<Runnable, Runnable> RESTART_TASKS = new Object2ObjectArrayMap<>();
 
@@ -23,21 +22,18 @@ public final class Restarter {
     }
 
     @SubscribeEvent
-    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase.equals(TickEvent.Phase.START)) {
+    public static void clientTick(ClientTickEvent.Pre event) {
+        interval--;
+        if (interval != 0) return;
+        interval = 20;
 
-            interval--;
-            if (interval != 0) return;
-            interval = 20;
-
-            synchronized (RESTART_TASKS) {
-                if (!RESTART_TASKS.isEmpty()) {
-                    RESTART_TASKS.forEach((shutdown, setup) -> {
-                        shutdown.run();
-                        setup.run();
-                    });
-                    RESTART_TASKS.clear();
-                }
+        synchronized (RESTART_TASKS) {
+            if (!RESTART_TASKS.isEmpty()) {
+                RESTART_TASKS.forEach((shutdown, setup) -> {
+                    shutdown.run();
+                    setup.run();
+                });
+                RESTART_TASKS.clear();
             }
         }
     }
