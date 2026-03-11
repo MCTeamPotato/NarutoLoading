@@ -23,3 +23,5 @@
 # 2.1.5
 - Port to 1.21.11
 - Update the required version of Duplicationless
+# 2.2.0
+- Technical refactor. No actual change for players.

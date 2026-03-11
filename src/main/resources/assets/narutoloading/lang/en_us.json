@@ -27,12 +27,15 @@
 
   "item.narutoloading.displayer": "Displayer",
 
-  "info.narutoloading.set.first": "The first screen corner is set at [%s].",
-  "info.narutoloading.set.second": "The second screen corner is set at [%s].",
+  "info.narutoloading.set.first": "The first screen corner (displayer) is set at [%s].",
+  "info.narutoloading.set.second": "The second screen corner (displayer) is set at [%s].",
+  "info.narutoloading.set.first.frame": "The first item frame corner is set at [%s]. Select another item frame facing the same direction.",
+  "info.narutoloading.set.second.frame": "The second item frame corner is set at [%s].",
   "info.narutoloading.screen": "Start to build screen...",
   "info.narutoloading.screen.invalid_size": "Screen width not supported: %s.",
   "info.narutoloading.screen.fail": "Failed to find any valid in-world screen.",
-  "info.narutoloading.screen.created": "Created %s. Right-click a displayer block to set video and audio.",
+  "info.narutoloading.screen.facing_mismatch": "Failed to build screen: the two item frames must face the same direction.",
+  "info.narutoloading.screen.created": "Created %s. Right-click a displayer block or item frame to set video and audio.",
   "info.narutoloading.screen.destroy": "%s is destroyed.",
 
   "info.narutoloading.clear.begin": "Start to clear unused displayers for %s...",

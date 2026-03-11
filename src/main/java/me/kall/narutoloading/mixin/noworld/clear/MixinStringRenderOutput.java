@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.noworld.clear;
 
-import me.kall.narutoloading.noworld.fade.Fader;
+import me.kall.narutoloading.noworld.core.checker.FadeChecker;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -15,6 +15,6 @@ public abstract class MixinStringRenderOutput {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void narutoInit(CallbackInfo ci) {
-        this.a *= Fader.fadeAlpha();
+        this.a *= FadeChecker.fadeAlpha();
     }
 }

@@ -1,4 +1,4 @@
-package me.kall.narutoloading.inworld.gui.util;
+package me.kall.narutoloading.common.env.ffmpeg;
 
 import me.kall.narutoloading.NarutoLoading;
 
