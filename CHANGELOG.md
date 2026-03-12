@@ -26,3 +26,5 @@
 # 2.2.0
 - No more 16:9 or 9:16 limit. Now screens can be built as you like.
 - Now supports item frame for in world screens building!
+# 2.2.1
+- Now we can render videos on the both wall sides of your in-world screens
