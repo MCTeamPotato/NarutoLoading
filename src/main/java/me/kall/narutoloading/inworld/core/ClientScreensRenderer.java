@@ -266,6 +266,24 @@ public class ClientScreensRenderer {
             normalZ = -normalZ;
         }
 
+        if (!isFrontFacing) {
+            leftBottomCornerX  += normalX;
+            leftBottomCornerY += normalY;
+            leftBottomCornerZ += normalZ;
+
+            leftTopCornerX += normalX;
+            leftTopCornerY += normalY;
+            leftTopCornerZ += normalZ;
+
+            rightBottomCornerX += normalX;
+            rightBottomCornerY += normalY;
+            rightBottomCornerZ += normalZ;
+
+            rightTopCornerX += normalX;
+            rightTopCornerY += normalY;
+            rightTopCornerZ += normalZ;
+        }
+
         double againstZFighting = 0.05;
 
         leftBottomCornerX += normalX * againstZFighting;
