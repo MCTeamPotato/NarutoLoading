@@ -256,7 +256,7 @@ public class ClientScreensRenderer {
             normalZ = -normalZ;
         }
 
-        if (!isFrontFacing) {
+        if (isFrontFacing) {
             leftBottomCornerX  += normalX;
             leftBottomCornerY += normalY;
             leftBottomCornerZ += normalZ;
