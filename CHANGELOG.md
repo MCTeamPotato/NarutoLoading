@@ -28,3 +28,5 @@
 - Now supports item frame for in world screens building!
 # 2.2.1
 - Now we can render videos on the both wall sides of your in-world screens
+# 2.2.2
+- No longer spam texture registering on video end restart
