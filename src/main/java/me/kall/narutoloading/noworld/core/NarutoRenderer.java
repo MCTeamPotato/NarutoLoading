@@ -34,13 +34,17 @@ public class NarutoRenderer {
     protected long duration;
 
     public void setup() {
+        this.setup(true);
+    }
+
+    public void setup(boolean texture) {
         if (!this.isEnabled()) return;
         long absoluteSetupTime = System.nanoTime();
 
         this.readVideoArg();
         this.lifetime = new LifetimeController(this.duration, absoluteSetupTime, () -> () -> {
-            this.shutdown();
-            this.setup();
+            this.shutdown(false);
+            this.setup(false);
         }, () -> (elapsedSeconds) -> {
             boolean hasVideo = this.videoExecutor != null;
             boolean hasAudio = this.audioExecutor != null;
@@ -52,7 +56,7 @@ public class NarutoRenderer {
         this.videoExecutor = new NarutoVideoExecutor(() -> () -> this.lifetime.lagSpikeDetected = true, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps, () -> BaseEnv.narutoConfig.bufferSize, () -> BaseEnv.narutoConfig.debug);
 
         this.setupSound();
-        this.setupTexture();
+        if (texture) this.setupTexture();
         this.videoExecutor.setup();
         if (this.audioExecutor != null) {
             this.audioExecutor.setup();
@@ -175,6 +179,10 @@ public class NarutoRenderer {
     }
 
     public void shutdown() {
+        this.shutdown(true);
+    }
+
+    public void shutdown(boolean texture) {
         if (this.audioExecutor != null) {
             this.audioExecutor.shutdown();
             this.audioExecutor = null;
@@ -190,14 +198,16 @@ public class NarutoRenderer {
             this.lifetime = null;
         }
 
-        if (this.dynamicTexture != null) {
-            this.dynamicTexture.close();
-            this.dynamicTexture = null;
-        }
+        if (texture) {
+            if (this.dynamicTexture != null) {
+                this.dynamicTexture.close();
+                this.dynamicTexture = null;
+            }
 
-        if (this.textureLocation != null) {
-            Minecraft.getInstance().getTextureManager().release(this.textureLocation);
-            this.textureLocation = null;
+            if (this.textureLocation != null) {
+                Minecraft.getInstance().getTextureManager().release(this.textureLocation);
+                this.textureLocation = null;
+            }
         }
     }
 }
