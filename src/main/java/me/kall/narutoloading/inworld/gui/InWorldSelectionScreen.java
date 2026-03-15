@@ -205,25 +205,25 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     @Override
     protected void onVideoDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String videoUrl) {
-        NarutoLoading.LOGGER.info("{}Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
+        NarutoLoading.LOGGER.debug("{}Video download of {} processed. {}", NarutoLoading.info(), videoUrl, downloadResult.toString());
         if (downloadResult.success() && downloadResult.hasVideo()) {
             Minecraft.getInstance().execute(() -> {
                 String relativePath = NarutoConfig.relative(downloadResult.videoPath());
                 this.renderer.screen.setPath(relativePath, relativePath);
-                NarutoLoading.LOGGER.info("{}Set video path to: {}", NarutoLoading.info(), relativePath);
+                NarutoLoading.LOGGER.debug("{}Set video path to: {}", NarutoLoading.info(), relativePath);
             });
         }
     }
 
     @Override
     protected void onAudioDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String audioUrlToUse) {
-        NarutoLoading.LOGGER.info("{}Audio download of {} processed. {}", NarutoLoading.info(), audioUrlToUse, downloadResult.toString());
+        NarutoLoading.LOGGER.debug("{}Audio download of {} processed. {}", NarutoLoading.info(), audioUrlToUse, downloadResult.toString());
         if (downloadResult.success() && downloadResult.hasAudio()) {
             Minecraft.getInstance().execute(() -> {
                 String relativePath = NarutoConfig.relative(downloadResult.audioPath());
                 String currentVideo = this.renderer.screen.relativeVideoPath(NarutoLoading.BLANK);
                 this.renderer.screen.setPath(currentVideo, relativePath);
-                NarutoLoading.LOGGER.info("{}Set audio path to: {}", NarutoLoading.info(), relativePath);
+                NarutoLoading.LOGGER.debug("{}Set audio path to: {}", NarutoLoading.info(), relativePath);
             });
         }
     }
@@ -259,7 +259,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
             NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
 
-            NarutoLoading.LOGGER.info("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), this.renderer.screen.toString());
+            NarutoLoading.LOGGER.debug("{}URL download and setup completed for in-world screen: {}", NarutoLoading.info(), this.renderer.screen.toString());
         });
     }
 
