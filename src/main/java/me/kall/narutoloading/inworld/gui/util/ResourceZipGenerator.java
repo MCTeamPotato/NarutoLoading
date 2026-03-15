@@ -45,14 +45,14 @@ public final class ResourceZipGenerator {
 
             File zipFile = new File(resourcePacksDir, packName);
             if (zipFile.exists()) {
-                NarutoLoading.LOGGER.info("{}Resource pack already exists: {}, skipping generation", NarutoLoading.info(), zipFile.getAbsolutePath());
+                NarutoLoading.LOGGER.debug("{}Resource pack already exists: {}, skipping generation", NarutoLoading.info(), zipFile.getAbsolutePath());
                 return;
             }
 
             try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFile.toPath()))) {
                 addPackMcmeta(zos);
                 addAudioFiles(zos);
-                NarutoLoading.LOGGER.info("{}Successfully created resource pack: {}", NarutoLoading.info(), zipFile.getAbsolutePath());
+                NarutoLoading.LOGGER.debug("{}Successfully created resource pack: {}", NarutoLoading.info(), zipFile.getAbsolutePath());
             }
         } catch (Exception e) {
             NarutoLoading.LOGGER.error("Failed to generate resource pack", e);
@@ -72,7 +72,7 @@ public final class ResourceZipGenerator {
                 ResourceLocation expectedSound = new ResourceLocation(NarutoLoading.MOD_ID, this.id);
 
                 if (currentSelected.contains(packId)) {
-                    NarutoLoading.LOGGER.info("{}Resource pack {} already active, skipping reload", NarutoLoading.info(), packId);
+                    NarutoLoading.LOGGER.debug("{}Resource pack {} already active, skipping reload", NarutoLoading.info(), packId);
                     renderer.screen.setLocalSound(new ResourceLocation(NarutoLoading.MOD_ID, this.id));
                     NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
                     ClientScreensRenderer.reload();
@@ -95,7 +95,7 @@ public final class ResourceZipGenerator {
 
                 renderer.screen.setLocalSound(expectedSound);
                 ForgeHooksClient.refreshResources(minecraft, VanillaResourceType.SOUNDS);
-                NarutoLoading.LOGGER.info("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
+                NarutoLoading.LOGGER.debug("{}Successfully activated resource pack: {}", NarutoLoading.info(), packId);
 
                 NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(renderer.screen));
             } catch (Exception e) {
@@ -137,7 +137,7 @@ public final class ResourceZipGenerator {
         }
 
         zos.closeEntry();
-        NarutoLoading.LOGGER.info("{}Added audio file to resource pack: {}", NarutoLoading.info(), entryPath);
+        NarutoLoading.LOGGER.debug("{}Added audio file to resource pack: {}", NarutoLoading.info(), entryPath);
 
         addSoundsJson(zos);
     }

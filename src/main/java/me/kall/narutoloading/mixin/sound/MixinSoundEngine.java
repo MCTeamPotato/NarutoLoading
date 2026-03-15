@@ -25,7 +25,7 @@ public abstract class MixinSoundEngine {
     private void shutdown(CallbackInfo ci) {
         if (BaseEnv.available() && NarutoRenderer.INSTANCE.audioExecutor != null) {
             NarutoRenderer.INSTANCE.audioExecutor.shutdown();
-            NarutoLoading.LOGGER.info("{}Minecraft SoundEngine starts to load. Shutting down NarutoAudioExecutor for the OpenAL context synchronization.", NarutoLoading.info());
+            NarutoLoading.LOGGER.debug("{}Minecraft SoundEngine starts to load. Shutting down NarutoAudioExecutor for the OpenAL context synchronization.", NarutoLoading.info());
         }
     }
 
@@ -60,6 +60,6 @@ public abstract class MixinSoundEngine {
         if (level != null) {
             level.playSound(player, screen.centerX(), screen.centerY(), screen.centerZ(), new SoundEvent(screen.localSound()), SoundSource.BLOCKS, renderer.screen.soundVolume(), 1.0F);
         }
-        NarutoLoading.LOGGER.info("{}Replayed local sound {} at [{}, {}, {}] after sound engine reload", NarutoLoading.info(), screen.localSound().toString(), screen.centerX(), screen.centerY(), screen.centerZ());
+        NarutoLoading.LOGGER.debug("{}Replayed local sound {} at [{}, {}, {}] after sound engine reload", NarutoLoading.info(), screen.localSound().toString(), screen.centerX(), screen.centerY(), screen.centerZ());
     }
 }

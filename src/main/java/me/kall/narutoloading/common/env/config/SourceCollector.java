@@ -33,14 +33,14 @@ public class SourceCollector {
     public static @Nullable Source roll() {
         scan();
         if (ABSOLUTE_SOURCES.isEmpty()) return null;
-        NarutoLoading.LOGGER.info("{}Start to roll source from {}", NarutoLoading.info(), ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").collect(Collectors.toList()));
+        NarutoLoading.LOGGER.debug("{}Start to roll source from {}", NarutoLoading.info(), ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").collect(Collectors.toList()));
         Source source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
         if (ABSOLUTE_SOURCES.size() > 1) {
             while (source.equals(lastSource)) {
                 source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
             }
         }
-        NarutoLoading.LOGGER.info("{}Rolling source ends. Video: {}, Audio: {}", NarutoLoading.info(), source.absoluteVideoPath, source.absoluteAudioPath);
+        NarutoLoading.LOGGER.debug("{}Rolling source ends. Video: {}, Audio: {}", NarutoLoading.info(), source.absoluteVideoPath, source.absoluteAudioPath);
         lastSource = source;
         return source;
     }

@@ -40,12 +40,35 @@ public final class InWorldScreen {
     public static final ResourceLocation NO_LOCAL_SOUND = new ResourceLocation(NarutoLoading.MOD_ID, "empty");
     public static final ResourceLocation HAS_LOCAL_SOUND = new ResourceLocation(NarutoLoading.MOD_ID, "pending");
 
-    public InWorldScreen(BlockPos leftBottomCorner, BlockPos leftTopCorner, BlockPos rightBottomCorner, BlockPos rightTopCorner, ResourceLocation dimension) {
-        this.leftBottomCorner = leftBottomCorner;
-        this.leftTopCorner = leftTopCorner;
-        this.rightBottomCorner = rightBottomCorner;
-        this.rightTopCorner = rightTopCorner;
+    public InWorldScreen(BlockPos leftBottom, BlockPos leftTop, BlockPos rightBottom, BlockPos rightTop, ResourceLocation dimension) {
+        boolean needSwap = isNeedsSwap(leftBottom, leftTop, rightBottom);
+
+        if (needSwap) {
+            this.leftBottomCorner = rightBottom;
+            this.leftTopCorner = rightTop;
+            this.rightBottomCorner = leftBottom;
+            this.rightTopCorner = leftTop;
+        } else {
+            this.leftBottomCorner = leftBottom;
+            this.leftTopCorner = leftTop;
+            this.rightBottomCorner = rightBottom;
+            this.rightTopCorner = rightTop;
+        }
         this.dimension = dimension;
+    }
+
+    private static boolean isNeedsSwap(@NotNull BlockPos leftBottom, @NotNull BlockPos leftTop, @NotNull BlockPos rightBottom) {
+        int dx1 = leftTop.getX() - leftBottom.getX(), dy1 = leftTop.getY() - leftBottom.getY(), dz1 = leftTop.getZ() - leftBottom.getZ();
+        int dx2 = rightBottom.getX() - leftBottom.getX(), dy2 = rightBottom.getY() - leftBottom.getY(), dz2 = rightBottom.getZ() - leftBottom.getZ();
+        int nx = dy1 * dz2 - dz1 * dy2;
+        int ny = dz1 * dx2 - dx1 * dz2;
+        int nz = dx1 * dy2 - dy1 * dx2;
+
+        boolean needsSwap;
+        if (nx != 0) needsSwap = nx < 0;
+        else if (nz != 0) needsSwap = nz < 0;
+        else  needsSwap = ny < 0;
+        return needsSwap;
     }
 
     public String relativeVideoPath(String fallback) {
