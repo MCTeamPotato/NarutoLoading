@@ -113,7 +113,7 @@ public final class NarutoConfig {
     }
 
     private void log() {
-        LOGGER.info(this.toString());
+        LOGGER.debug(this.toString());
     }
 
     public String toString() {
