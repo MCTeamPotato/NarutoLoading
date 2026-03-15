@@ -114,7 +114,7 @@ public class LifetimeController {
             this.syncSoundEngine = false;
             if (this.audioAvailable.getAsBoolean()) {
                 this.synchronize();
-                LOGGER.info("[NarutoLoading] Syncing audio to {} seconds after sound engine reload", this.elapsedSeconds());
+                LOGGER.debug("[NarutoLoading] Syncing audio to {} seconds after sound engine reload", this.elapsedSeconds());
             }
         }
     }
