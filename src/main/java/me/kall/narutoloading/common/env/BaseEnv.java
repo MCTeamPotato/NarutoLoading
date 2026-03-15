@@ -20,26 +20,20 @@ public final class BaseEnv {
     public static void setupEnv(boolean roll) {
         narutoConfig = new NarutoConfig(roll);
 
-        ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath, narutoConfig.winUrl, narutoConfig.linuxUrl, narutoConfig.macUrl);
+        ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath);
 
-        if (narutoConfig.urlSource) ytDlpProvider = new YtDlpProvider(narutoConfig.absoluteYtDlpPath, narutoConfig.ytdlpWinUrl, narutoConfig.ytdlpLinuxUrl, narutoConfig.ytdlpMacUrl);
+        if (narutoConfig.urlSource) ytDlpProvider = new YtDlpProvider(narutoConfig.absoluteYtDlpPath);
 
         ffmpegProvider.setup(() -> {
             if (ffmpegProvider.absoluteFFmpeg != null) {
                 if (narutoConfig.urlSource) {
                     ytDlpProvider.setup(() -> {
-                        if (ytDlpProvider.absoluteYtDlp != null) {
-                            available = true;
-                        }
-
-                        ytDlpProvider.shutdown();
+                        if (ytDlpProvider.absoluteYtDlp != null) available = true;
                     });
                 } else {
                     available = true;
                 }
             }
-
-            ffmpegProvider.shutdown();
         });
     }
 }
