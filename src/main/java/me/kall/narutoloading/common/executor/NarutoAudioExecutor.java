@@ -56,11 +56,11 @@ public final class NarutoAudioExecutor {
             this.context = ALC10.alcCreateContext(this.device, (int[]) null);
             ALC10.alcMakeContextCurrent(this.context);
             this.selfContext = true;
-            LOGGER.info("[NarutoAudioExecutor] Failed to get Minecraft's OpenAL context. Creating one by ourselves.");
+            LOGGER.debug("[NarutoAudioExecutor] Failed to get Minecraft's OpenAL context. Creating one by ourselves.");
         } else {
             this.context = currentContext;
             this.device = ALC10.alcGetContextsDevice(this.context);
-            LOGGER.info("[NarutoAudioExecutor] Synchronizing to Minecraft's OpenAL context successfully.");
+            LOGGER.debug("[NarutoAudioExecutor] Synchronizing to Minecraft's OpenAL context successfully.");
         }
 
         try {
