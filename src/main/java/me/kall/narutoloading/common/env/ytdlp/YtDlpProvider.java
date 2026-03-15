@@ -6,34 +6,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class YtDlpProvider {
     public volatile String absoluteYtDlp;
 
     private final String uncheckedAbsoluteYtDlpPath;
-    private final String winUrl;
-    private final String linuxUrl;
-    private final String macUrl;
 
-    private final ExecutorService downloader;
-
-    public YtDlpProvider(String uncheckedAbsoluteYtDlpPath, String winUrl, String linuxUrl, String macUrl) {
+    public YtDlpProvider(String uncheckedAbsoluteYtDlpPath) {
         this.uncheckedAbsoluteYtDlpPath = uncheckedAbsoluteYtDlpPath;
-        this.winUrl = winUrl;
-        this.linuxUrl = linuxUrl;
-        this.macUrl = macUrl;
-        this.downloader = Executors.newSingleThreadExecutor(task -> {
-            Thread thread = new Thread(task, "NarutoYtDlpDownloader");
-            thread.setDaemon(true);
-            return thread;
-        });
     }
 
     public void setup(Runnable onDone) {
@@ -47,8 +28,6 @@ public final class YtDlpProvider {
         }
 
         OSType os = OSType.CURRENT;
-        Path gamePath = FMLLoader.getCurrent().getGameDir();
-
         if (os == null) {
             NarutoLoading.LOGGER.error("{}Unsupported operating system for yt-dlp", NarutoLoading.info());
             this.absoluteYtDlp = null;
@@ -56,55 +35,19 @@ public final class YtDlpProvider {
             return;
         }
 
-        boolean windows = os == OSType.WINDOWS;
-        String ytDlpName = windows ? "yt-dlp.exe" : "yt-dlp";
+        Path gamePath = FMLLoader.getCurrent().getGameDir();
+        String ytDlpName = os == OSType.WINDOWS ? "yt-dlp.exe" : "yt-dlp";
+        File ytDlpFile = gamePath.resolve("yt-dlp").resolve(ytDlpName).toFile();
 
-        this.downloader.submit(() -> {
-            try {
-                Path ytdlpDir = gamePath.resolve("yt-dlp");
-                Files.createDirectories(ytdlpDir);
+        if (ytDlpFile.exists()) {
+            this.absoluteYtDlp = ytDlpFile.getAbsolutePath();
+            NarutoLoading.LOGGER.info("{}NarutoLoading yt-dlp file path: {}", NarutoLoading.info(), this.absoluteYtDlp);
+        } else {
+            NarutoLoading.LOGGER.warn("{}yt-dlp not found. Please set ytdlpExePath in the config.", NarutoLoading.info());
+            this.absoluteYtDlp = null;
+        }
 
-                File ytDlpFile = ytdlpDir.resolve(ytDlpName).toFile();
-
-                if (!ytDlpFile.exists()) {
-                    NarutoLoading.LOGGER.info("{}Downloading yt-dlp for {}...", NarutoLoading.info(), os);
-
-                    String downloadUrl = switch (os) {
-                        case WINDOWS -> this.winUrl;
-                        case LINUX -> this.linuxUrl;
-                        case MACOS -> this.macUrl;
-                    };
-
-                    try (InputStream in = URI.create(downloadUrl).toURL().openStream()) {
-                        Files.copy(in, ytDlpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    }
-
-                    if (!windows) {
-                        if (!ytDlpFile.setExecutable(true, false)) {
-                            NarutoLoading.LOGGER.warn("{}Failed to set executable permission for yt-dlp", NarutoLoading.info());
-                        }
-                    }
-
-                    NarutoLoading.LOGGER.info("{}yt-dlp downloaded successfully to: {}", NarutoLoading.info(), ytDlpFile.getAbsolutePath());
-                } else {
-                    NarutoLoading.LOGGER.info("{}yt-dlp already exists at: {}", NarutoLoading.info(), ytDlpFile.getAbsolutePath());
-                }
-
-                this.absoluteYtDlp = ytDlpFile.exists() ? ytDlpFile.getAbsolutePath() : null;
-                NarutoLoading.LOGGER.info("{}NarutoLoading yt-dlp file path: {}", NarutoLoading.info(), this.absoluteYtDlp);
-
-            } catch (Exception exception) {
-                NarutoLoading.LOGGER.error("Error downloading yt-dlp.", exception);
-                this.absoluteYtDlp = null;
-            } finally {
-                NarutoLoading.LOGGER.info("{}yt-dlp download task ends.", NarutoLoading.info());
-                onDone.run();
-            }
-        });
-    }
-
-    public void shutdown() {
-        this.downloader.shutdownNow();
+        onDone.run();
     }
 
     static class Executable {
