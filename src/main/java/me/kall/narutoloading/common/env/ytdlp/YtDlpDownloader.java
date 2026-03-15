@@ -165,7 +165,7 @@ public class YtDlpDownloader {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                NarutoLoading.LOGGER.info("{}yt-dlp: {}", NarutoLoading.info(), line);
+                NarutoLoading.LOGGER.debug("{}yt-dlp: {}", NarutoLoading.info(), line);
                 if (onProgress != null) {
                     onProgress.accept(line);
                 }

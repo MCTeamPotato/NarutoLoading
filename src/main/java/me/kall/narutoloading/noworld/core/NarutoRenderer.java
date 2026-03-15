@@ -83,7 +83,7 @@ public class NarutoRenderer {
         if (this.textureLocation == null) {
             this.textureLocation = Identifier.fromNamespaceAndPath(NarutoLoading.MOD_ID, "naruto_video_dynamic_" + NarutoLoading.TEXTURE_ID.getAndIncrement());
             Minecraft.getInstance().getTextureManager().register(this.textureLocation, this.dynamicTexture);
-            NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
+            NarutoLoading.LOGGER.debug("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }
     }
 
