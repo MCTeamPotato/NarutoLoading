@@ -34,14 +34,6 @@ public final class NarutoConfig {
 
     public boolean debug;
 
-    public String winUrl;
-    public String linuxUrl;
-    public String macUrl;
-
-    public String ytdlpWinUrl;
-    public String ytdlpLinuxUrl;
-    public String ytdlpMacUrl;
-
     public String absoluteVideoPath;
     public String absoluteAudioPath;
 
@@ -64,17 +56,11 @@ public final class NarutoConfig {
     }
 
     public void init(boolean roll) {
-        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "7")
+        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "8")
                 .put("ffmpegExePath", "D:\\your\\ffmpeg\\file.exe")
                 .put("ffprobeExePath", "D:\\your\\ffprobe\\file.exe")
                 .put("ytdlpExePath", "D:\\your\\yt-dlp\\file.exe")
-                .put("ffmpegLinuxDownloadLink", "")
-                .put("ffmpegWindowsDownloadLink", "")
-                .put("ffmpegMacDownloadLink", "")
                 .put("enableUrlForSourceSelection", false)
-                .put("ytdlpWindowsDownloadLink", "")
-                .put("ytdlpLinuxDownloadLink", "")
-                .put("ytdlpMacDownloadLink", "")
                 .put("videoFileName", "naruto.mp4")
                 .put("audioFileName", NarutoLoading.BLANK)
                 .put("reloadKey", GLFW.GLFW_KEY_F12)
@@ -106,15 +92,7 @@ public final class NarutoConfig {
 
         this.debug = this.config.getBoolean("logErrors");
 
-        this.winUrl = this.config.getString("ffmpegWindowsDownloadLink");
-        this.linuxUrl = this.config.getString("ffmpegLinuxDownloadLink");
-        this.macUrl = this.config.getString("ffmpegMacDownloadLink");
-
         this.urlSource = this.config.getBoolean("enableUrlForSourceSelection");
-
-        this.ytdlpWinUrl = this.config.getString("ytdlpWindowsDownloadLink");
-        this.ytdlpLinuxUrl = this.config.getString("ytdlpLinuxDownloadLink");
-        this.ytdlpMacUrl = this.config.getString("ytdlpMacDownloadLink");
 
         if (roll) this.roll();
 
@@ -150,13 +128,7 @@ public final class NarutoConfig {
                 "], [Video Frame Storage Buffer Size: " + this.bufferSize +
                 "], [Audio Volume: " + this.volume +
                 "], [Log Errors Or Not: " + this.debug +
-                "], [Enable Url ForSource Selection: " + this.urlSource +
-                "], [FFmpeg Windows Download Link: " + this.winUrl +
-                "], [FFmpeg Linux Download Link:" + this.linuxUrl +
-                "], [FFmpeg Mac Download Link:" + this.macUrl +
-                "], [yt-dlp Windows Download Link: " + this.ytdlpWinUrl +
-                "], [yt-dlp Linux Download Link:" + this.ytdlpLinuxUrl +
-                "], [yt-dlp Mac Download Link:" + this.ytdlpMacUrl + "]}";
+                "], [Enable Url For Source Selection: " + this.urlSource + "]}";
     }
 
     public static @NotNull String absolute(@NotNull String relativePath) {
