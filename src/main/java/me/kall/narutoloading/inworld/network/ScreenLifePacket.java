@@ -69,7 +69,7 @@ public class ScreenLifePacket implements CustomPacketPayload{
                             }
                         }
                         HiddenDisplayers.reveal(packet.inWorldScreen);
-                        NarutoLoading.LOGGER.info("{}Delivered {} for removal.", NarutoLoading.info(), packet.inWorldScreen.toString());
+                        NarutoLoading.LOGGER.debug("{}Delivered {} for removal.", NarutoLoading.info(), packet.inWorldScreen.toString());
                     }
                 } else {
                     String videoPath = NarutoConfig.absolute(packet.inWorldScreen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
@@ -94,7 +94,7 @@ public class ScreenLifePacket implements CustomPacketPayload{
                     if (packet.inWorldScreen.hideInner()) {
                         HiddenDisplayers.hide(packet.inWorldScreen);
                     }
-                    NarutoLoading.LOGGER.info("{}Delivered {} for addition.", NarutoLoading.info(), packet.inWorldScreen.toString());
+                    NarutoLoading.LOGGER.debug("{}Delivered {} for addition.", NarutoLoading.info(), packet.inWorldScreen.toString());
                 }
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ScreenLifePacket", exception);

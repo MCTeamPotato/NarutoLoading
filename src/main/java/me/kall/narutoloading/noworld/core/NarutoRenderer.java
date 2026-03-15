@@ -81,7 +81,7 @@ public class NarutoRenderer {
         this.dynamicTexture = new DynamicTexture(this.textureWidth().getAsInt(), this.textureHeight().getAsInt(), false);
         if (this.textureLocation == null) {
             this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
-            NarutoLoading.LOGGER.info("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
+            NarutoLoading.LOGGER.debug("{}NarutoRenderer texture location initialized: {}", NarutoLoading.info(), this.textureLocation.toString());
         }
     }
 

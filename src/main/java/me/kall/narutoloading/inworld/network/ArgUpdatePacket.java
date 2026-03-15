@@ -56,7 +56,7 @@ public class ArgUpdatePacket implements CustomPacketPayload {
                 inWorldScreens.add(packet.argSource);
 
                 screens.setDirty();
-                NarutoLoading.LOGGER.info("{}Successfully sync the video and audio arguments for {}.", NarutoLoading.info(), packet.argSource.toString());
+                NarutoLoading.LOGGER.debug("{}Successfully sync the video and audio arguments for {}.", NarutoLoading.info(), packet.argSource.toString());
             } catch (Exception exception) {
                 NarutoLoading.LOGGER.error("Error handling ArgUpdatePacket", exception);
             }

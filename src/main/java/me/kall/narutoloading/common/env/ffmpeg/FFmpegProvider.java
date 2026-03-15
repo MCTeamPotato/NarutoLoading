@@ -26,7 +26,7 @@ public final class FFmpegProvider {
         if (!absoluteFFprobePath.isBlank() && !absoluteFFmpegPath.isBlank()) {
             this.absoluteFFprobe = absoluteFFprobePath;
             this.absoluteFFmpeg = absoluteFFmpegPath;
-            NarutoLoading.LOGGER.info("{}Using FFmpeg from config.", NarutoLoading.info());
+            NarutoLoading.LOGGER.debug("{}Using FFmpeg from config.", NarutoLoading.info());
             onDone.run();
             return;
         }
@@ -53,8 +53,8 @@ public final class FFmpegProvider {
 
         this.absoluteFFmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
         this.absoluteFFprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
-        NarutoLoading.LOGGER.info("{}NarutoLoading ffmpeg file path: {}", NarutoLoading.info(), this.absoluteFFmpeg);
-        NarutoLoading.LOGGER.info("{}NarutoLoading ffprobe file path: {}", NarutoLoading.info(), this.absoluteFFprobe);
+        NarutoLoading.LOGGER.debug("{}NarutoLoading ffmpeg file path: {}", NarutoLoading.info(), this.absoluteFFmpeg);
+        NarutoLoading.LOGGER.debug("{}NarutoLoading ffprobe file path: {}", NarutoLoading.info(), this.absoluteFFprobe);
         onDone.run();
     }
 

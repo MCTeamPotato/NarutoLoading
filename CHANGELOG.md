@@ -30,3 +30,6 @@
 - Now we can render videos on the both wall sides of your in-world screens
 # 2.2.2
 - No longer spam texture registering on video end restart
+# 2.2.3
+- Fix video rendering's unexpected offset
+- Reduce log spam

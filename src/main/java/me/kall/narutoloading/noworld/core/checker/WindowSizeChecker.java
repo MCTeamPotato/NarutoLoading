@@ -34,7 +34,7 @@ public final class WindowSizeChecker {
         }
 
         if (width != lastWidth || height != lastHeight) {
-            NarutoLoading.LOGGER.info("{}Window size changed from [{}, {}] to [{}, {}]", NarutoLoading.info(), lastWidth, lastHeight, width, height);
+            NarutoLoading.LOGGER.debug("{}Window size changed from [{}, {}] to [{}, {}]", NarutoLoading.info(), lastWidth, lastHeight, width, height);
 
            lastWidth = width;
            lastHeight = height;
@@ -55,7 +55,7 @@ public final class WindowSizeChecker {
             resizable = false;
             if (NarutoRenderer.INSTANCE.lifetime != null){
                 String currentSecond = String.valueOf(NarutoRenderer.INSTANCE.lifetime.elapsedSeconds());
-                NarutoLoading.LOGGER.info("{}Resizing video and resyncing audio from {} seconds", NarutoLoading.info(), currentSecond);
+                NarutoLoading.LOGGER.debug("{}Resizing video and resyncing audio from {} seconds", NarutoLoading.info(), currentSecond);
 
                 if (NarutoRenderer.INSTANCE.videoExecutor != null) {
                     NarutoRenderer.INSTANCE.videoExecutor.shutdown();
