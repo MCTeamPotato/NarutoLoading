@@ -108,9 +108,9 @@ public class ServerScreenChecker {
         }
     }
 
-    private static @Nullable InWorldScreen tryBuildScreen(@NotNull ServerPlayer player, @NotNull ServerLevel level, @NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, @NotNull LongPredicate borderPredicate) {
-        player.displayClientMessage(Component.translatable("info.narutoloading.set.second", currentCorner.toShortString()), false);
-        player.displayClientMessage(Component.translatable("info.narutoloading.screen"), false);
+    public static @Nullable InWorldScreen tryBuildScreen(@Nullable ServerPlayer player, @NotNull ServerLevel level, @NotNull BlockPos lastCorner, @NotNull BlockPos currentCorner, @NotNull LongPredicate borderPredicate) {
+        if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.set.second", currentCorner.toShortString()), false);
+        if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.screen"), false);
 
         int minX = Math.min(lastCorner.getX(), currentCorner.getX());
         int maxX = Math.max(lastCorner.getX(), currentCorner.getX());
@@ -130,7 +130,7 @@ public class ServerScreenChecker {
         }
 
         if (inWorldScreen == null) {
-            player.displayClientMessage(Component.translatable("info.narutoloading.screen.fail"), false);
+            if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.screen.fail"), false);
             return null;
         }
 
@@ -140,7 +140,7 @@ public class ServerScreenChecker {
         }
 
         NarutoPackets.INSTANCE.send(PacketDistributor.ALL.noArg(), new ScreenLifePacket(inWorldScreen, false));
-        player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
+        if (player != null) player.displayClientMessage(Component.translatable("info.narutoloading.screen.created", inWorldScreen.toLocalString()), false);
         return inWorldScreen;
     }
 

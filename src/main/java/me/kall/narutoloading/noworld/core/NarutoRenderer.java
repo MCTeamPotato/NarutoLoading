@@ -11,6 +11,7 @@ import me.kall.narutoloading.common.executor.Restarter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
+import net.minecraft.client.gui.screens.WinScreen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
@@ -151,6 +152,7 @@ public class NarutoRenderer {
         if (!BaseEnv.available()) return false;
         Minecraft minecraft = Minecraft.getInstance();
         if (BaseEnv.narutoConfig.width() == 0 || BaseEnv.narutoConfig.height() == 0) return false;
+        if (minecraft.screen instanceof WinScreen) return true;
         if (minecraft.screen instanceof GenericDirtMessageScreen && this.runInGenericScreen()) return true;
         if (minecraft.isPaused()) return false;
         if (this.runInLevel()) {

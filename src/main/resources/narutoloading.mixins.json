@@ -26,10 +26,12 @@
     "noworld.impl.screen.MixinScreen",
     "noworld.impl.screen.MixinScrollPanel",
     "noworld.impl.screen.MixinTitleScreen",
+    "noworld.impl.screen.MixinWinScreen",
     "sound.MixinOptions",
     "sound.MixinSoundEngine"
   ],
   "mixins": [
+    "inworld.MixinPortalShape",
     "inworld.MixinServerLevel"
   ]
 }
