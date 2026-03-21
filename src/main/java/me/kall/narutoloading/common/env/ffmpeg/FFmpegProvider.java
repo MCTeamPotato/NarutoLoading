@@ -26,7 +26,7 @@ public final class FFmpegProvider {
         if (!absoluteFFprobePath.isBlank() && !absoluteFFmpegPath.isBlank()) {
             this.absoluteFFprobe = absoluteFFprobePath;
             this.absoluteFFmpeg = absoluteFFmpegPath;
-            NarutoLoading.LOGGER.debug("{}Using FFmpeg from config.", NarutoLoading.info());
+            NarutoLoading.LOGGER.debug("{}Using FFmpeg from config.", NarutoLoading.prefix());
             onDone.run();
             return;
         }
@@ -41,7 +41,7 @@ public final class FFmpegProvider {
         String baseDir = OSType.getBase(gamePath, os);
 
         if (baseDir == null) {
-            NarutoLoading.LOGGER.warn("{}FFmpeg not found. Please set ffmpegExePath and ffprobeExePath in the config.", NarutoLoading.info());
+            NarutoLoading.LOGGER.warn("{}FFmpeg not found. Please set ffmpegExePath and ffprobeExePath in the config.", NarutoLoading.prefix());
             this.absoluteFFmpeg = null;
             this.absoluteFFprobe = null;
             onDone.run();
@@ -53,8 +53,8 @@ public final class FFmpegProvider {
 
         this.absoluteFFmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
         this.absoluteFFprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
-        NarutoLoading.LOGGER.debug("{}NarutoLoading ffmpeg file path: {}", NarutoLoading.info(), this.absoluteFFmpeg);
-        NarutoLoading.LOGGER.debug("{}NarutoLoading ffprobe file path: {}", NarutoLoading.info(), this.absoluteFFprobe);
+        NarutoLoading.LOGGER.debug("{}NarutoLoading ffmpeg file path: {}", NarutoLoading.prefix(), this.absoluteFFmpeg);
+        NarutoLoading.LOGGER.debug("{}NarutoLoading ffprobe file path: {}", NarutoLoading.prefix(), this.absoluteFFprobe);
         onDone.run();
     }
 

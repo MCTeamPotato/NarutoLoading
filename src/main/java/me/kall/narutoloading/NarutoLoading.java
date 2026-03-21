@@ -25,7 +25,7 @@ public final class NarutoLoading {
         NarutoPackets.register();
     }
 
-    public static String info() {
+    public static String prefix() {
         return PREFIX;
     }
 }

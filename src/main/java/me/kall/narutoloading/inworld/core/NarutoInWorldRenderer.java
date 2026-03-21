@@ -38,13 +38,13 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 ClientLevel level = Minecraft.getInstance().level;
                 if (player != null && this.screen.localSound() != InWorldScreen.NO_LOCAL_SOUND && level != null) {
                     level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.localSound())), SoundSource.BLOCKS, (float) this.soundVolume().getAsDouble(), 1.0F, level.random.nextLong());
-                    NarutoLoading.LOGGER.debug("{}Local sound {} played at [{}, {}, {}]", NarutoLoading.info(), this.screen.localSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
+                    NarutoLoading.LOGGER.debug("{}Local sound {} played at [{}, {}, {}]", NarutoLoading.prefix(), this.screen.localSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
             this.soundShutdown = () -> {
                 if (this.screen.localSound() != InWorldScreen.NO_LOCAL_SOUND) {
                     Minecraft.getInstance().getSoundManager().stop(this.screen.localSound(), SoundSource.BLOCKS);
-                    NarutoLoading.LOGGER.debug("{}Local sound {} playing at [{}, {}, {}] is stopped", NarutoLoading.info(), this.screen.localSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
+                    NarutoLoading.LOGGER.debug("{}Local sound {} playing at [{}, {}, {}] is stopped", NarutoLoading.prefix(), this.screen.localSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
         } else {

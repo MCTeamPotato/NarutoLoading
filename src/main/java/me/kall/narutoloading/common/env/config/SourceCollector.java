@@ -1,6 +1,7 @@
 package me.kall.narutoloading.common.env.config;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
@@ -17,6 +18,7 @@ import org.lwjgl.glfw.GLFW;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
@@ -27,20 +29,20 @@ public class SourceCollector {
 
     public static final List<Source> ABSOLUTE_SOURCES = new ObjectArrayList<>();
 
-    private static Source lastSource;
+    private static final Set<Source> ROLLED = new ObjectOpenHashSet<>();
 
     public static @Nullable Source roll() {
         scan();
         if (ABSOLUTE_SOURCES.isEmpty()) return null;
-        NarutoLoading.LOGGER.debug("{}Start to roll source from {}", NarutoLoading.info(), ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").toList());
+        NarutoLoading.LOGGER.debug("{}Start to roll source from {}", NarutoLoading.prefix(), ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").toList());
         Source source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
         if (ABSOLUTE_SOURCES.size() > 1) {
-            while (source.equals(lastSource)) {
+            while (ROLLED.contains(source)) {
                 source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
             }
         }
-        NarutoLoading.LOGGER.debug("{}Rolling source ends. Video: {}, Audio: {}", NarutoLoading.info(), source.absoluteVideoPath, source.absoluteAudioPath);
-        lastSource = source;
+        NarutoLoading.LOGGER.debug("{}Rolling source ends. Video: {}, Audio: {}", NarutoLoading.prefix(), source.absoluteVideoPath, source.absoluteAudioPath);
+        ROLLED.add(source);
         return source;
     }
 
@@ -72,6 +74,8 @@ public class SourceCollector {
         } catch (Exception e) {
             NarutoLoading.LOGGER.warn("Error scanning NarutoLoading sources: {}", e.getMessage());
         }
+
+        if (ABSOLUTE_SOURCES.size() == ROLLED.size()) ROLLED.clear();
     }
 
     @Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)

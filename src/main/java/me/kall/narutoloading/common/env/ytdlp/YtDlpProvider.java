@@ -22,14 +22,14 @@ public final class YtDlpProvider {
 
         if (!absoluteYtDlpPath.isBlank()) {
             this.absoluteYtDlp = absoluteYtDlpPath;
-            NarutoLoading.LOGGER.debug("{}Using yt-dlp from config.", NarutoLoading.info());
+            NarutoLoading.LOGGER.debug("{}Using yt-dlp from config.", NarutoLoading.prefix());
             onDone.run();
             return;
         }
 
         OSType os = OSType.CURRENT;
         if (os == null) {
-            NarutoLoading.LOGGER.error("{}Unsupported operating system for yt-dlp", NarutoLoading.info());
+            NarutoLoading.LOGGER.error("{}Unsupported operating system for yt-dlp", NarutoLoading.prefix());
             this.absoluteYtDlp = null;
             onDone.run();
             return;
@@ -41,9 +41,9 @@ public final class YtDlpProvider {
 
         if (ytDlpFile.exists()) {
             this.absoluteYtDlp = ytDlpFile.getAbsolutePath();
-            NarutoLoading.LOGGER.debug("{}NarutoLoading yt-dlp file path: {}", NarutoLoading.info(), this.absoluteYtDlp);
+            NarutoLoading.LOGGER.debug("{}NarutoLoading yt-dlp file path: {}", NarutoLoading.prefix(), this.absoluteYtDlp);
         } else {
-            NarutoLoading.LOGGER.warn("{}yt-dlp not found. Please set ytdlpExePath in the config.", NarutoLoading.info());
+            NarutoLoading.LOGGER.warn("{}yt-dlp not found. Please set ytdlpExePath in the config.", NarutoLoading.prefix());
             this.absoluteYtDlp = null;
         }
 

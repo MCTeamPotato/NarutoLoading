@@ -46,7 +46,7 @@ public class AudioConverter {
                 return;
             } else {
                 if (absoluteOutputPath.delete()) {
-                    NarutoLoading.LOGGER.debug("{}Existing OGG is not mono, reconverting: {}", NarutoLoading.info(), absoluteOutputPath.getAbsolutePath());
+                    NarutoLoading.LOGGER.debug("{}Existing OGG is not mono, reconverting: {}", NarutoLoading.prefix(), absoluteOutputPath.getAbsolutePath());
                 }
             }
         }
@@ -57,7 +57,7 @@ public class AudioConverter {
                 onDone.run();
                 return;
             } else {
-                NarutoLoading.LOGGER.debug("{}Source OGG is stereo, converting to mono: {}", NarutoLoading.info(), this.absoluteSourcePath);
+                NarutoLoading.LOGGER.debug("{}Source OGG is stereo, converting to mono: {}", NarutoLoading.prefix(), this.absoluteSourcePath);
             }
         }
 
@@ -78,7 +78,7 @@ public class AudioConverter {
                 int exitCode = process.waitFor();
 
                 if (exitCode == 0 && absoluteOutputPath.exists()) {
-                    NarutoLoading.LOGGER.debug("{}Successfully converted to mono OGG: {}", NarutoLoading.info(), absoluteOutputPath.getAbsolutePath());
+                    NarutoLoading.LOGGER.debug("{}Successfully converted to mono OGG: {}", NarutoLoading.prefix(), absoluteOutputPath.getAbsolutePath());
                     this.converted = absoluteOutputPath.getAbsolutePath();
                 } else {
                     NarutoLoading.LOGGER.error("FFmpeg conversion failed with exit code: {}", exitCode);
@@ -112,7 +112,7 @@ public class AudioConverter {
             if (exitCode == 0) {
                 String channelCount = output.toString().trim();
                 boolean isMono = "1".equals(channelCount);
-                NarutoLoading.LOGGER.debug("{}Audio file {} has {} channel(s), mono: {}", NarutoLoading.info(), audioPath, channelCount, isMono);
+                NarutoLoading.LOGGER.debug("{}Audio file {} has {} channel(s), mono: {}", NarutoLoading.prefix(), audioPath, channelCount, isMono);
                 return isMono;
             }
         } catch (Exception e) {

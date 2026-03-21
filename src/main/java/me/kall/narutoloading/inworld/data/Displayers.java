@@ -12,6 +12,7 @@ import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -43,7 +44,7 @@ public class Displayers extends ChunkData.BlockData {
 
     @Override
     public @Nullable Predicate<BlockState> validation() {
-        return state -> state.is(NarutoBlocks.DISPLAYER.get());
+        return Displayers::isDisplayer;
     }
 
     public static @NotNull ChunkData<Long, BlockState> get(ServerLevel level) {
@@ -63,12 +64,16 @@ public class Displayers extends ChunkData.BlockData {
         long chunk = event.chunkPos();
         long block = event.blockPos();
 
-        boolean was = event.oldState().is(NarutoBlocks.DISPLAYER.get());
-        boolean is = event.newState().is(NarutoBlocks.DISPLAYER.get());
+        boolean was = isDisplayer(event.oldState());
+        boolean is = isDisplayer(event.newState());
 
         ServerLevel level = event.level();
 
         if (was) Executor.run(() -> get(level).remove(level, chunk, block));
         if (is) Executor.run(() -> get(level).add(level, chunk, block));
+    }
+
+    public static boolean isDisplayer(@NotNull BlockState state) {
+        return state.is(NarutoBlocks.DISPLAYER.get()) || state.is(Blocks.NETHER_PORTAL);
     }
 }

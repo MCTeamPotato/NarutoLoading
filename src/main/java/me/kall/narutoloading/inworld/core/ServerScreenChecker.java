@@ -7,7 +7,6 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.ext.ScreenLevel;
-import me.kall.narutoloading.inworld.init.NarutoBlocks;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
 import me.kall.narutoloading.inworld.network.ScreenLifePacket;
 import net.minecraft.core.BlockPos;
@@ -249,7 +248,7 @@ public class ServerScreenChecker {
         ServerLevel level = event.level();
         ResourceLocation dimension = level.dimension().location();
         long block = event.blockPos();
-        if (event.oldState().is(NarutoBlocks.DISPLAYER.get())) {
+        if (Displayers.isDisplayer(event.oldState())) {
             Executor.run(() -> {
                 if (((ScreenLevel) level).naruto$isClearingScreens()) return;
 

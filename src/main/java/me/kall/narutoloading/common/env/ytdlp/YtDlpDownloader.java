@@ -35,7 +35,7 @@ public class YtDlpDownloader {
 
     public static @Nullable CompletableFuture<Void> download(@NotNull String ytDlpPath, @NotNull String url, @NotNull Path outputDir, @NotNull String outputName, @NotNull DownloadType type, @Nullable Consumer<String> onProgress, @Nullable Consumer<DownloadResult> onComplete) {
         if (ytDlpPath.isBlank() || !new File(ytDlpPath).exists()) {
-            NarutoLoading.LOGGER.error("{}yt-dlp executable not found at: {}", NarutoLoading.info(), ytDlpPath);
+            NarutoLoading.LOGGER.error("{}yt-dlp executable not found at: {}", NarutoLoading.prefix(), ytDlpPath);
             if (onComplete != null) onComplete.accept(new DownloadResult(false, null, null, "yt-dlp not found"));
             return null;
         }
@@ -52,7 +52,7 @@ public class YtDlpDownloader {
                 }
 
             } catch (Exception e) {
-                NarutoLoading.LOGGER.error("{}Error during yt-dlp download", NarutoLoading.info(), e);
+                NarutoLoading.LOGGER.error("{}Error during yt-dlp download", NarutoLoading.prefix(), e);
                 result = new DownloadResult(false, null, null, e.getMessage());
             }
 
@@ -69,15 +69,15 @@ public class YtDlpDownloader {
 
             List<String> command = buildVideoCmd(ytDlpPath, url, outputTemplate);
 
-            NarutoLoading.LOGGER.info("{}Downloading video: {}", NarutoLoading.info(), url);
-            NarutoLoading.LOGGER.info("{}Output: {}", NarutoLoading.info(), outputDir);
+            NarutoLoading.LOGGER.info("{}Downloading video: {}", NarutoLoading.prefix(), url);
+            NarutoLoading.LOGGER.info("{}Output: {}", NarutoLoading.prefix(), outputDir);
 
             int exitCode = executeCommand(command, onProgress);
 
             if (exitCode == 0) {
                 String videoPath = findFileInDirectory(outputDir, outputName, VIDEO_EXTENSIONS);
                 if (videoPath != null) {
-                    NarutoLoading.LOGGER.info("{}Video downloaded: {}", NarutoLoading.info(), videoPath);
+                    NarutoLoading.LOGGER.info("{}Video downloaded: {}", NarutoLoading.prefix(), videoPath);
                     return new DownloadResult(true, videoPath, null, null);
                 } else {
                     return new DownloadResult(false, null, null, "Video file not found after download");
@@ -87,7 +87,7 @@ public class YtDlpDownloader {
             }
 
         } catch (Exception e) {
-            NarutoLoading.LOGGER.error("{}Error downloading video", NarutoLoading.info(), e);
+            NarutoLoading.LOGGER.error("{}Error downloading video", NarutoLoading.prefix(), e);
             return new DownloadResult(false, null, null, e.getMessage());
         }
     }
@@ -116,15 +116,15 @@ public class YtDlpDownloader {
 
             List<String> command = buildAudioCmd(ytDlpPath, url, outputTemplate);
 
-            NarutoLoading.LOGGER.info("{}Downloading audio: {}", NarutoLoading.info(), url);
-            NarutoLoading.LOGGER.info("{}Output: {}", NarutoLoading.info(), outputDir);
+            NarutoLoading.LOGGER.info("{}Downloading audio: {}", NarutoLoading.prefix(), url);
+            NarutoLoading.LOGGER.info("{}Output: {}", NarutoLoading.prefix(), outputDir);
 
             int exitCode = executeCommand(command, onProgress);
 
             if (exitCode == 0) {
                 String audioPath = findFileInDirectory(outputDir, outputName, AUDIO_EXTENSIONS);
                 if (audioPath != null) {
-                    NarutoLoading.LOGGER.info("{}Audio downloaded: {}", NarutoLoading.info(), audioPath);
+                    NarutoLoading.LOGGER.info("{}Audio downloaded: {}", NarutoLoading.prefix(), audioPath);
                     return new DownloadResult(true, null, audioPath, null);
                 } else {
                     return new DownloadResult(false, null, null, "Audio file not found after download");
@@ -134,7 +134,7 @@ public class YtDlpDownloader {
             }
 
         } catch (Exception e) {
-            NarutoLoading.LOGGER.error("{}Error downloading audio", NarutoLoading.info(), e);
+            NarutoLoading.LOGGER.error("{}Error downloading audio", NarutoLoading.prefix(), e);
             return new DownloadResult(false, null, null, e.getMessage());
         }
     }
@@ -165,7 +165,7 @@ public class YtDlpDownloader {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                NarutoLoading.LOGGER.debug("{}yt-dlp: {}", NarutoLoading.info(), line);
+                NarutoLoading.LOGGER.debug("{}yt-dlp: {}", NarutoLoading.prefix(), line);
                 if (onProgress != null) {
                     onProgress.accept(line);
                 }
@@ -194,7 +194,7 @@ public class YtDlpDownloader {
                     .map(Path::toString)
                     .orElse(null);
         } catch (Exception e) {
-            NarutoLoading.LOGGER.error("{}Error finding file in directory", NarutoLoading.info(), e);
+            NarutoLoading.LOGGER.error("{}Error finding file in directory", NarutoLoading.prefix(), e);
             return null;
         }
     }
