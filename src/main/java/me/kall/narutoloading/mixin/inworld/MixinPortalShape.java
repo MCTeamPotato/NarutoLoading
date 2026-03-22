@@ -27,13 +27,8 @@ public abstract class MixinPortalShape {
     private void afterGenPortal(CallbackInfo ci) {
         assert this.bottomLeft != null;
         if (this.level instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().execute(() -> ServerScreenChecker.tryBuildScreen(
-                    null,
-                    serverLevel,
-                    this.bottomLeft,
-                    this.bottomLeft.relative(this.rightDir, this.width - 1),
-                    pos -> Displayers.isDisplayer(serverLevel, pos)
-            ));
+            BlockPos bottomRight = this.bottomLeft.relative(this.rightDir, this.width - 1);
+            serverLevel.getServer().execute(() -> ServerScreenChecker.tryBuildScreen(null, serverLevel, this.bottomLeft, bottomRight, pos -> Displayers.isDisplayer(serverLevel, pos)));
         }
     }
 }
