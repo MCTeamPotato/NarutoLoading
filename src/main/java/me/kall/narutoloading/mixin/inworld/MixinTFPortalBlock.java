@@ -1,7 +1,5 @@
 package me.kall.narutoloading.mixin.inworld;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import me.kall.duplicationless.util.Executor;
@@ -9,34 +7,41 @@ import me.kall.narutoloading.inworld.core.ServerScreenChecker;
 import me.kall.narutoloading.inworld.data.Displayers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import twilightforest.block.TFPortalBlock;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
 @Mixin(TFPortalBlock.class)
 public abstract class MixinTFPortalBlock {
-    @WrapOperation(method = "tryToCreatePortal", at = @At(value = "INVOKE", target = "Ljava/util/Map;entrySet()Ljava/util/Set;", remap = false), remap = false)
-    private Set<Map.Entry<BlockPos, Boolean>> creatingPortal(@NotNull Map<BlockPos, Boolean> blocks, @NotNull Operation<Set<Map.Entry<BlockPos, Boolean>>> original, @Local Level level) {
+    @Inject(method = "tryToCreatePortal", remap = false, at = @At(value = "INVOKE", remap = false, target = "Ltwilightforest/block/TFPortalBlock;causeLightning(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V"))
+    private void creatingPortal(Level level, BlockPos pos, ItemEntity catalyst, Player player, CallbackInfoReturnable<Boolean> cir, @Local(ordinal = 0) Map<BlockPos, Boolean> blocksChecked) {
         Set<BlockPos> positions = new ObjectOpenHashSet<>();
-        for (Map.Entry<BlockPos, Boolean> entry : blocks.entrySet()) {
+        for (Map.Entry<BlockPos, Boolean> entry : blocksChecked.entrySet()) {
             if (entry.getValue()) {
                 positions.add(entry.getKey());
             }
         }
 
-        BlockPos[] corners = naruto$getCorners(positions);
-        if (level instanceof ServerLevel serverLevel) {
-            Executor.runAfter(2, () -> ServerScreenChecker.tryBuildScreen(null, serverLevel, corners[0], corners[1], posLong -> Displayers.isDisplayer(serverLevel, posLong)));
-        }
+        System.out.println("Creating");
+        System.out.println(Arrays.toString(positions.stream().map(BlockPos::toShortString).toArray()));
 
-        return original.call(blocks);
+        BlockPos[] corners = naruto$getCorners(positions);
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            Executor.runAfter(2, () -> ServerScreenChecker.tryBuildScreen(serverPlayer, serverLevel, corners[0], corners[1], posLong -> Displayers.isDisplayer(serverLevel, posLong)));
+        }
     }
 
     @Unique
@@ -70,5 +75,4 @@ public abstract class MixinTFPortalBlock {
             return new BlockPos[]{new BlockPos(minX, y, minZ), new BlockPos(minX, y, maxZ)};
         }
     }
-
 }

@@ -267,7 +267,7 @@ public class ClientScreensRenderer {
         }
 
         if (isFrontFacing) {
-            leftBottomCornerX  += normalX;
+            leftBottomCornerX += normalX;
             leftBottomCornerY += normalY;
             leftBottomCornerZ += normalZ;
 
@@ -302,19 +302,126 @@ public class ClientScreensRenderer {
         rightTopCornerY += normalY * againstZFighting;
         rightTopCornerZ += normalZ * againstZFighting;
 
+        boolean isHorizontal = Math.abs(normalY) > 0.99;
+        int rot = 0;
+
+        if (isHorizontal) {
+            double side1 = Math.sqrt(leftCornerDistX * leftCornerDistX + leftCornerDistY * leftCornerDistY + leftCornerDistZ * leftCornerDistZ);
+            double side2 = Math.sqrt(rightCornerDistX * rightCornerDistX + rightCornerDistY * rightCornerDistY + rightCornerDistZ * rightCornerDistZ);
+            boolean isSquare = Math.abs(side1 - side2) < 0.1;
+
+            boolean videoPortrait = inWorldScreen.videoWidth() < inWorldScreen.videoHeight();
+
+            double midBottomX = (leftBottomCornerX + rightBottomCornerX) / 2.0;
+            double midBottomZ = (leftBottomCornerZ + rightBottomCornerZ) / 2.0;
+            double midLeftX = (leftBottomCornerX + leftTopCornerX) / 2.0;
+            double midLeftZ = (leftBottomCornerZ + leftTopCornerZ) / 2.0;
+            double midTopX = (leftTopCornerX + rightTopCornerX) / 2.0;
+            double midTopZ = (leftTopCornerZ + rightTopCornerZ) / 2.0;
+            double midRightX = (rightBottomCornerX + rightTopCornerX) / 2.0;
+            double midRightZ = (rightBottomCornerZ + rightTopCornerZ) / 2.0;
+
+            double dirX = toCameraX;
+            double dirZ = toCameraZ;
+            double dirLen = Math.sqrt(dirX * dirX + dirZ * dirZ);
+            if (dirLen > 0.001) {
+                dirX /= dirLen;
+                dirZ /= dirLen;
+            } else {
+                dirX = 0; dirZ = 0;
+            }
+
+            double[] dotToSide = new double[4];
+
+            double vx = midBottomX - centerX;
+            double vz = midBottomZ - centerZ;
+            double vlen = Math.sqrt(vx * vx + vz * vz);
+            if (vlen > 0.001) {
+                vx /= vlen; vz /= vlen;
+                dotToSide[0] = dirX * vx + dirZ * vz;
+            } else dotToSide[0] = -1;
+
+            vx = midLeftX - centerX;
+            vz = midLeftZ - centerZ;
+            vlen = Math.sqrt(vx * vx + vz * vz);
+            if (vlen > 0.001) {
+                vx /= vlen; vz /= vlen;
+                dotToSide[1] = dirX * vx + dirZ * vz;
+            } else dotToSide[1] = -1;
+
+            vx = midTopX - centerX;
+            vz = midTopZ - centerZ;
+            vlen = Math.sqrt(vx * vx + vz * vz);
+            if (vlen > 0.001) {
+                vx /= vlen; vz /= vlen;
+                dotToSide[2] = dirX * vx + dirZ * vz;
+            } else dotToSide[2] = -1;
+
+            vx = midRightX - centerX;
+            vz = midRightZ - centerZ;
+            vlen = Math.sqrt(vx * vx + vz * vz);
+            if (vlen > 0.001) {
+                vx /= vlen; vz /= vlen;
+                dotToSide[3] = dirX * vx + dirZ * vz;
+            } else dotToSide[3] = -1;
+
+            int[] allowed;
+            if (isSquare) {
+                allowed = new int[]{0, 1, 2, 3};
+            } else {
+                allowed = ((side1 < side2) == videoPortrait) ? new int[]{1, 3} : new int[]{0, 2};
+            }
+
+            int bestEdge = allowed[0];
+            double maxD = dotToSide[allowed[0]];
+            for (int e : allowed) {
+                if (dotToSide[e] > maxD) {
+                    maxD = dotToSide[e];
+                    bestEdge = e;
+                }
+            }
+            rot = (4 - bestEdge) % 4;
+        }
+
         Matrix4f pose = poseStack.last().pose();
-        Matrix3f normal = poseStack.last().normal();
+        Matrix3f normalMat = poseStack.last().normal();
+
+        double[][] uv = new double[4][2];
+        if (isFrontFacing) {
+            uv[0][0] = 1; uv[0][1] = 1;
+            uv[1][0] = 1; uv[1][1] = 0;
+            uv[2][0] = 0; uv[2][1] = 0;
+            uv[3][0] = 0;
+        } else {
+            uv[0][0] = 0; uv[0][1] = 1;
+            uv[1][0] = 0; uv[1][1] = 0;
+            uv[2][0] = 1; uv[2][1] = 0;
+            uv[3][0] = 1;
+        }
+        uv[3][1] = 1;
+
+        if (isHorizontal) {
+            for (int r = 0; r < rot; r++) {
+                for (int i = 0; i < 4; i++) {
+                    double oldU = uv[i][0];
+                    double oldV = uv[i][1];
+                    uv[i][0] = oldV;
+                    uv[i][1] = 1.0 - oldU;
+                }
+            }
+        }
 
         if (isFrontFacing) {
-            vertexConsumer.vertex(pose, (float)leftBottomCornerX,   (float)leftBottomCornerY,  (float)leftBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-            vertexConsumer.vertex(pose, (float)leftTopCornerX,         (float)leftTopCornerY,     (float)leftTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-            vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-            vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) leftBottomCornerX, (float) leftBottomCornerY, (float) leftBottomCornerZ).color(255, 255, 255, 255).uv((float) uv[0][0], (float) uv[0][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) leftTopCornerX, (float) leftTopCornerY, (float) leftTopCornerZ).color(255, 255, 255, 255).uv((float) uv[1][0], (float) uv[1][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) rightTopCornerX, (float) rightTopCornerY, (float) rightTopCornerZ).color(255, 255, 255, 255).uv((float) uv[2][0], (float) uv[2][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) rightBottomCornerX, (float) rightBottomCornerY, (float) rightBottomCornerZ).color(255, 255, 255, 255).uv((float) uv[3][0], (float) uv[3][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
         } else {
-            vertexConsumer.vertex(pose, (float)leftBottomCornerX,   (float)leftBottomCornerY,  (float)leftBottomCornerZ).color(255, 255, 255, 255).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-            vertexConsumer.vertex(pose, (float)leftTopCornerX,         (float)leftTopCornerY,     (float)leftTopCornerZ).color(255, 255, 255, 255).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-            vertexConsumer.vertex(pose, (float)rightTopCornerX,       (float)rightTopCornerY,    (float)rightTopCornerZ).color(255, 255, 255, 255).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
-            vertexConsumer.vertex(pose, (float)rightBottomCornerX, (float)rightBottomCornerY, (float)rightBottomCornerZ).color(255, 255, 255, 255).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, (float)normalX, (float)normalY, (float)normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) leftBottomCornerX, (float) leftBottomCornerY, (float) leftBottomCornerZ).color(255, 255, 255, 255).uv((float) uv[0][0], (float) uv[0][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) leftTopCornerX, (float) leftTopCornerY, (float) leftTopCornerZ).color(255, 255, 255, 255).uv((float) uv[1][0], (float) uv[1][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) rightTopCornerX, (float) rightTopCornerY, (float) rightTopCornerZ).color(255, 255, 255, 255).uv((float) uv[2][0], (float) uv[2][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
+            vertexConsumer.vertex(pose, (float) rightBottomCornerX, (float) rightBottomCornerY, (float) rightBottomCornerZ).color(255, 255, 255, 255).uv((float) uv[3][0], (float) uv[3][1]).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normalMat, (float) normalX, (float) normalY, (float) normalZ).endVertex();
         }
     }
+
 }

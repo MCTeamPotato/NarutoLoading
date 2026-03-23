@@ -1,6 +1,7 @@
 package me.kall.narutoloading.mixin;
 
 import com.google.common.collect.Lists;
+import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import me.kall.narutoloading.common.env.BaseEnv;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.objectweb.asm.tree.ClassNode;
@@ -13,6 +14,7 @@ import java.util.Set;
 public class EarlySetup implements IMixinConfigPlugin {
     @Override
     public void onLoad(String s) {
+        MixinExtrasBootstrap.init();
         if (FMLLoader.getDist().isClient()) BaseEnv.setupEnv(true);
     }
 
