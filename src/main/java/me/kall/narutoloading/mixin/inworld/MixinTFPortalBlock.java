@@ -20,23 +20,20 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import twilightforest.block.TFPortalBlock;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
 @Mixin(TFPortalBlock.class)
 public abstract class MixinTFPortalBlock {
+    @SuppressWarnings("UnresolvedLocalCapture")
     @Inject(method = "tryToCreatePortal", remap = false, at = @At(value = "INVOKE", remap = false, target = "Ltwilightforest/block/TFPortalBlock;causeLightning(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V"))
-    private void creatingPortal(Level level, BlockPos pos, ItemEntity catalyst, Player player, CallbackInfoReturnable<Boolean> cir, @Local(ordinal = 0) Map<BlockPos, Boolean> blocksChecked) {
+    private void creatingPortal(Level level, BlockPos pos, ItemEntity catalyst, Player player, CallbackInfoReturnable<Boolean> cir, @Local(ordinal = 0) @NotNull Map<BlockPos, Boolean> blocksChecked) {
         Set<BlockPos> positions = new ObjectOpenHashSet<>();
         for (Map.Entry<BlockPos, Boolean> entry : blocksChecked.entrySet()) {
             if (entry.getValue()) {
                 positions.add(entry.getKey());
             }
         }
-
-        System.out.println("Creating");
-        System.out.println(Arrays.toString(positions.stream().map(BlockPos::toShortString).toArray()));
 
         BlockPos[] corners = naruto$getCorners(positions);
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
