@@ -1,44 +1,52 @@
 package me.kall.narutoloading.common.executor;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import me.kall.narutoloading.NarutoLoading;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = NarutoLoading.MOD_ID, value = Dist.CLIENT)
 public final class Restarter {
-    public static final Map<Runnable, Runnable> RESTART_TASKS = new Object2ObjectArrayMap<>();
+    public static final Map<Runnable, Runnable> RESTART_TASKS = new HashMap<>();
 
-    private static int interval = 20;
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "NarutoLoading-Restarter");
+        t.setDaemon(true);
+        return t;
+    });
+
+    private static final long INTERVAL_NS = 1_000_000_000L;
+    private static volatile boolean started = false;
 
     public static void pend(Runnable shutdown, Runnable setup) {
-        synchronized (Restarter.RESTART_TASKS) {
-            Restarter.RESTART_TASKS.put(shutdown, setup);
+        ensureStarted();
+        synchronized (RESTART_TASKS) {
+            RESTART_TASKS.put(shutdown, setup);
         }
     }
 
-    @SubscribeEvent
-    public static void clientTick(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase.equals(TickEvent.Phase.START)) {
+    private static void ensureStarted() {
+        if (started) return;
+        started = true;
 
-            interval--;
-            if (interval != 0) return;
-            interval = 20;
+        EXECUTOR.execute(() -> {
+            long lastTime = System.nanoTime();
 
-            synchronized (RESTART_TASKS) {
-                if (!RESTART_TASKS.isEmpty()) {
-                    RESTART_TASKS.forEach((shutdown, setup) -> {
-                        shutdown.run();
-                        setup.run();
-                    });
-                    RESTART_TASKS.clear();
+            while (!Thread.currentThread().isInterrupted()) {
+                long now = System.nanoTime();
+                if (now - lastTime >= INTERVAL_NS) {
+                    lastTime = now;
+
+                    synchronized (RESTART_TASKS) {
+                        if (!RESTART_TASKS.isEmpty()) {
+                            RESTART_TASKS.forEach((shutdown, setup) -> {
+                                shutdown.run();
+                                setup.run();
+                            });
+                            RESTART_TASKS.clear();
+                        }
+                    }
                 }
             }
-        }
+        });
     }
 }

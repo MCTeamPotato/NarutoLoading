@@ -54,6 +54,7 @@ public final class NarutoRenderBridge {
                 }
 
                 java.net.URL jarUrl = java.nio.file.Path.of(NARUTO_JAR_PATH).toUri().toURL();
+                @SuppressWarnings("resource")
                 NarutoClassLoader narutoLoader = new NarutoClassLoader(jarUrl, forgeCL);
 
                 Class<?> cls = narutoLoader.loadClass("me.kall.narutoloading.agent.NarutoBackgroundHelper");

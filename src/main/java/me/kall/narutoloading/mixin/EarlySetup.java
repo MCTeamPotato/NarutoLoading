@@ -2,8 +2,6 @@ package me.kall.narutoloading.mixin;
 
 import com.google.common.collect.Lists;
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
-import me.kall.narutoloading.common.env.BaseEnv;
-import net.minecraftforge.fml.loading.FMLLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;

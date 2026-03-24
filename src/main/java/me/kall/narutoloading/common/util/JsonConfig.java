@@ -118,7 +118,6 @@ public class JsonConfig {
         return (String) get(key);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> Stream<T> getStream(String key, @NotNull Class<T> valueType) {
         return ((List<?>) get(key)).stream().map(valueType::cast);
     }
