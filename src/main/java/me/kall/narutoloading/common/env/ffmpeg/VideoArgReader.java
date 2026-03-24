@@ -1,7 +1,7 @@
 package me.kall.narutoloading.common.env.ffmpeg;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;

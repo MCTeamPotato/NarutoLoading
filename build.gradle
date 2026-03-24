@@ -120,6 +120,14 @@ javaMap.put("1.16.5", JavaVersion.VERSION_1_8)
 javaMap.put("1.21.1", JavaVersion.VERSION_21)
 javaMap.put("1.21.11", JavaVersion.VERSION_21)
 
+jar {
+    manifest {
+        attributes(
+                "Premain-Class": "me.kall.narutoloading.agent.NarutoAgent"
+        )
+    }
+}
+
 java {
     withSourcesJar()
     JavaVersion javaVer = javaMap.get(minecraft_version)

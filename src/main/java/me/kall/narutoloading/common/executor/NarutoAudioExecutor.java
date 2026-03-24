@@ -1,8 +1,10 @@
 package me.kall.narutoloading.common.executor;
 
+import me.kall.narutoloading.common.executor.base.AbstractFFmpegExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.ALC;
@@ -11,41 +13,31 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-public final class NarutoAudioExecutor {
+public final class NarutoAudioExecutor extends AbstractFFmpegExecutor {
     private static final Logger LOGGER = LogManager.getLogger(NarutoAudioExecutor.class);
 
-    private volatile boolean canceled;
     private long device, context;
     private int source;
-    private @Nullable ExecutorService executor;
-    private @Nullable Process process;
     private boolean selfContext = false;
 
     private final Supplier<Runnable> alErrorHandler;
 
-    private final Supplier<String> video, audio, ffmpeg;
+    private final Supplier<String> video, audio;
     private final DoubleSupplier volume;
-    private final BooleanSupplier debug;
 
     public NarutoAudioExecutor(Supplier<Runnable> alErrorHandler, Supplier<String> video, Supplier<String> audio, Supplier<String> ffmpeg, DoubleSupplier volume, BooleanSupplier debug) {
+        super(ffmpeg, debug);
         this.alErrorHandler = alErrorHandler;
         this.video = video;
         this.audio = audio;
-        this.ffmpeg = ffmpeg;
         this.volume = volume;
-        this.debug = debug;
     }
 
-    public void setup() {
-        setup("0");
-    }
-
+    @Override
     public void setup(String sec) {
         this.canceled = false;
 
@@ -56,16 +48,16 @@ public final class NarutoAudioExecutor {
             this.context = ALC10.alcCreateContext(this.device, (int[]) null);
             ALC10.alcMakeContextCurrent(this.context);
             this.selfContext = true;
-            LOGGER.debug("[NarutoAudioExecutor] Failed to get Minecraft's OpenAL context. Creating one by ourselves.");
+            LOGGER.debug("[NarutoAudioExecutor] Created OpenAL context.");
         } else {
             this.context = currentContext;
             this.device = ALC10.alcGetContextsDevice(this.context);
-            LOGGER.debug("[NarutoAudioExecutor] Synchronizing to Minecraft's OpenAL context successfully.");
+            LOGGER.debug("[NarutoAudioExecutor] Using existing OpenAL context.");
         }
 
         try {
             AL.createCapabilities(ALC.createCapabilities(this.device));
-        } catch (Exception exception) {
+        } catch (Exception e) {
             this.alErrorHandler.get().run();
             this.canceled = true;
             return;
@@ -74,64 +66,56 @@ public final class NarutoAudioExecutor {
         this.source = AL10.alGenSources();
         AL10.alSourcef(this.source, AL10.AL_GAIN, (float) this.volume.getAsDouble());
 
-        this.executor = Executors.newSingleThreadExecutor(task -> {
-            Thread thread = new Thread(task, "NarutoAudioExecutor");
-            thread.setDaemon(true);
-            return thread;
-        });
-        this.executor.submit(() -> {
-            try {
-                ProcessBuilder processBuilder = new ProcessBuilder(
-                        this.ffmpeg.get(),
-                        "-ss", sec,
-                        "-i", this.audio.get().isEmpty() ? this.video.get() : this.audio.get(),
-                        "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"
-                );
-                this.process = processBuilder.start();
-                InputStream inputStream = this.process.getInputStream();
-
-                byte[] buffer = new byte[4096];
-                int read;
-
-                while (!this.canceled && (read = inputStream.read(buffer)) != -1) {
-                    ByteBuffer data = MemoryUtil.memAlloc(read);
-                    data.put(buffer, 0, read).flip();
-
-                    int alGenBuffers = AL10.alGenBuffers();
-                    AL10.alBufferData(alGenBuffers, AL10.AL_FORMAT_STEREO16, data, 44100);
-                    MemoryUtil.memFree(data);
-
-                    AL10.alSourceQueueBuffers(this.source, alGenBuffers);
-
-                    if (AL10.alGetSourcei(this.source, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) AL10.alSourcePlay(this.source);
-
-                    int processed = AL10.alGetSourcei(this.source, AL10.AL_BUFFERS_PROCESSED);
-                    while (processed-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
-                }
-            } catch (Exception exception) {
-                if (this.debug.getAsBoolean()) LOGGER.error("Error occurs in NarutoAudioExecutor", exception);
-            }
-        });
+        super.setup(sec);
     }
 
-    public void shutdown() {
-        this.canceled = true;
+    @Override
+    @Contract("_ -> new")
+    protected @NotNull ProcessBuilder buildProcess(String sec) {
+        return new ProcessBuilder(
+                this.ffmpeg.get(),
+                "-ss", sec,
+                "-i", this.audio.get().isEmpty() ? this.video.get() : this.audio.get(),
+                "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100",
+                "-loglevel", "error", "-"
+        );
+    }
 
-        if (this.process != null) {
-            this.process.destroyForcibly();
-            this.process = null;
+    @Override
+    protected void runLoop(InputStream inputStream) throws Exception {
+        byte[] buffer = new byte[4096];
+        int read;
+
+        while (!this.canceled && (read = inputStream.read(buffer)) != -1) {
+            ByteBuffer data = MemoryUtil.memAlloc(read);
+            data.put(buffer, 0, read).flip();
+
+            int alBuffer = AL10.alGenBuffers();
+            AL10.alBufferData(alBuffer, AL10.AL_FORMAT_STEREO16, data, 44100);
+            MemoryUtil.memFree(data);
+
+            AL10.alSourceQueueBuffers(this.source, alBuffer);
+
+            if (AL10.alGetSourcei(this.source, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) {
+                AL10.alSourcePlay(this.source);
+            }
+
+            int processed = AL10.alGetSourcei(this.source, AL10.AL_BUFFERS_PROCESSED);
+            while (processed-- > 0) {
+                AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
+            }
         }
+    }
 
-        if (this.executor != null) {
-            this.executor.shutdownNow();
-            this.executor = null;
-        }
-
+    @Override
+    public void cleanup() {
         if (this.source != 0) {
             AL10.alSourceStop(this.source);
 
             int queued = AL10.alGetSourcei(this.source, AL10.AL_BUFFERS_QUEUED);
-            while (queued-- > 0) AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
+            while (queued-- > 0) {
+                AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
+            }
 
             AL10.alDeleteSources(this.source);
             this.source = 0;
@@ -150,5 +134,10 @@ public final class NarutoAudioExecutor {
                 this.device = 0;
             }
         }
+    }
+
+    @Override
+    protected void onError(Exception e) {
+        LOGGER.error("Audio executor error", e);
     }
 }
