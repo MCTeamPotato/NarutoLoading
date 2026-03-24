@@ -88,7 +88,7 @@ public class SourceCollector {
             }
 
             long window = mc.getWindow().getWindow();
-            int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
+            int state = GLFW.glfwGetKey(window, BaseEnv.getNarutoConfig().reload);
             int stateLeftShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT);
             int stateRightShift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
 

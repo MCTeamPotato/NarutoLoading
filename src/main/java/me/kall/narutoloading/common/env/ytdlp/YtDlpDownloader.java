@@ -98,7 +98,7 @@ public class YtDlpDownloader {
         command.add("--no-playlist");
         command.add("--progress");
         command.add("--ffmpeg-location");
-        command.add(BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        command.add(BaseEnv.getFfmpegProvider().absoluteFFmpeg);
         return command;
     }
 
@@ -141,7 +141,7 @@ public class YtDlpDownloader {
         command.add("--no-playlist");
         command.add("--progress");
         command.add("--ffmpeg-location");
-        command.add(BaseEnv.ffmpegProvider.absoluteFFmpeg);
+        command.add(BaseEnv.getFfmpegProvider().absoluteFFmpeg);
         return command;
     }
 

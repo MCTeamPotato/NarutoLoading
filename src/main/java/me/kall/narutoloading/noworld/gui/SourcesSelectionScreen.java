@@ -91,11 +91,11 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     }
 
     protected String initVideo() {
-        return BaseEnv.narutoConfig.videoFileName;
+        return BaseEnv.getNarutoConfig().videoFileName;
     }
 
     protected String initAudio() {
-        return BaseEnv.narutoConfig.audioFileName;
+        return BaseEnv.getNarutoConfig().audioFileName;
     }
 
     protected void onCancel() {
@@ -115,7 +115,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     }
 
     protected void handleLocalFiles() {
-        BaseEnv.narutoConfig.config.put("videoFileName", this.videoBox.getValue()).put("audioFileName", this.audioBox.getValue()).saveToFile();
+        BaseEnv.getNarutoConfig().config.put("videoFileName", this.videoBox.getValue()).put("audioFileName", this.audioBox.getValue()).saveToFile();
         BaseEnv.setupEnv(false);
         NarutoRenderer.INSTANCE.shutdown();
         NarutoRenderer.INSTANCE.setup();
@@ -124,13 +124,13 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     protected void download(String videoUrl, String audioUrl, String folderName) {
         Path outputDir = YtDlpDownloader.getDefaultOutputDir(folderName);
 
-        CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> this.onVideoDownloaded(downloadResult, videoUrl));
+        CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.getYtDlpProvider().absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> this.onVideoDownloaded(downloadResult, videoUrl));
 
         if (videoFuture != null) {
             videoFuture.thenRun(() -> {
                 String audioUrlToUse = audioUrl.isBlank() ? videoUrl : audioUrl;
                 if (audioUrlToUse.startsWith("http")) {
-                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, audioUrlToUse, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> this.onAudioDownloaded(downloadResult, audioUrlToUse));
+                    CompletableFuture<Void> audioFuture = YtDlpDownloader.download(BaseEnv.getYtDlpProvider().absoluteYtDlp, audioUrlToUse, outputDir, "audio", YtDlpDownloader.DownloadType.AUDIO, null, downloadResult -> this.onAudioDownloaded(downloadResult, audioUrlToUse));
                     if (audioFuture != null) audioFuture.thenRun(this::finalizeDownload);
                 } else {
                     this.finalizeDownload();
@@ -140,12 +140,12 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     }
 
     protected void onVideoDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String videoUrl) {
-        if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", Paths.relative(downloadResult.videoPath())).saveToFile());
+        if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.getNarutoConfig().config.put("videoFileName", Paths.relative(downloadResult.videoPath())).saveToFile());
     }
 
     protected void onAudioDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String audioUrlToUse) {
         if (downloadResult.success()) {
-            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", Paths.relative(downloadResult.audioPath())).saveToFile());
+            Minecraft.getInstance().execute(() -> BaseEnv.getNarutoConfig().config.put("audioFileName", Paths.relative(downloadResult.audioPath())).saveToFile());
         }
     }
 
@@ -214,7 +214,7 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
             }
 
             long window = mc.getWindow().getWindow();
-            int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
+            int state = GLFW.glfwGetKey(window, BaseEnv.getNarutoConfig().reload);
             int stateLeftCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL);
             int stateRightCtrl = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
 

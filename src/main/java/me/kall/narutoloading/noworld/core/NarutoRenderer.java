@@ -54,7 +54,7 @@ public class NarutoRenderer {
             if (hasAudio) this.audioExecutor.setup(elapsedSeconds);
             if (hasVideo) this.videoExecutor.setup(elapsedSeconds);
         }, () -> this.audioExecutor != null);
-        this.videoExecutor = new NarutoVideoExecutor(() -> () -> this.lifetime.lagSpikeDetected = true, () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps, () -> BaseEnv.narutoConfig.bufferSize, () -> BaseEnv.narutoConfig.debug);
+        this.videoExecutor = new NarutoVideoExecutor(() -> () -> this.lifetime.lagSpikeDetected = true, () -> BaseEnv.getFfmpegProvider().absoluteFFmpeg, this.absoluteVideoPath(), this.textureWidth(), this.textureHeight(), () -> this.fps, () -> BaseEnv.getNarutoConfig().bufferSize, () -> BaseEnv.getNarutoConfig().debug);
 
         this.setupSound();
         if (texture) this.setupTexture();
@@ -68,13 +68,13 @@ public class NarutoRenderer {
     }
 
     protected void readVideoArg() {
-        VideoArgReader reader = new VideoArgReader(BaseEnv.narutoConfig.absoluteVideoPath, BaseEnv.ffmpegProvider.absoluteFFprobe);
+        VideoArgReader reader = new VideoArgReader(BaseEnv.getNarutoConfig().absoluteVideoPath, BaseEnv.getFfmpegProvider().absoluteFFprobe);
         this.fps = reader.fps();
         this.duration = reader.duration();
     }
 
     protected void setupSound() {
-        this.audioExecutor = new NarutoAudioExecutor(() -> () -> Restarter.pend(this::shutdown, this::setup), this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.ffmpegProvider.absoluteFFmpeg, this.soundVolume(), () -> BaseEnv.narutoConfig.debug);
+        this.audioExecutor = new NarutoAudioExecutor(() -> () -> Restarter.pend(this::shutdown, this::setup), this.absoluteVideoPath(), this.absoluteAudioPath(), () -> BaseEnv.getFfmpegProvider().absoluteFFmpeg, this.soundVolume(), () -> BaseEnv.getNarutoConfig().debug);
     }
 
     protected void setupTexture() {
@@ -86,23 +86,23 @@ public class NarutoRenderer {
     }
 
     protected DoubleSupplier soundVolume() {
-        return () -> BaseEnv.narutoConfig.volume;
+        return () -> BaseEnv.getNarutoConfig().volume;
     }
 
     protected Supplier<String> absoluteVideoPath() {
-        return () -> BaseEnv.narutoConfig.absoluteVideoPath;
+        return () -> BaseEnv.getNarutoConfig().absoluteVideoPath;
     }
 
     protected Supplier<String> absoluteAudioPath() {
-        return () -> BaseEnv.narutoConfig.absoluteAudioPath;
+        return () -> BaseEnv.getNarutoConfig().absoluteAudioPath;
     }
 
     protected IntSupplier textureWidth() {
-        return () -> BaseEnv.narutoConfig.width();
+        return () -> BaseEnv.getNarutoConfig().width();
     }
 
     protected IntSupplier textureHeight() {
-        return () -> BaseEnv.narutoConfig.height();
+        return () -> BaseEnv.getNarutoConfig().height();
     }
 
     public ResourceLocation nextFrame() {
@@ -149,7 +149,7 @@ public class NarutoRenderer {
     public boolean isEnabled() {
         if (!BaseEnv.available()) return false;
         Minecraft minecraft = Minecraft.getInstance();
-        if (BaseEnv.narutoConfig.width() == 0 || BaseEnv.narutoConfig.height() == 0) return false;
+        if (BaseEnv.getNarutoConfig().width() == 0 || BaseEnv.getNarutoConfig().height() == 0) return false;
         if (minecraft.screen instanceof WinScreen) return true;
         if (minecraft.screen instanceof GenericDirtMessageScreen && this.runInGenericScreen()) return true;
         if (minecraft.isPaused()) return false;

@@ -51,7 +51,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
     @Override
     protected void readVideoArg() {
-        VideoArgReader reader = new VideoArgReader(Paths.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
+        VideoArgReader reader = new VideoArgReader(Paths.absolute(this.screen.relativeVideoPath(BaseEnv.getNarutoConfig().videoFileName)), BaseEnv.getFfmpegProvider().absoluteFFprobe);
         this.fps = reader.fps();
         this.duration = reader.duration();
     }
@@ -63,12 +63,12 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
     @Override
     protected Supplier<String> absoluteVideoPath() {
-        return () -> Paths.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
+        return () -> Paths.absolute(this.screen.relativeVideoPath(BaseEnv.getNarutoConfig().videoFileName));
     }
 
     @Override
     protected Supplier<String> absoluteAudioPath() {
-        return () -> Paths.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName));
+        return () -> Paths.absolute(this.screen.relativeAudioPath(BaseEnv.getNarutoConfig().audioFileName));
     }
 
     @Override

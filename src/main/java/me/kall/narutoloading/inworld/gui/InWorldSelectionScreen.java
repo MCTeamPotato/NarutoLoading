@@ -115,11 +115,11 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
     }
 
     protected String initVideo() {
-        return this.renderer.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName);
+        return this.renderer.screen.relativeVideoPath(BaseEnv.getNarutoConfig().videoFileName);
     }
 
     protected String initAudio() {
-        return this.renderer.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName);
+        return this.renderer.screen.relativeAudioPath(BaseEnv.getNarutoConfig().audioFileName);
     }
 
     private boolean validSize(@NotNull String value) {
@@ -260,7 +260,7 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     private void setupLocalSound() {
         this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
-        AudioConverter audioConverter = new AudioConverter(Paths.absolute(this.renderer.screen.relativeAudioPath(NarutoLoading.BLANK)), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
+        AudioConverter audioConverter = new AudioConverter(Paths.absolute(this.renderer.screen.relativeAudioPath(NarutoLoading.BLANK)), BaseEnv.getFfmpegProvider().absoluteFFmpeg, BaseEnv.getFfmpegProvider().absoluteFFprobe);
         audioConverter.setup(() -> {
             ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
             resourceZipGenerator.generate();

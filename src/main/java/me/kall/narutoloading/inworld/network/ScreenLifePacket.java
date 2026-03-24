@@ -65,7 +65,7 @@ public class ScreenLifePacket {
                         HiddenDisplayers.reveal(this.inWorldScreen);
                     }
                 } else {
-                    String videoPath = Paths.absolute(this.inWorldScreen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
+                    String videoPath = Paths.absolute(this.inWorldScreen.relativeVideoPath(BaseEnv.getNarutoConfig().videoFileName));
                     if (!validateVideoPath(videoPath)) {
                         return;
                     }
@@ -106,7 +106,7 @@ public class ScreenLifePacket {
         NarutoInWorldRenderer renderer = new NarutoInWorldRenderer(this.inWorldScreen);
 
         if (this.inWorldScreen.isLocalSound()) {
-            AudioConverter audioConverter = new AudioConverter(this.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
+            AudioConverter audioConverter = new AudioConverter(this.inWorldScreen.relativeAudioPath(NarutoLoading.BLANK), BaseEnv.getFfmpegProvider().absoluteFFmpeg, BaseEnv.getFfmpegProvider().absoluteFFprobe);
             audioConverter.setup(() -> {
                 ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
                 resourceZipGenerator.generate();

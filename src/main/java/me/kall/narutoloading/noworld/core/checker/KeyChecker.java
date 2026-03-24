@@ -36,7 +36,7 @@ public final class KeyChecker {
         if (SourcesSelectionScreen.Trigger.interval != 0) return;
 
         long window = minecraft.getWindow().getWindow();
-        int state = GLFW.glfwGetKey(window, BaseEnv.narutoConfig.reload);
+        int state = GLFW.glfwGetKey(window, BaseEnv.getNarutoConfig().reload);
 
         if (state == GLFW.GLFW_PRESS) {
             interval = 20;

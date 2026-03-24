@@ -7,9 +7,9 @@ import me.kall.narutoloading.common.env.ytdlp.YtDlpProvider;
 public final class BaseEnv {
     private BaseEnv() {}
 
-    public static NarutoConfig narutoConfig;
-    public static volatile FFmpegProvider ffmpegProvider;
-    public static volatile YtDlpProvider ytDlpProvider;
+    private static NarutoConfig narutoConfig;
+    private static volatile FFmpegProvider ffmpegProvider;
+    private static volatile YtDlpProvider ytDlpProvider;
 
     private static volatile boolean available;
 
@@ -20,9 +20,9 @@ public final class BaseEnv {
     public static void setupEnv(boolean roll) {
         narutoConfig = new NarutoConfig(roll);
 
-        ffmpegProvider = new FFmpegProvider(narutoConfig.absoluteFFprobePath, narutoConfig.absoluteFFmpegPath);
+        ffmpegProvider = new FFmpegProvider(getNarutoConfig().absoluteFFprobePath, getNarutoConfig().absoluteFFmpegPath);
 
-        if (narutoConfig.urlSource) ytDlpProvider = new YtDlpProvider(narutoConfig.absoluteYtDlpPath);
+         ytDlpProvider = new YtDlpProvider(getNarutoConfig().absoluteYtDlpPath);
 
         ffmpegProvider.setup(() -> {
             if (ffmpegProvider.absoluteFFmpeg != null) {
@@ -35,5 +35,20 @@ public final class BaseEnv {
                 }
             }
         });
+    }
+
+    public static NarutoConfig getNarutoConfig() {
+        if (narutoConfig == null) setupEnv(false);
+        return narutoConfig;
+    }
+
+    public static FFmpegProvider getFfmpegProvider() {
+        if (ffmpegProvider == null) setupEnv(false);
+        return ffmpegProvider;
+    }
+
+    public static YtDlpProvider getYtDlpProvider() {
+        if (ytDlpProvider == null) setupEnv(false);
+        return ytDlpProvider;
     }
 }

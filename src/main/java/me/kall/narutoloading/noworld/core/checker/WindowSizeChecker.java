@@ -27,8 +27,8 @@ public final class WindowSizeChecker {
             return;
         }
 
-        int width = BaseEnv.narutoConfig.width();
-        int height = BaseEnv.narutoConfig.height();
+        int width = BaseEnv.getNarutoConfig().width();
+        int height = BaseEnv.getNarutoConfig().height();
 
         if (lastWidth == -1 && lastHeight == -1) {
             lastWidth = width;
@@ -69,7 +69,7 @@ public final class WindowSizeChecker {
 
             if (NarutoRenderer.INSTANCE.dynamicTexture != null) NarutoRenderer.INSTANCE.dynamicTexture.close();
 
-            NarutoRenderer.INSTANCE.dynamicTexture = new DynamicTexture(BaseEnv.narutoConfig.width(), BaseEnv.narutoConfig.height(), false);
+            NarutoRenderer.INSTANCE.dynamicTexture = new DynamicTexture(BaseEnv.getNarutoConfig().width(), BaseEnv.getNarutoConfig().height(), false);
             NarutoRenderer.INSTANCE.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", NarutoRenderer.INSTANCE.dynamicTexture);
         }
     }

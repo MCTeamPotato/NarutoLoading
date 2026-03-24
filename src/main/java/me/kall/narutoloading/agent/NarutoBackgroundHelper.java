@@ -50,14 +50,11 @@ public final class NarutoBackgroundHelper {
     private NarutoBackgroundHelper() {}
 
     public static void render() {
-        System.out.println("[NarutoBackgroundHelper] render() called");
         if (failed) {
-            System.out.println("[NarutoBackgroundHelper] Already failed, skipping");
-            return;
+            throw new RuntimeException("[NarutoBackgroundHelper] Already failed, skipping");
         }
 
         if (!BaseEnv.available()) {
-            System.out.println("[NarutoBackgroundHelper] BaseEnv not available");
             BaseEnv.setupEnv(true);
         }
 
@@ -65,15 +62,13 @@ public final class NarutoBackgroundHelper {
             System.out.println("[NarutoBackgroundHelper] initGL...");
             initGL();
             if (failed) {
-                System.out.println("[NarutoBackgroundHelper] initGL failed");
-                return;
+                throw new RuntimeException("[NarutoBackgroundHelper] initGL failed");
             }
         }
 
         ensureVideoExecutor();
         if (videoExecutor == null || lifetime == null) {
-            System.out.println("[NarutoBackgroundHelper] videoExecutor or lifetime is null");
-            return;
+            throw new RuntimeException("[NarutoBackgroundHelper] videoExecutor or lifetime is null");
         }
 
         lifetime.lagSpikeRestart();
@@ -83,8 +78,16 @@ public final class NarutoBackgroundHelper {
             ByteBuffer frame = videoExecutor.fetchFrame(lifetime.elapsedSeconds());
             if (frame != null) {
                 glBindTexture(GL_TEXTURE_2D, texture);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texWidth, texHeight,
-                        GL_RGB, GL_UNSIGNED_BYTE, frame);
+
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+                int expectedSize = texWidth * texHeight * 3;
+                if (frame.remaining() >= expectedSize) {
+                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texWidth, texHeight, GL_RGB, GL_UNSIGNED_BYTE, frame);
+                } else {
+                    throw new RuntimeException("[NarutoLoading] Frame buffer too small! Expected: " + expectedSize + " Got: " + frame.remaining());
+                }
+
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
         }
@@ -117,17 +120,16 @@ public final class NarutoBackgroundHelper {
         } catch (Exception e) {
             cleanupGL();
             failed = true;
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
     private static void ensureVideoExecutor() {
         if (videoExecutor != null) return;
         try {
-            System.out.println("[NarutoBackgroundHelper] ensureVideoExecutor starting...");
-            String videoPath  = BaseEnv.narutoConfig.absoluteVideoPath;
-            String ffprobePath = BaseEnv.ffmpegProvider.absoluteFFprobe;
-            String ffmpegPath  = BaseEnv.ffmpegProvider.absoluteFFmpeg;
+            String videoPath  = BaseEnv.getNarutoConfig().absoluteVideoPath;
+            String ffprobePath = BaseEnv.getFfmpegProvider().absoluteFFprobe;
+            String ffmpegPath  = BaseEnv.getFfmpegProvider().absoluteFFmpeg;
 
             if (videoPath == null  || videoPath.isBlank())  return;
             if (ffprobePath == null || ffprobePath.isBlank()) return;
@@ -137,8 +139,8 @@ public final class NarutoBackgroundHelper {
             fps       = reader.fps();
             long duration = reader.duration();
 
-            texWidth  = BaseEnv.narutoConfig.width();
-            texHeight = BaseEnv.narutoConfig.height();
+            texWidth  = BaseEnv.getNarutoConfig().width();
+            texHeight = BaseEnv.getNarutoConfig().height();
 
             if (texWidth <= 0 || texHeight <= 0) return;
 
@@ -159,8 +161,8 @@ public final class NarutoBackgroundHelper {
                     () -> fWidth,
                     () -> fHeight,
                     () -> fFps,
-                    () -> BaseEnv.narutoConfig.bufferSize,
-                    () -> BaseEnv.narutoConfig.debug
+                    () -> BaseEnv.getNarutoConfig().bufferSize,
+                    () -> BaseEnv.getNarutoConfig().debug
             );
 
             lifetime = new LifetimeController(
@@ -181,12 +183,10 @@ public final class NarutoBackgroundHelper {
 
             videoExecutor.setup();
             lifetime.start();
-            System.out.println("[NarutoBackgroundHelper] Video executor created");
         } catch (Exception e) {
-            System.err.println("[NarutoBackgroundHelper] Failed to init video executor");
             videoExecutor = null;
             lifetime      = null;
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -200,6 +200,7 @@ public final class NarutoBackgroundHelper {
 
     private static void allocTexture(int w, int h) {
         glBindTexture(GL_TEXTURE_2D, texture);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

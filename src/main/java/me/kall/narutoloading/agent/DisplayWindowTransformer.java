@@ -17,8 +17,6 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain domain, byte[] classFileBuffer) {
         if (!TARGET_CLASS.equals(className)) return null;
 
-        System.out.println("[NarutoLoading] Transforming class: " + className);
-
         try {
             ClassReader cr = new ClassReader(classFileBuffer);
             ClassNode classNode = new ClassNode();
@@ -28,36 +26,29 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
 
             for (MethodNode method : classNode.methods) {
                 if (TARGET_METHOD.equals(method.name)) {
-                    System.out.println("[NarutoLoading] Found target method: initRender");
 
                     boolean replaced = replaceElementsInit(method);
                     ok |= replaced;
-                    System.out.println("[NarutoLoading] replaceElementsInit: " + replaced);
 
                     removeSquirAdd(method);
                 }
 
                 if ("paintFramebuffer".equals(method.name)) {
-                    System.out.println("[NarutoLoading] Found method: paintFramebuffer");
                     injectBackgroundRender(method);
                 }
             }
 
             if (!ok) {
-                System.out.println("[NarutoLoading] WARNING: elements init NOT replaced!");
-                return null;
+                throw new RuntimeException("[NarutoLoading] WARNING: elements init NOT replaced!");
             }
 
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             classNode.accept(cw);
 
-            System.out.println("[NarutoLoading] Transform success: " + className);
             return cw.toByteArray();
 
         } catch (Exception ex) {
-            System.out.println("[NarutoLoading] ERROR during transform!");
-            ex.printStackTrace();
-            return null;
+            throw new RuntimeException(ex);
         }
     }
 
@@ -70,30 +61,7 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
 
             System.out.println("[NarutoLoading] Found elements field assignment");
 
-            // 找到 new ArrayList 的位置
-            AbstractInsnNode newArrayList = node.getPrevious();
-            while (newArrayList != null) {
-                if (newArrayList.getOpcode() == Opcodes.NEW &&
-                        "java/util/ArrayList".equals(((TypeInsnNode) newArrayList).desc)) {
-                    break;
-                }
-                newArrayList = newArrayList.getPrevious();
-            }
-
-            if (newArrayList == null) {
-                System.out.println("[NarutoLoading] ERROR: NEW ArrayList not found");
-                continue;
-            }
-
-            AbstractInsnNode aload0 = newArrayList.getPrevious();
-            while ((aload0 instanceof LabelNode || aload0 instanceof LineNumberNode || aload0 instanceof FrameNode)) {
-                aload0 = aload0.getPrevious();
-            }
-
-            if (aload0 == null || aload0.getOpcode() != Opcodes.ALOAD || ((VarInsnNode) aload0).var != 0) {
-                System.out.println("[NarutoLoading] ERROR: ALOAD 0 not found before ArrayList init");
-                continue;
-            }
+            AbstractInsnNode aload0 = getNode(node);
 
             InsnList replacement = new InsnList();
             replacement.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -110,12 +78,38 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
 
             method.instructions.insertBefore(node, replacement);
 
-            System.out.println("[NarutoLoading] Replaced elements initialization → EMPTY ArrayList (no progress bar, no anvil, no overlays)");
-
             return true;
         }
 
         return false;
+    }
+
+    private static @NotNull AbstractInsnNode getNode(AbstractInsnNode node) {
+        AbstractInsnNode aload0 = getAload0(node);
+        while ((aload0 instanceof LabelNode || aload0 instanceof LineNumberNode || aload0 instanceof FrameNode)) {
+            aload0 = aload0.getPrevious();
+        }
+
+        if (aload0 == null || aload0.getOpcode() != Opcodes.ALOAD || ((VarInsnNode) aload0).var != 0) {
+            throw new RuntimeException("[NarutoLoading] ERROR: ALOAD 0 not found before ArrayList init");
+        }
+        return aload0;
+    }
+
+    private static AbstractInsnNode getAload0(@NotNull AbstractInsnNode node) {
+        AbstractInsnNode newArrayList = node.getPrevious();
+        while (newArrayList != null) {
+            if (newArrayList.getOpcode() == Opcodes.NEW && "java/util/ArrayList".equals(((TypeInsnNode) newArrayList).desc)) {
+                break;
+            }
+            newArrayList = newArrayList.getPrevious();
+        }
+
+        if (newArrayList == null) {
+            throw new RuntimeException("[NarutoLoading] ERROR: NEW ArrayList not found");
+        }
+
+        return newArrayList.getPrevious();
     }
 
     private void injectBackgroundRender(@NotNull MethodNode method) {
@@ -125,14 +119,11 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
             if (!"glClear".equals(min.name)) continue;
 
             InsnList inject = new InsnList();
-            inject.add(new InsnNode(Opcodes.POP));               // 消费 glClear 的参数
-            inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-                    "me/kall/narutoloading/agent/NarutoBackgroundHelper", "render", "()V", false));
+            inject.add(new InsnNode(Opcodes.POP));
+            inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "me/kall/narutoloading/agent/NarutoRenderBridge", "render", "()V", false));
 
             method.instructions.insert(insn, inject);
-            method.instructions.remove(insn);                    // 移除原 glClear 调用
-
-            System.out.println("[NarutoLoading] Replaced glClear with background render (POP + render)");
+            method.instructions.remove(insn);
             return;
         }
     }
@@ -151,8 +142,7 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
         }
 
         if (squirCall == null) {
-            System.out.println("[NarutoLoading] WARNING: squir call not found");
-            return;
+            throw new RuntimeException("[NarutoLoading] WARNING: squir call not found");
         }
 
         AbstractInsnNode addCall = squirCall.getNext();
@@ -161,8 +151,7 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
         }
 
         if (addCall == null || addCall.getOpcode() != Opcodes.INVOKEINTERFACE) {
-            System.out.println("[NarutoLoading] WARNING: add call after squir not found");
-            return;
+            throw new RuntimeException("[NarutoLoading] Add call after squir not found");
         }
 
         AbstractInsnNode start = squirCall.getPrevious();
@@ -183,13 +172,9 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
                 method.instructions.remove(cur);
                 cur = next;
             }
-
-            System.out.println("[NarutoLoading] Removed full squir -> add sequence");
         } else {
             method.instructions.remove(squirCall);
             method.instructions.remove(addCall);
-
-            System.out.println("[NarutoLoading] Removed partial squir/add");
         }
     }
 }

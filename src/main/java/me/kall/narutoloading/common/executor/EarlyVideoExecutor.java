@@ -30,7 +30,6 @@ public class EarlyVideoExecutor extends AbstractVideoExecutor<ByteBuffer> {
     @Override protected void release(ByteBuffer frame) {}
 
     public ByteBuffer fetchFrame(double elapsedSeconds) {
-        System.out.println("Fetching frame at " + elapsedSeconds);
         return fetch(elapsedSeconds);
     }
 }
