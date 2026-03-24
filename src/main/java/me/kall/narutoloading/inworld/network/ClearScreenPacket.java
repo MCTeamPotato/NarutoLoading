@@ -3,7 +3,6 @@ package me.kall.narutoloading.inworld.network;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.ext.ScreenLevel;
@@ -72,9 +71,7 @@ public class ClearScreenPacket {
                         online.displayClientMessage(end, false);
                     }
                 }
-            } catch (Exception exception) {
-                NarutoLoading.LOGGER.error("Error handling ClearScreenPacket", exception);
-            }
+            } catch (Exception ignored) {}
         });
         ctx.get().setPacketHandled(true);
     }

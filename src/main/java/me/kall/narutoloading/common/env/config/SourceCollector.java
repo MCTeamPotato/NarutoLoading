@@ -1,9 +1,8 @@
 package me.kall.narutoloading.common.env.config;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.common.util.Paths;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -11,37 +10,36 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 public class SourceCollector {
-    private static final Path SOURCE_DIRECTORY = FMLLoader.getGamePath().resolve("config").resolve(NarutoLoading.MOD_ID + "-sources");
+    private static final Path SOURCE_DIRECTORY = Paths.CONFIG_DIR.resolve(NarutoLoading.MOD_ID + "-sources");
     private static final String VIDEO_FILE_NAME = "video";
     private static final String AUDIO_FILE_NAME = "audio";
 
-    public static final List<Source> ABSOLUTE_SOURCES = new ObjectArrayList<>();
+    public static final List<Source> ABSOLUTE_SOURCES = new ArrayList<>();
 
-    private static final Set<Source> ROLLED = new ObjectOpenHashSet<>();
+    private static final Set<Source> ROLLED = new HashSet<>();
 
     public static @Nullable Source roll() {
         scan();
         if (ABSOLUTE_SOURCES.isEmpty()) return null;
-        NarutoLoading.LOGGER.debug("{}Start to roll source from {}", NarutoLoading.prefix(), ABSOLUTE_SOURCES.stream().map(source -> "{Video: " + source.absoluteVideoPath + ". Audio: " + source.absoluteAudioPath + "}").toList());
         Source source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
         if (ABSOLUTE_SOURCES.size() > 1) {
             while (ROLLED.contains(source)) {
                 source = ABSOLUTE_SOURCES.get(ThreadLocalRandom.current().nextInt(SourceCollector.ABSOLUTE_SOURCES.size()));
             }
         }
-        NarutoLoading.LOGGER.debug("{}Rolling source ends. Video: {}, Audio: {}", NarutoLoading.prefix(), source.absoluteVideoPath, source.absoluteAudioPath);
         ROLLED.add(source);
         return source;
     }
@@ -71,9 +69,7 @@ public class SourceCollector {
                     ABSOLUTE_SOURCES.add(new Source(video.toAbsolutePath().toString(), audio == null ? video.toAbsolutePath().toString() : audio.toAbsolutePath().toString()));
                 }
             }
-        } catch (Exception e) {
-            NarutoLoading.LOGGER.warn("Error scanning NarutoLoading sources: {}", e.getMessage());
-        }
+        } catch (Exception ignored) {}
 
         if (ABSOLUTE_SOURCES.size() == ROLLED.size()) ROLLED.clear();
     }

@@ -45,9 +45,7 @@ public class AudioConverter {
                 onDone.run();
                 return;
             } else {
-                if (absoluteOutputPath.delete()) {
-                    NarutoLoading.LOGGER.debug("{}Existing OGG is not mono, reconverting: {}", NarutoLoading.prefix(), absoluteOutputPath.getAbsolutePath());
-                }
+                absoluteOutputPath.delete();
             }
         }
 
@@ -56,8 +54,6 @@ public class AudioConverter {
                 this.converted = this.absoluteSourcePath;
                 onDone.run();
                 return;
-            } else {
-                NarutoLoading.LOGGER.debug("{}Source OGG is stereo, converting to mono: {}", NarutoLoading.prefix(), this.absoluteSourcePath);
             }
         }
 
@@ -78,15 +74,9 @@ public class AudioConverter {
                 int exitCode = process.waitFor();
 
                 if (exitCode == 0 && absoluteOutputPath.exists()) {
-                    NarutoLoading.LOGGER.debug("{}Successfully converted to mono OGG: {}", NarutoLoading.prefix(), absoluteOutputPath.getAbsolutePath());
                     this.converted = absoluteOutputPath.getAbsolutePath();
-                } else {
-                    NarutoLoading.LOGGER.error("FFmpeg conversion failed with exit code: {}", exitCode);
-                    NarutoLoading.LOGGER.error("FFmpeg output:\n{}", output.toString());
                 }
-            } catch (Exception exception) {
-                NarutoLoading.LOGGER.error("Error converting audio ", exception);
-            } finally {
+            } catch (Exception ignored) {} finally {
                 onDone.run();
                 this.converter.shutdown();
             }
@@ -112,11 +102,9 @@ public class AudioConverter {
             if (exitCode == 0) {
                 String channelCount = output.toString().trim();
                 boolean isMono = "1".equals(channelCount);
-                NarutoLoading.LOGGER.debug("{}Audio file {} has {} channel(s), mono: {}", NarutoLoading.prefix(), audioPath, channelCount, isMono);
                 return isMono;
             }
         } catch (Exception e) {
-            NarutoLoading.LOGGER.warn("Failed to check audio channels for {}: {}", audioPath, e.getMessage());
         }
 
         return false;

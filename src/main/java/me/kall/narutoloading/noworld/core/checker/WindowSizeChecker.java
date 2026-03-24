@@ -1,8 +1,8 @@
 package me.kall.narutoloading.noworld.core.checker;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraftforge.api.distmarker.Dist;
@@ -37,11 +37,9 @@ public final class WindowSizeChecker {
         }
 
         if (width != lastWidth || height != lastHeight) {
-            NarutoLoading.LOGGER.debug("{}Window size changed from [{}, {}] to [{}, {}]", NarutoLoading.prefix(), lastWidth, lastHeight, width, height);
-
-           lastWidth = width;
-           lastHeight = height;
-           resizable = true;
+            lastWidth = width;
+            lastHeight = height;
+            resizable = true;
         }
 
         resize();
@@ -58,8 +56,6 @@ public final class WindowSizeChecker {
             resizable = false;
             if (NarutoRenderer.INSTANCE.lifetime != null){
                 String currentSecond = String.valueOf(NarutoRenderer.INSTANCE.lifetime.elapsedSeconds());
-                NarutoLoading.LOGGER.debug("{}Resizing video and resyncing audio from {} seconds", NarutoLoading.prefix(), currentSecond);
-
                 if (NarutoRenderer.INSTANCE.videoExecutor != null) {
                     NarutoRenderer.INSTANCE.videoExecutor.shutdown();
                     NarutoRenderer.INSTANCE.videoExecutor.setup(currentSecond);

@@ -15,7 +15,6 @@ public class EarlySetup implements IMixinConfigPlugin {
     @Override
     public void onLoad(String s) {
         MixinExtrasBootstrap.init();
-        if (FMLLoader.getDist().isClient()) BaseEnv.setupEnv(true);
     }
 
     @Override

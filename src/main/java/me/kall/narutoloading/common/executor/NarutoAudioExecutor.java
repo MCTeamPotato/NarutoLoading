@@ -1,8 +1,6 @@
 package me.kall.narutoloading.common.executor;
 
 import me.kall.narutoloading.common.executor.base.AbstractFFmpegExecutor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.openal.AL;
@@ -18,8 +16,6 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 public final class NarutoAudioExecutor extends AbstractFFmpegExecutor {
-    private static final Logger LOGGER = LogManager.getLogger(NarutoAudioExecutor.class);
-
     private long device, context;
     private int source;
     private boolean selfContext = false;
@@ -48,11 +44,9 @@ public final class NarutoAudioExecutor extends AbstractFFmpegExecutor {
             this.context = ALC10.alcCreateContext(this.device, (int[]) null);
             ALC10.alcMakeContextCurrent(this.context);
             this.selfContext = true;
-            LOGGER.debug("[NarutoAudioExecutor] Created OpenAL context.");
         } else {
             this.context = currentContext;
             this.device = ALC10.alcGetContextsDevice(this.context);
-            LOGGER.debug("[NarutoAudioExecutor] Using existing OpenAL context.");
         }
 
         try {
@@ -137,7 +131,5 @@ public final class NarutoAudioExecutor extends AbstractFFmpegExecutor {
     }
 
     @Override
-    protected void onError(Exception e) {
-        LOGGER.error("Audio executor error", e);
-    }
+    protected void onError(Exception e) {}
 }

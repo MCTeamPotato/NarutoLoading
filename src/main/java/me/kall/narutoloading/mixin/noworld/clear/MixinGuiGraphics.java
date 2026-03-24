@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.noworld.clear;
 
-import me.kall.narutoloading.noworld.core.checker.FadeChecker;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
+import me.kall.narutoloading.noworld.core.checker.FadeChecker;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;

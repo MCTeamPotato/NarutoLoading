@@ -1,7 +1,5 @@
 package me.kall.narutoloading.common.executor.base;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
@@ -15,8 +13,6 @@ import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 public abstract class AbstractVideoExecutor<T> extends AbstractFFmpegExecutor {
-    protected final Logger LOGGER = LogManager.getLogger(this.getClass());
-
     protected @Nullable LinkedBlockingQueue<Frame<T>> frameQueue;
 
     protected long frameIndex;
@@ -115,9 +111,7 @@ public abstract class AbstractVideoExecutor<T> extends AbstractFFmpegExecutor {
                 this.channel.close();
                 this.channel = null;
             }
-        } catch (Exception e) {
-            LOGGER.error("Channel cleanup error", e);
-        }
+        } catch (Exception ignored) {}
 
         if (this.frameQueue != null) {
             for (Frame<T> frame : this.frameQueue) {

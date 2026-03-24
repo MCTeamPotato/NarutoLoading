@@ -1,9 +1,8 @@
 package me.kall.narutoloading.inworld.core;
 
-import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
-import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
+import me.kall.narutoloading.common.util.Paths;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -38,13 +37,11 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
                 ClientLevel level = Minecraft.getInstance().level;
                 if (player != null && this.screen.localSound() != InWorldScreen.NO_LOCAL_SOUND && level != null) {
                     level.playSeededSound(player, this.screen.centerX(), this.screen.centerY(), this.screen.centerZ(), Holder.direct(SoundEvent.createVariableRangeEvent(this.screen.localSound())), SoundSource.BLOCKS, (float) this.soundVolume().getAsDouble(), 1.0F, level.random.nextLong());
-                    NarutoLoading.LOGGER.debug("{}Local sound {} played at [{}, {}, {}]", NarutoLoading.prefix(), this.screen.localSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
             this.soundShutdown = () -> {
                 if (this.screen.localSound() != InWorldScreen.NO_LOCAL_SOUND) {
                     Minecraft.getInstance().getSoundManager().stop(this.screen.localSound(), SoundSource.BLOCKS);
-                    NarutoLoading.LOGGER.debug("{}Local sound {} playing at [{}, {}, {}] is stopped", NarutoLoading.prefix(), this.screen.localSound().toString(), this.screen.centerX(), this.screen.centerY(), this.screen.centerZ());
                 }
             };
         } else {
@@ -54,7 +51,7 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
     @Override
     protected void readVideoArg() {
-        VideoArgReader reader = new VideoArgReader(NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
+        VideoArgReader reader = new VideoArgReader(Paths.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName)), BaseEnv.ffmpegProvider.absoluteFFprobe);
         this.fps = reader.fps();
         this.duration = reader.duration();
     }
@@ -66,12 +63,12 @@ public class NarutoInWorldRenderer extends NarutoRenderer {
 
     @Override
     protected Supplier<String> absoluteVideoPath() {
-        return () -> NarutoConfig.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
+        return () -> Paths.absolute(this.screen.relativeVideoPath(BaseEnv.narutoConfig.videoFileName));
     }
 
     @Override
     protected Supplier<String> absoluteAudioPath() {
-        return () -> NarutoConfig.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName));
+        return () -> Paths.absolute(this.screen.relativeAudioPath(BaseEnv.narutoConfig.audioFileName));
     }
 
     @Override

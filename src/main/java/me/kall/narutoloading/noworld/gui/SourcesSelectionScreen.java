@@ -2,11 +2,11 @@ package me.kall.narutoloading.noworld.gui;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
-import me.kall.narutoloading.common.env.config.NarutoConfig;
 import me.kall.narutoloading.common.env.config.SourceCollector;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
 import me.kall.narutoloading.common.gui.EmptiableEditBoxes;
 import me.kall.narutoloading.common.gui.SourceNameScreen;
+import me.kall.narutoloading.common.util.Paths;
 import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -124,8 +124,6 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     protected void download(String videoUrl, String audioUrl, String folderName) {
         Path outputDir = YtDlpDownloader.getDefaultOutputDir(folderName);
 
-        NarutoLoading.LOGGER.debug("{}Starting URL download with folder name: {}", NarutoLoading.prefix(), folderName);
-
         CompletableFuture<Void> videoFuture = YtDlpDownloader.download(BaseEnv.ytDlpProvider.absoluteYtDlp, videoUrl, outputDir, "video", YtDlpDownloader.DownloadType.VIDEO, null, downloadResult -> this.onVideoDownloaded(downloadResult, videoUrl));
 
         if (videoFuture != null) {
@@ -142,14 +140,12 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
     }
 
     protected void onVideoDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String videoUrl) {
-        NarutoLoading.LOGGER.debug("{} Video download of {} processed. {}", NarutoLoading.prefix(), videoUrl, downloadResult.toString());
-        if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", NarutoConfig.relative(downloadResult.videoPath())).saveToFile());
+        if (downloadResult.success()) Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("videoFileName", Paths.relative(downloadResult.videoPath())).saveToFile());
     }
 
     protected void onAudioDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String audioUrlToUse) {
-        NarutoLoading.LOGGER.debug("{} Audio download of {} processed. {}", NarutoLoading.prefix(), audioUrlToUse, downloadResult.toString());
         if (downloadResult.success()) {
-            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", NarutoConfig.relative(downloadResult.audioPath())).saveToFile());
+            Minecraft.getInstance().execute(() -> BaseEnv.narutoConfig.config.put("audioFileName", Paths.relative(downloadResult.audioPath())).saveToFile());
         }
     }
 
@@ -158,22 +154,17 @@ public class SourcesSelectionScreen extends EmptiableEditBoxes {
             BaseEnv.setupEnv(false);
             NarutoRenderer.INSTANCE.shutdown();
             NarutoRenderer.INSTANCE.setup();
-            NarutoLoading.LOGGER.debug("{}URL download completed, video playback started", NarutoLoading.prefix());
         });
     }
 
     protected void onRandom() {
         SourceCollector.Source source = SourceCollector.roll();
         if (source != null) {
-            String relativeVideo = NarutoConfig.relative(source.absoluteVideoPath());
-            String relativeAudio = NarutoConfig.relative(source.absoluteAudioPath());
+            String relativeVideo = Paths.relative(source.absoluteVideoPath());
+            String relativeAudio = Paths.relative(source.absoluteAudioPath());
 
             this.videoBox.setValue(relativeVideo);
             this.audioBox.setValue(relativeAudio);
-
-            NarutoLoading.LOGGER.debug("{}Randomly selected source - Video: {}, Audio: {}", NarutoLoading.prefix(), relativeVideo, relativeAudio);
-        } else {
-            NarutoLoading.LOGGER.warn("{}No sources available for random selection", NarutoLoading.prefix());
         }
     }
 

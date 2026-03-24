@@ -1,7 +1,6 @@
 package me.kall.narutoloading.inworld.network;
 
 import it.unimi.dsi.fastutil.objects.ObjectSet;
-import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.inworld.core.ClientScreensRenderer;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.gui.InWorldSelectionScreen;
@@ -46,9 +45,7 @@ public class SourceSelectionPacket {
                         break;
                     }
                 }
-            } catch (Exception exception) {
-                NarutoLoading.LOGGER.error("Error handling SourceSelectionPacket", exception);
-            }
+            } catch (Exception ignored) {}
         });
         ctx.get().setPacketHandled(true);
     }

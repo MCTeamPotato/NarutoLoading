@@ -1,40 +1,38 @@
 package me.kall.narutoloading.agent;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.lwjgl.stb.STBImage;
-import org.lwjgl.system.MemoryStack;
+import me.kall.narutoloading.common.LifetimeController;
+import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
+import me.kall.narutoloading.common.executor.EarlyVideoExecutor;
 import org.lwjgl.system.MemoryUtil;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import static org.lwjgl.opengl.GL32C.*;
 
 public final class NarutoBackgroundHelper {
-    public static final String IMAGE_PATH_PROP = "naruto.bg.image";
-
-    private static final Logger LOGGER = LogManager.getLogger(NarutoBackgroundHelper.class);
-
     private static int prog    = 0;
     private static int vao     = 0;
     private static int vbo     = 0;
     private static int texture = 0;
 
-    private static boolean initialized = false;
-    private static boolean failed      = false;
+    private static EarlyVideoExecutor videoExecutor = null;
+    private static LifetimeController lifetime      = null;
+    private static double fps                       = 0;
+    private static int    texWidth                  = 0;
+    private static int    texHeight                 = 0;
+
+    private static boolean glInitialized = false;
+    private static boolean failed        = false;
 
     private static final String VERT_SRC = String.join("\n",
             "#version 330 core",
             "layout(location = 0) in vec2 aPos;",
             "out vec2 vUv;",
             "void main() {",
-            "    vUv        = aPos * 0.5 + 0.5;",
-            "    vUv.y      = 1.0 - vUv.y;",
+            "    vUv         = aPos * 0.5 + 0.5;",
+            "    vUv.y       = 1.0 - vUv.y;",
             "    gl_Position = vec4(aPos, 0.0, 1.0);",
             "}"
     );
@@ -52,10 +50,43 @@ public final class NarutoBackgroundHelper {
     private NarutoBackgroundHelper() {}
 
     public static void render() {
-        if (failed) return;
-        if (!initialized) {
-            doInit();
-            if (failed) return;
+        System.out.println("[NarutoBackgroundHelper] render() called");
+        if (failed) {
+            System.out.println("[NarutoBackgroundHelper] Already failed, skipping");
+            return;
+        }
+
+        if (!BaseEnv.available()) {
+            System.out.println("[NarutoBackgroundHelper] BaseEnv not available");
+            BaseEnv.setupEnv(true);
+        }
+
+        if (!glInitialized) {
+            System.out.println("[NarutoBackgroundHelper] initGL...");
+            initGL();
+            if (failed) {
+                System.out.println("[NarutoBackgroundHelper] initGL failed");
+                return;
+            }
+        }
+
+        ensureVideoExecutor();
+        if (videoExecutor == null || lifetime == null) {
+            System.out.println("[NarutoBackgroundHelper] videoExecutor or lifetime is null");
+            return;
+        }
+
+        lifetime.lagSpikeRestart();
+        lifetime.endRestart();
+
+        if (lifetime.shouldUpdateFrame(fps)) {
+            ByteBuffer frame = videoExecutor.fetchFrame(lifetime.elapsedSeconds());
+            if (frame != null) {
+                glBindTexture(GL_TEXTURE_2D, texture);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texWidth, texHeight,
+                        GL_RGB, GL_UNSIGNED_BYTE, frame);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
         }
 
         int prevProg = glGetInteger(GL_CURRENT_PROGRAM);
@@ -64,13 +95,10 @@ public final class NarutoBackgroundHelper {
         boolean wasBlend = glIsEnabled(GL_BLEND);
 
         glDisable(GL_BLEND);
-
         glUseProgram(prog);
         glUniform1i(glGetUniformLocation(prog, "uTex"), 0);
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
-
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -80,27 +108,104 @@ public final class NarutoBackgroundHelper {
         if (wasBlend) glEnable(GL_BLEND);
     }
 
-    private static void doInit() {
-        String path = System.getProperty(IMAGE_PATH_PROP);
-        if (path == null || path.isBlank()) {
-            LOGGER.warn("[NarutoAgent] Background image path not set. "
-                    + "Use -D{}=<path>", IMAGE_PATH_PROP);
-            failed = true;
-            return;
-        }
-
+    private static void initGL() {
         try {
             prog    = buildShaderProgram();
-            texture = loadTexture(path);
             vao     = buildQuadVao();
-
-            initialized = true;
-            LOGGER.info("[NarutoAgent] Background image ready: {}", path);
+            texture = glGenTextures();
+            glInitialized = true;
         } catch (Exception e) {
-            LOGGER.error("[NarutoAgent] Background init failed", e);
-            cleanup();
+            cleanupGL();
             failed = true;
+            e.printStackTrace();
         }
+    }
+
+    private static void ensureVideoExecutor() {
+        if (videoExecutor != null) return;
+        try {
+            System.out.println("[NarutoBackgroundHelper] ensureVideoExecutor starting...");
+            String videoPath  = BaseEnv.narutoConfig.absoluteVideoPath;
+            String ffprobePath = BaseEnv.ffmpegProvider.absoluteFFprobe;
+            String ffmpegPath  = BaseEnv.ffmpegProvider.absoluteFFmpeg;
+
+            if (videoPath == null  || videoPath.isBlank())  return;
+            if (ffprobePath == null || ffprobePath.isBlank()) return;
+            if (ffmpegPath == null  || ffmpegPath.isBlank())  return;
+
+            VideoArgReader reader = new VideoArgReader(videoPath, ffprobePath);
+            fps       = reader.fps();
+            long duration = reader.duration();
+
+            texWidth  = BaseEnv.narutoConfig.width();
+            texHeight = BaseEnv.narutoConfig.height();
+
+            if (texWidth <= 0 || texHeight <= 0) return;
+
+            allocTexture(texWidth, texHeight);
+
+            final String fVideoPath  = videoPath;
+            final String fFfmpegPath = ffmpegPath;
+            final int    fWidth      = texWidth;
+            final int    fHeight     = texHeight;
+            final double fFps        = fps;
+
+            videoExecutor = new EarlyVideoExecutor(
+                    () -> () -> {
+                        if (lifetime != null) lifetime.lagSpikeDetected = true;
+                    },
+                    () -> fFfmpegPath,
+                    () -> fVideoPath,
+                    () -> fWidth,
+                    () -> fHeight,
+                    () -> fFps,
+                    () -> BaseEnv.narutoConfig.bufferSize,
+                    () -> BaseEnv.narutoConfig.debug
+            );
+
+            lifetime = new LifetimeController(
+                    duration,
+                    System.nanoTime(),
+                    () -> () -> {
+                        BaseEnv.setupEnv(true);
+                        restartExecutor();
+                    },
+                    () -> (elapsedSeconds) -> {
+                        if (videoExecutor != null) {
+                            videoExecutor.shutdown();
+                            videoExecutor.setup(elapsedSeconds);
+                        }
+                    },
+                    () -> false
+            );
+
+            videoExecutor.setup();
+            lifetime.start();
+            System.out.println("[NarutoBackgroundHelper] Video executor created");
+        } catch (Exception e) {
+            System.err.println("[NarutoBackgroundHelper] Failed to init video executor");
+            videoExecutor = null;
+            lifetime      = null;
+            e.printStackTrace();
+        }
+    }
+
+    private static void restartExecutor() {
+        if (videoExecutor != null) {
+            videoExecutor.shutdown();
+            videoExecutor = null;
+        }
+        lifetime = null;
+    }
+
+    private static void allocTexture(int w, int h) {
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     private static int buildShaderProgram() {
@@ -111,14 +216,13 @@ public final class NarutoBackgroundHelper {
         glAttachShader(program, vert);
         glAttachShader(program, frag);
         glLinkProgram(program);
-
         glDeleteShader(vert);
         glDeleteShader(frag);
 
         if (glGetProgrami(program, GL_LINK_STATUS) == GL_FALSE) {
             String log = glGetProgramInfoLog(program);
             glDeleteProgram(program);
-            throw new RuntimeException("Shader program link failed: " + log);
+            throw new RuntimeException("Shader link failed: " + log);
         }
         return program;
     }
@@ -136,7 +240,7 @@ public final class NarutoBackgroundHelper {
     }
 
     private static int buildQuadVao() {
-        float[] verts = {-1f, -1f, 1f, -1f, -1f,  1f, 1f,  1f};
+        float[] verts = {-1f, -1f,  1f, -1f,  -1f, 1f,  1f, 1f};
 
         int quadVao = glGenVertexArrays();
         int quadVbo = glGenBuffers();
@@ -155,49 +259,13 @@ public final class NarutoBackgroundHelper {
 
         glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0L);
         glEnableVertexAttribArray(0);
-
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
         return quadVao;
     }
 
-    private static int loadTexture(String path) throws IOException {
-        byte[] fileBytes = Files.readAllBytes(Paths.get(path));
-        ByteBuffer raw = MemoryUtil.memAlloc(fileBytes.length);
-        try {
-            raw.put(fileBytes).flip();
-
-            try (MemoryStack stack = MemoryStack.stackPush()) {
-                IntBuffer w = stack.mallocInt(1);
-                IntBuffer h = stack.mallocInt(1);
-                IntBuffer c = stack.mallocInt(1);
-
-                STBImage.stbi_set_flip_vertically_on_load(false);
-                ByteBuffer pixels = STBImage.stbi_load_from_memory(raw, w, h, c, 4);
-                if (pixels == null) {
-                    throw new IOException("STBImage failed: " + STBImage.stbi_failure_reason());
-                }
-                try {
-                    int tex = glGenTextures();
-                    glBindTexture(GL_TEXTURE_2D, tex);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w.get(0), h.get(0), 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                    return tex;
-                } finally {
-                    STBImage.stbi_image_free(pixels);
-                }
-            }
-        } finally {
-            MemoryUtil.memFree(raw);
-        }
-    }
-
-    private static void cleanup() {
+    private static void cleanupGL() {
         if (texture != 0) { glDeleteTextures(texture); texture = 0; }
         if (vbo     != 0) { glDeleteBuffers(vbo);       vbo     = 0; }
         if (vao     != 0) { glDeleteVertexArrays(vao);  vao     = 0; }

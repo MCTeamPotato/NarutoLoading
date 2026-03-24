@@ -1,7 +1,7 @@
 package me.kall.narutoloading.common.env.ffmpeg;
 
 import me.kall.narutoloading.NarutoLoading;
-import net.minecraftforge.fml.loading.FMLLoader;
+import me.kall.narutoloading.common.util.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,13 +26,12 @@ public final class FFmpegProvider {
         if (!absoluteFFprobePath.isBlank() && !absoluteFFmpegPath.isBlank()) {
             this.absoluteFFprobe = absoluteFFprobePath;
             this.absoluteFFmpeg = absoluteFFmpegPath;
-            NarutoLoading.LOGGER.debug("{}Using FFmpeg from config.", NarutoLoading.prefix());
             onDone.run();
             return;
         }
 
         OSType os = OSType.CURRENT;
-        Path gamePath = FMLLoader.getGamePath();
+        Path gamePath = Paths.GAME_DIR;
 
         boolean windows = os == OSType.WINDOWS;
         String ffmpegName = windows ? "ffmpeg.exe" : "ffmpeg";
@@ -41,7 +40,6 @@ public final class FFmpegProvider {
         String baseDir = OSType.getBase(gamePath, os);
 
         if (baseDir == null) {
-            NarutoLoading.LOGGER.warn("{}FFmpeg not found. Please set ffmpegExePath and ffprobeExePath in the config.", NarutoLoading.prefix());
             this.absoluteFFmpeg = null;
             this.absoluteFFprobe = null;
             onDone.run();
@@ -53,8 +51,6 @@ public final class FFmpegProvider {
 
         this.absoluteFFmpeg = ffmpegFile.exists() ? ffmpegFile.getAbsolutePath() : null;
         this.absoluteFFprobe = ffprobeFile.exists() ? ffprobeFile.getAbsolutePath() : null;
-        NarutoLoading.LOGGER.debug("{}NarutoLoading ffmpeg file path: {}", NarutoLoading.prefix(), this.absoluteFFmpeg);
-        NarutoLoading.LOGGER.debug("{}NarutoLoading ffprobe file path: {}", NarutoLoading.prefix(), this.absoluteFFprobe);
         onDone.run();
     }
 
@@ -67,9 +63,9 @@ public final class FFmpegProvider {
 
         static @NotNull File getExe(String baseDir, String fileName, OSType os) {
             if (os == OSType.MACOS) {
-                return FMLLoader.getGamePath().resolve(baseDir).resolve(fileName).toFile();
+                return Paths.GAME_DIR.resolve(baseDir).resolve(fileName).toFile();
             }
-            return FMLLoader.getGamePath().resolve(baseDir).resolve("bin").resolve(fileName).toFile();
+            return Paths.GAME_DIR.resolve(baseDir).resolve("bin").resolve(fileName).toFile();
         }
     }
 

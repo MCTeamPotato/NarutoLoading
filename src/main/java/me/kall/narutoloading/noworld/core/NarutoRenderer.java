@@ -1,7 +1,6 @@
 package me.kall.narutoloading.noworld.core;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.LifetimeController;
 import me.kall.narutoloading.common.env.BaseEnv;
 import me.kall.narutoloading.common.env.ffmpeg.VideoArgReader;
@@ -83,7 +82,6 @@ public class NarutoRenderer {
         this.dynamicTexture = new DynamicTexture(this.textureWidth().getAsInt(), this.textureHeight().getAsInt(), false);
         if (this.textureLocation == null) {
             this.textureLocation = Minecraft.getInstance().getTextureManager().register("naruto_video_dynamic", this.dynamicTexture);
-            NarutoLoading.LOGGER.debug("{}NarutoRenderer texture location initialized: {}", NarutoLoading.prefix(), this.textureLocation.toString());
         }
     }
 

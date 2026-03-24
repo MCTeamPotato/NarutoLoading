@@ -1,7 +1,5 @@
 package me.kall.narutoloading.agent;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -14,40 +12,51 @@ import java.security.ProtectionDomain;
 public class DisplayWindowTransformer implements ClassFileTransformer {
     private static final String TARGET_CLASS = "net/minecraftforge/fml/earlydisplay/DisplayWindow";
     private static final String TARGET_METHOD = "initRender";
-    private static final Logger LOGGER = LogManager.getLogger(DisplayWindowTransformer.class);
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain domain, byte[] classFileBuffer) {
         if (!TARGET_CLASS.equals(className)) return null;
-        LOGGER.info("[NarutoAgent] Transforming {}", className);
+
+        System.out.println("[NarutoLoading] Transforming class: " + className);
+
         try {
             ClassReader cr = new ClassReader(classFileBuffer);
             ClassNode classNode = new ClassNode();
             cr.accept(classNode, 0);
 
             boolean ok = false;
+
             for (MethodNode method : classNode.methods) {
                 if (TARGET_METHOD.equals(method.name)) {
-                    ok |= replaceElementsInit(method);
+                    System.out.println("[NarutoLoading] Found target method: initRender");
+
+                    boolean replaced = replaceElementsInit(method);
+                    ok |= replaced;
+                    System.out.println("[NarutoLoading] replaceElementsInit: " + replaced);
+
                     removeSquirAdd(method);
                 }
 
                 if ("paintFramebuffer".equals(method.name)) {
+                    System.out.println("[NarutoLoading] Found method: paintFramebuffer");
                     injectBackgroundRender(method);
                 }
             }
 
             if (!ok) {
-                LOGGER.warn("[NarutoAgent] Pattern not found in " + TARGET_METHOD + " — bytecode may have changed, transformation skipped.");
+                System.out.println("[NarutoLoading] WARNING: elements init NOT replaced!");
                 return null;
             }
 
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             classNode.accept(cw);
-            LOGGER.info("[NarutoAgent] Transformation successful.");
+
+            System.out.println("[NarutoLoading] Transform success: " + className);
             return cw.toByteArray();
+
         } catch (Exception ex) {
-            LOGGER.fatal("[NarutoAgent] Exception during transformation.", ex);
+            System.out.println("[NarutoLoading] ERROR during transform!");
+            ex.printStackTrace();
             return null;
         }
     }
@@ -55,19 +64,24 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
     private boolean replaceElementsInit(@NotNull MethodNode method) {
         for (AbstractInsnNode node : method.instructions.toArray()) {
             if (node.getOpcode() != Opcodes.PUTFIELD) continue;
+
             FieldInsnNode fin = (FieldInsnNode) node;
             if (!"elements".equals(fin.name)) continue;
 
+            System.out.println("[NarutoLoading] Found elements field assignment");
+
+            // 找到 new ArrayList 的位置
             AbstractInsnNode newArrayList = node.getPrevious();
             while (newArrayList != null) {
-                if (newArrayList.getOpcode() == Opcodes.NEW && "java/util/ArrayList".equals(((TypeInsnNode) newArrayList).desc)) {
+                if (newArrayList.getOpcode() == Opcodes.NEW &&
+                        "java/util/ArrayList".equals(((TypeInsnNode) newArrayList).desc)) {
                     break;
                 }
                 newArrayList = newArrayList.getPrevious();
             }
 
             if (newArrayList == null) {
-                LOGGER.warn("[NarutoAgent] NEW ArrayList not found before PUTFIELD elements");
+                System.out.println("[NarutoLoading] ERROR: NEW ArrayList not found");
                 continue;
             }
 
@@ -77,7 +91,7 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
             }
 
             if (aload0 == null || aload0.getOpcode() != Opcodes.ALOAD || ((VarInsnNode) aload0).var != 0) {
-                LOGGER.warn("[NarutoAgent] Expected ALOAD 0 before NEW ArrayList, got: {}", aload0 == null ? "null" : aload0.getOpcode());
+                System.out.println("[NarutoLoading] ERROR: ALOAD 0 not found before ArrayList init");
                 continue;
             }
 
@@ -96,23 +110,8 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
 
             method.instructions.insertBefore(node, replacement);
 
-            String owner = "net/minecraftforge/fml/earlydisplay/DisplayWindow";
-            String reOwner = "net/minecraftforge/fml/earlydisplay/RenderElement";
-            String fontDesc = "Lnet/minecraftforge/fml/earlydisplay/SimpleFont;";
-            String reDesc = "Lnet/minecraftforge/fml/earlydisplay/RenderElement;";
+            System.out.println("[NarutoLoading] Replaced elements initialization → EMPTY ArrayList (no progress bar, no anvil, no overlays)");
 
-            InsnList addProgressBars = new InsnList();
-            addProgressBars.add(new VarInsnNode(Opcodes.ALOAD, 0));
-            addProgressBars.add(new FieldInsnNode(Opcodes.GETFIELD, owner, "elements", "Ljava/util/List;"));
-            addProgressBars.add(new VarInsnNode(Opcodes.ALOAD, 0));
-            addProgressBars.add(new FieldInsnNode(Opcodes.GETFIELD, owner, "font", fontDesc));
-            addProgressBars.add(new MethodInsnNode(Opcodes.INVOKESTATIC, reOwner, "progressBars", "(" + fontDesc + ")" + reDesc, false));
-            addProgressBars.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/List", "add", "(Ljava/lang/Object;)Z", true));
-            addProgressBars.add(new InsnNode(Opcodes.POP));
-
-            method.instructions.insert(node, addProgressBars);
-
-            LOGGER.info("[NarutoAgent] Replaced elements init with new ArrayList<>() + progressBars(font)");
             return true;
         }
 
@@ -126,27 +125,35 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
             if (!"glClear".equals(min.name)) continue;
 
             InsnList inject = new InsnList();
-            inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "me/kall/narutoloading/agent/NarutoBackgroundHelper", "render", "()V", false));
+            inject.add(new InsnNode(Opcodes.POP));               // 消费 glClear 的参数
+            inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                    "me/kall/narutoloading/agent/NarutoBackgroundHelper", "render", "()V", false));
 
             method.instructions.insert(insn, inject);
-            LOGGER.info("[NarutoAgent] Injected NarutoBackgroundHelper.render() after glClear()");
+            method.instructions.remove(insn);                    // 移除原 glClear 调用
+
+            System.out.println("[NarutoLoading] Replaced glClear with background render (POP + render)");
             return;
         }
-        LOGGER.warn("[NarutoAgent] glClear() not found in paintFramebuffer — background injection skipped.");
     }
 
     private void removeSquirAdd(@NotNull MethodNode method) {
         AbstractInsnNode squirCall = null;
+
         for (AbstractInsnNode insn : method.instructions.toArray()) {
             if (insn.getOpcode() == Opcodes.INVOKESTATIC) {
                 MethodInsnNode min = (MethodInsnNode) insn;
                 if ("squir".equals(min.name)) {
-                    squirCall = insn; break;
+                    squirCall = insn;
+                    break;
                 }
             }
         }
 
-        if (squirCall == null) return;
+        if (squirCall == null) {
+            System.out.println("[NarutoLoading] WARNING: squir call not found");
+            return;
+        }
 
         AbstractInsnNode addCall = squirCall.getNext();
         while ((addCall instanceof LabelNode || addCall instanceof LineNumberNode || addCall instanceof FrameNode)) {
@@ -154,7 +161,7 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
         }
 
         if (addCall == null || addCall.getOpcode() != Opcodes.INVOKEINTERFACE) {
-            LOGGER.warn("[NarutoAgent] Expected INVOKEINTERFACE add() after squir(), skipping squir removal");
+            System.out.println("[NarutoLoading] WARNING: add call after squir not found");
             return;
         }
 
@@ -170,17 +177,19 @@ public class DisplayWindowTransformer implements ClassFileTransformer {
         if (start != null && start.getOpcode() == Opcodes.ALOAD && ((VarInsnNode) start).var == 0) {
             AbstractInsnNode cur = start;
             AbstractInsnNode end = addCall.getNext();
+
             while (cur != end) {
                 AbstractInsnNode next = cur.getNext();
                 method.instructions.remove(cur);
                 cur = next;
             }
 
-            LOGGER.info("[NarutoAgent] Removed elements.add(0, RenderElement.squir()) call");
+            System.out.println("[NarutoLoading] Removed full squir -> add sequence");
         } else {
             method.instructions.remove(squirCall);
             method.instructions.remove(addCall);
-            LOGGER.info("[NarutoAgent] Partially removed squir() call");
+
+            System.out.println("[NarutoLoading] Removed partial squir/add");
         }
     }
 }

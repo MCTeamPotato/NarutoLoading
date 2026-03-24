@@ -1,7 +1,7 @@
 package me.kall.narutoloading.common.env.ytdlp;
 
 import me.kall.narutoloading.NarutoLoading;
-import net.minecraftforge.fml.loading.FMLLoader;
+import me.kall.narutoloading.common.util.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,28 +22,24 @@ public final class YtDlpProvider {
 
         if (!absoluteYtDlpPath.isBlank()) {
             this.absoluteYtDlp = absoluteYtDlpPath;
-            NarutoLoading.LOGGER.debug("{}Using yt-dlp from config.", NarutoLoading.prefix());
             onDone.run();
             return;
         }
 
         OSType os = OSType.CURRENT;
         if (os == null) {
-            NarutoLoading.LOGGER.error("{}Unsupported operating system for yt-dlp", NarutoLoading.prefix());
             this.absoluteYtDlp = null;
             onDone.run();
             return;
         }
 
-        Path gamePath = FMLLoader.getGamePath();
+        Path gamePath = Paths.GAME_DIR;
         String ytDlpName = os == OSType.WINDOWS ? "yt-dlp.exe" : "yt-dlp";
         File ytDlpFile = gamePath.resolve("yt-dlp").resolve(ytDlpName).toFile();
 
         if (ytDlpFile.exists()) {
             this.absoluteYtDlp = ytDlpFile.getAbsolutePath();
-            NarutoLoading.LOGGER.debug("{}NarutoLoading yt-dlp file path: {}", NarutoLoading.prefix(), this.absoluteYtDlp);
         } else {
-            NarutoLoading.LOGGER.warn("{}yt-dlp not found. Please set ytdlpExePath in the config.", NarutoLoading.prefix());
             this.absoluteYtDlp = null;
         }
 

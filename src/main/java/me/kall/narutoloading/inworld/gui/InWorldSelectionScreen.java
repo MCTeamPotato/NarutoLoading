@@ -2,13 +2,13 @@ package me.kall.narutoloading.inworld.gui;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.common.env.BaseEnv;
-import me.kall.narutoloading.common.env.config.NarutoConfig;
+import me.kall.narutoloading.common.env.ffmpeg.AudioConverter;
 import me.kall.narutoloading.common.env.ytdlp.YtDlpDownloader;
+import me.kall.narutoloading.common.util.Paths;
 import me.kall.narutoloading.inworld.core.InWorldScreen;
 import me.kall.narutoloading.inworld.core.NarutoInWorldRenderer;
 import me.kall.narutoloading.inworld.data.Displayers;
 import me.kall.narutoloading.inworld.data.HiddenDisplayers;
-import me.kall.narutoloading.common.env.ffmpeg.AudioConverter;
 import me.kall.narutoloading.inworld.data.Screens;
 import me.kall.narutoloading.inworld.gui.util.ResourceZipGenerator;
 import me.kall.narutoloading.inworld.init.NarutoPackets;
@@ -205,25 +205,21 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
     @Override
     protected void onVideoDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String videoUrl) {
-        NarutoLoading.LOGGER.debug("{}Video download of {} processed. {}", NarutoLoading.prefix(), videoUrl, downloadResult.toString());
         if (downloadResult.success() && downloadResult.hasVideo()) {
             Minecraft.getInstance().execute(() -> {
-                String relativePath = NarutoConfig.relative(downloadResult.videoPath());
+                String relativePath = Paths.relative(downloadResult.videoPath());
                 this.renderer.screen.setPath(relativePath, relativePath);
-                NarutoLoading.LOGGER.debug("{}Set video path to: {}", NarutoLoading.prefix(), relativePath);
             });
         }
     }
 
     @Override
     protected void onAudioDownloaded(YtDlpDownloader.@NotNull DownloadResult downloadResult, String audioUrlToUse) {
-        NarutoLoading.LOGGER.debug("{}Audio download of {} processed. {}", NarutoLoading.prefix(), audioUrlToUse, downloadResult.toString());
         if (downloadResult.success() && downloadResult.hasAudio()) {
             Minecraft.getInstance().execute(() -> {
-                String relativePath = NarutoConfig.relative(downloadResult.audioPath());
+                String relativePath = Paths.relative(downloadResult.audioPath());
                 String currentVideo = this.renderer.screen.relativeVideoPath(NarutoLoading.BLANK);
                 this.renderer.screen.setPath(currentVideo, relativePath);
-                NarutoLoading.LOGGER.debug("{}Set audio path to: {}", NarutoLoading.prefix(), relativePath);
             });
         }
     }
@@ -259,13 +255,12 @@ public class InWorldSelectionScreen extends SourcesSelectionScreen {
 
             NarutoPackets.INSTANCE.sendToServer(new ArgUpdatePacket(this.renderer.screen));
 
-            NarutoLoading.LOGGER.debug("{}URL download and setup completed for in-world screen: {}", NarutoLoading.prefix(), this.renderer.screen.toString());
         });
     }
 
     private void setupLocalSound() {
         this.renderer.screen.setLocalSound(InWorldScreen.HAS_LOCAL_SOUND);
-        AudioConverter audioConverter = new AudioConverter(NarutoConfig.absolute(this.renderer.screen.relativeAudioPath(NarutoLoading.BLANK)), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
+        AudioConverter audioConverter = new AudioConverter(Paths.absolute(this.renderer.screen.relativeAudioPath(NarutoLoading.BLANK)), BaseEnv.ffmpegProvider.absoluteFFmpeg, BaseEnv.ffmpegProvider.absoluteFFprobe);
         audioConverter.setup(() -> {
             ResourceZipGenerator resourceZipGenerator = new ResourceZipGenerator(audioConverter.converted);
             resourceZipGenerator.generate();

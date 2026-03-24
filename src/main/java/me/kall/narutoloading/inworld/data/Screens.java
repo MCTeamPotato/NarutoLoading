@@ -69,7 +69,6 @@ public class Screens extends SavedData {
                 screenTag.putBoolean(HIDE_INNER_KEY, inWorldScreen.hideInner());
                 screenTag.putInt(VIDEO_HEIGHT_KEY, inWorldScreen.videoHeight());
                 screenTag.putInt(VIDEO_WIDTH_KEY, inWorldScreen.videoWidth());
-                NarutoLoading.LOGGER.debug("{}Saving {} successfully", NarutoLoading.prefix(), inWorldScreen.toString());
                 screensList.add(screenTag);
             }
         }

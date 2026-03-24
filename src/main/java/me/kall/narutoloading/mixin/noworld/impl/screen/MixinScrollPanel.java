@@ -1,8 +1,8 @@
 package me.kall.narutoloading.mixin.noworld.impl.screen;
 
 import com.mojang.blaze3d.vertex.Tesselator;
-import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import me.kall.narutoloading.common.env.BaseEnv;
+import me.kall.narutoloading.noworld.core.NarutoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.gui.widget.ScrollPanel;

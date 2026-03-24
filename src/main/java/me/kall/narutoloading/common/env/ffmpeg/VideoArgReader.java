@@ -1,7 +1,5 @@
 package me.kall.narutoloading.common.env.ffmpeg;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -10,8 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VideoArgReader {
-    private static final Logger LOGGER = LogManager.getLogger(VideoArgReader.class);
-
     private double fps = 0D;
     private long duration = 0L;
 
@@ -25,12 +21,9 @@ public class VideoArgReader {
     }
 
     public void setup() {
-        LOGGER.debug("NarutoLoading starts to use [{}] to read video [{}] arguments", this.ffprobe, this.video);
         String json = FFprobe.genJson(this.video, this.ffprobe);
         this.fps = FFprobe.getFps(json);
         this.duration = FFprobe.getDuration(json);
-        LOGGER.debug("NarutoLoading video fps: {}", this.fps);
-        LOGGER.debug("NarutoLoading video duration: {}", this.duration);
     }
 
     public double fps() {

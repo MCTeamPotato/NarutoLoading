@@ -1,19 +1,10 @@
 package me.kall.narutoloading.common.env.config;
 
-import me.kall.duplicationless.config.JsonConfig;
-import me.kall.narutoloading.NarutoLoading;
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.loading.FMLLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
+import me.kall.narutoloading.common.util.JsonConfig;
+import me.kall.narutoloading.common.util.Paths;
 import org.lwjgl.glfw.GLFW;
 
-import java.nio.file.Path;
-
 public final class NarutoConfig {
-    private static final Logger LOGGER = LogManager.getLogger(NarutoConfig.class);
-
     public JsonConfig config;
 
     public int reload;
@@ -40,15 +31,11 @@ public final class NarutoConfig {
     public boolean urlSource;
 
     public int width() {
-        int width = Minecraft.getInstance().getWindow().getScreenWidth();
-        if (width > this.maxResolutionWidth) width = this.maxResolutionWidth;
-        return width;
+        return this.maxResolutionWidth;
     }
 
     public int height() {
-        int height = Minecraft.getInstance().getWindow().getScreenHeight();
-        if (height > this.maxResolutionHeight) height = this.maxResolutionHeight;
-        return height;
+        return this.maxResolutionHeight;
     }
 
     public NarutoConfig(boolean roll) {
@@ -56,13 +43,13 @@ public final class NarutoConfig {
     }
 
     public void init(boolean roll) {
-        this.config = JsonConfig.create(NarutoLoading.MOD_ID, "8")
+        this.config = JsonConfig.create("narutoloading", "8")
                 .put("ffmpegExePath", "D:\\your\\ffmpeg\\file.exe")
                 .put("ffprobeExePath", "D:\\your\\ffprobe\\file.exe")
                 .put("ytdlpExePath", "D:\\your\\yt-dlp\\file.exe")
                 .put("enableUrlForSourceSelection", false)
                 .put("videoFileName", "naruto.mp4")
-                .put("audioFileName", NarutoLoading.BLANK)
+                .put("audioFileName", "")
                 .put("reloadKey", GLFW.GLFW_KEY_F12)
                 .put("audioVolume", 1.0)
                 .put("maxResolutionWidth", 1350)
@@ -74,10 +61,10 @@ public final class NarutoConfig {
         this.reload = this.config.getInt("reloadKey");
 
         this.videoFileName = this.config.getString("videoFileName");
-        this.absoluteVideoPath = NarutoConfig.absolute(this.videoFileName);
+        this.absoluteVideoPath = Paths.absolute(this.videoFileName);
 
         this.audioFileName = this.config.getString("audioFileName");
-        this.absoluteAudioPath = this.audioFileName.isBlank() ? NarutoLoading.BLANK : NarutoConfig.absolute(this.audioFileName);
+        this.absoluteAudioPath = this.audioFileName.isBlank() ? "" : Paths.absolute(this.audioFileName);
 
         this.absoluteFFprobePath = this.config.getString("ffprobeExePath");
         this.absoluteFFmpegPath = this.config.getString("ffmpegExePath");
@@ -95,25 +82,19 @@ public final class NarutoConfig {
         this.urlSource = this.config.getBoolean("enableUrlForSourceSelection");
 
         if (roll) this.roll();
-
-        this.log();
     }
 
     public void roll() {
         SourceCollector.Source source = SourceCollector.roll();
         if (source != null) {
             this.absoluteVideoPath = source.absoluteVideoPath();
-            this.videoFileName = relative(this.absoluteVideoPath);
+            this.videoFileName = Paths.relative(this.absoluteVideoPath);
 
             this.absoluteAudioPath = source.absoluteAudioPath();
-            this.audioFileName = relative(this.absoluteAudioPath);
+            this.audioFileName = Paths.relative(this.absoluteAudioPath);
 
             this.config.put("videoFileName", this.videoFileName).put("audioFileName", this.audioFileName).saveToFile();
         }
-    }
-
-    private void log() {
-        LOGGER.debug(this.toString());
     }
 
     public String toString() {
@@ -129,18 +110,5 @@ public final class NarutoConfig {
                 "], [Audio Volume: " + this.volume +
                 "], [Log Errors Or Not: " + this.debug +
                 "], [Enable Url For Source Selection: " + this.urlSource + "]}";
-    }
-
-    public static @NotNull String absolute(@NotNull String relativePath) {
-        if (relativePath.isBlank()) return NarutoLoading.BLANK;
-        return FMLLoader.getGamePath().resolve("config").resolve(relativePath).toAbsolutePath().toString();
-    }
-
-    public static @NotNull String relative(@NotNull String absolutePath) {
-        if (absolutePath.isBlank()) return NarutoLoading.BLANK;
-        Path configPath = FMLLoader.getGamePath().resolve("config").toAbsolutePath().normalize();
-        Path targetPath = Path.of(absolutePath).toAbsolutePath().normalize();
-        if (!targetPath.startsWith(configPath)) return NarutoLoading.BLANK;
-        return configPath.relativize(targetPath).toString();
     }
 }
