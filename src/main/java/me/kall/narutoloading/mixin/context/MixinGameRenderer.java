@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
-public abstract class GameRendererMixin {
+public abstract class MixinGameRenderer {
     @WrapOperation(method = "render", at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;)Lnet/minecraft/client/gui/GuiGraphics;"))
     private GuiGraphics capture(Minecraft minecraft, MultiBufferSource.BufferSource bufferSource, @NotNull Operation<GuiGraphics> original) {
         GuiGraphics graphics = original.call(minecraft, bufferSource);

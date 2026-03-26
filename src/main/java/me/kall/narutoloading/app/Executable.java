@@ -34,9 +34,7 @@ public class Executable {
             throw new RuntimeException(e);
         }
 
-        if (exitCode != 0) {
-            throw new RuntimeException("IOException: Command exited with code " + exitCode + ": " + Arrays.toString(command));
-        }
+        if (exitCode != 0) throw new RuntimeException("IOException: Command exited with code " + exitCode + ": " + Arrays.toString(command));
 
         return output.toString();
     }

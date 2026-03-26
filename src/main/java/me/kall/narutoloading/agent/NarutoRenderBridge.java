@@ -12,10 +12,13 @@ import java.util.Objects;
 public class NarutoRenderBridge {
     static final Path NARUTO_JAR;
 
+    private static volatile Class<?> rendererClass = null;
+
     private static volatile Method renderMethod = null;
     private static volatile Method shutdownMethod = null;
     private static volatile Method restartMethod = null;
-    private static volatile boolean failed = false;
+
+    private static volatile boolean end = false;
 
     static {
         try {
@@ -25,24 +28,75 @@ public class NarutoRenderBridge {
         }
     }
 
-    @SuppressWarnings({"resource", "unused"})
-    public static void render() {
-        if (failed) return;
-        try {
-            if (renderMethod == null) {
-                ClassLoader forgeClassLoader = getForgeClassLoader();
-                if (forgeClassLoader == null) {
-                    failed = true;
-                    return;
-                }
+    @SuppressWarnings("resource")
+    private static void ensureInitialized() throws Exception {
+        if (rendererClass != null) return;
 
-                NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
-                Class<?> rendererClass = narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer");
-                renderMethod = rendererClass.getMethod("render");
-            }
+        ClassLoader forgeClassLoader = getForgeClassLoader();
+        if (forgeClassLoader == null) {
+            end = true;
+            return;
+        }
+
+        NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
+
+        rendererClass = narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer");
+    }
+
+    @SuppressWarnings("unused")
+    public static void render() {
+        if (end) return;
+        try {
+            ensureInitialized();
+            if (rendererClass == null) return;
+
+            if (renderMethod == null) renderMethod = rendererClass.getMethod("render");
+
+
             renderMethod.invoke(null);
         } catch (Throwable throwable) {
-            failed = true;
+            end = true;
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static void restartAt(String seconds) {
+        if (end) return;
+        try {
+            ensureInitialized();
+            if (rendererClass == null) return;
+
+            if (restartMethod == null) restartMethod = rendererClass.getMethod("restart", String.class);
+
+            restartMethod.invoke(null, seconds);
+        } catch (Throwable throwable) {
+            end = true;
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static void shutdown() {
+        if (end) return;
+        try {
+            ensureInitialized();
+            if (rendererClass == null) return;
+
+            if (shutdownMethod == null) {
+                shutdownMethod = rendererClass.getMethod("shutdown");
+            }
+
+            shutdownMethod.invoke(null);
+
+            shutdownMethod = null;
+            renderMethod = null;
+            restartMethod = null;
+            rendererClass = null;
+
+            end = true;
+        } catch (Throwable throwable) {
+            end = true;
             throw new RuntimeException(throwable);
         }
     }
@@ -55,36 +109,6 @@ public class NarutoRenderBridge {
                         .findFirst()
                 )
                 .orElse(null);
-    }
-
-    @SuppressWarnings("unused")
-    public static void restartAt(String seconds) {
-        if (failed) return;
-        try {
-            if (renderMethod == null) return;
-            if (restartMethod == null) {
-                restartMethod = renderMethod.getDeclaringClass().getMethod("restart", String.class);
-            }
-            restartMethod.invoke(null, seconds);
-        } catch (Throwable throwable) {
-            failed = true;
-            throw new RuntimeException(throwable);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public static void shutdown() {
-        if (failed) return;
-        try {
-            if (renderMethod == null) return;
-            if (shutdownMethod == null) {
-                shutdownMethod = renderMethod.getDeclaringClass().getMethod("shutdown");
-            }
-            shutdownMethod.invoke(null);
-        } catch (Throwable throwable) {
-            failed = true;
-            throw new RuntimeException(throwable);
-        }
     }
 
     public static final class NarutoClassLoader extends URLClassLoader {

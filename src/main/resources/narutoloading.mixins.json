@@ -11,7 +11,7 @@
     "defaultRequire": 1
   },
   "client": [
-    "context.GameRendererMixin",
+    "context.MixinGameRenderer",
     "overlay.MixinForgeLoadingOverlay",
     "overlay.MixinLoadingOverlay"
   ]

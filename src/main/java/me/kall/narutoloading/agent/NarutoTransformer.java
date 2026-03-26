@@ -12,41 +12,66 @@ import java.security.ProtectionDomain;
 public class NarutoTransformer implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain domain, byte[] classFileBuffer) {
-        if (!"net/minecraftforge/fml/earlydisplay/DisplayWindow".equals(className)) return null;
+        if ("net/minecraftforge/fml/earlydisplay/DisplayWindow".equals(className)) {
+            try {
+                ClassReader classReader = new ClassReader(classFileBuffer);
+                ClassNode classNode = new ClassNode();
+                classReader.accept(classNode, 0);
 
-        try {
-            ClassReader classReader = new ClassReader(classFileBuffer);
-            ClassNode classNode = new ClassNode();
-            classReader.accept(classNode, 0);
+                for (MethodNode method : classNode.methods) {
+                    if ("initRender".equals(method.name)) {
+                        this.replaceElementsInit(method);
+                        this.removeSquirAdd(method);
+                    }
 
-            for (MethodNode method : classNode.methods) {
-                if ("initRender".equals(method.name)) {
-                    this.replaceElementsInit(method);
-                    this.removeSquirAdd(method);
+                    if ("paintFramebuffer".equals(method.name)) this.injectBackgroundRender(method);
                 }
 
-                if ("paintFramebuffer".equals(method.name)) {
-                    this.injectBackgroundRender(method);
-                }
+                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+                classNode.accept(classWriter);
+                return classWriter.toByteArray();
 
-                if ("close".equals(method.name)) {
-                    this.injectShutdownOnClose(method);
-                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-
-            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-            classNode.accept(classWriter);
-
-            return classWriter.toByteArray();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
         }
+
+        if ("net/minecraft/client/Minecraft".equals(className)) {
+            try {
+                ClassReader classReader = new ClassReader(classFileBuffer);
+                ClassNode classNode = new ClassNode();
+                classReader.accept(classNode, 0);
+
+                for (MethodNode method : classNode.methods) {
+                    if ("<init>".equals(method.name)) this.injectShutdownAfterSetOverlay(method);
+                }
+
+                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+                classNode.accept(classWriter);
+                return classWriter.toByteArray();
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return null;
     }
 
-    private void injectShutdownOnClose(@NotNull MethodNode method) {
-        InsnList inject = new InsnList();
-        inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "me/kall/narutoloading/agent/NarutoRenderBridge", "shutdown", "()V", false));
-        method.instructions.insert(inject);
+    private void injectShutdownAfterSetOverlay(@NotNull MethodNode method) {
+        for (AbstractInsnNode node : method.instructions.toArray()) {
+            if (node.getOpcode() != Opcodes.INVOKEVIRTUAL) continue;
+
+            MethodInsnNode min = (MethodInsnNode) node;
+            if ("net/minecraft/client/Minecraft".equals(min.owner) && "m_91150_".equals(min.name)) {
+                InsnList inject = new InsnList();
+                inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "me/kall/narutoloading/agent/NarutoRenderBridge", "shutdown", "()V", false));
+                method.instructions.insert(node, inject);
+                return;
+            }
+        }
+
+        throw new RuntimeException("[NarutoLoading] setOverlay call not found in <init>");
     }
 
     @SuppressWarnings("ExtractMethodRecommender")
@@ -90,10 +115,8 @@ public class NarutoTransformer implements ClassFileTransformer {
             }
 
             method.instructions.insertBefore(node, replacement);
-
             return;
         }
-
     }
 
     private void injectBackgroundRender(@NotNull MethodNode method) {

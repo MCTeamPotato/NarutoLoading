@@ -60,30 +60,30 @@ public class NarutoLoadingOverlay {
     }
 
     public Minecraft minecraft() {
-        return IForgeLoadingOverlay.minecraft(this.forgeLoadingOverlay);
+        return ((IForgeLoadingOverlay)this.forgeLoadingOverlay).naruto$minecraft();
     }
 
     public ReloadInstance reload() {
-        return IForgeLoadingOverlay.reload(this.forgeLoadingOverlay);
+        return ((IForgeLoadingOverlay)this.forgeLoadingOverlay).naruto$reload();
     }
 
     public Consumer<Optional<Throwable>> onFinish() {
-        return IForgeLoadingOverlay.onFinish(this.forgeLoadingOverlay);
+        return ((IForgeLoadingOverlay)this.forgeLoadingOverlay).naruto$onFinish();
     }
 
     public DisplayWindow displayWindow() {
-        return IForgeLoadingOverlay.displayWindow(this.forgeLoadingOverlay);
+        return ((IForgeLoadingOverlay)this.forgeLoadingOverlay).naruto$displayWindow();
     }
 
     public ProgressMeter progress() {
-        return IForgeLoadingOverlay.progress(this.forgeLoadingOverlay);
+        return ((IForgeLoadingOverlay)this.forgeLoadingOverlay).naruto$progress();
     }
 
     public long fadeOutStart() {
-        return IForgeLoadingOverlay.fadeOutStart(this.forgeLoadingOverlay);
+        return ((IForgeLoadingOverlay)this.forgeLoadingOverlay).naruto$fadeOutStart();
     }
 
     public void setFadeOutStart(long fadeOutStart) {
-        IForgeLoadingOverlay.setFadeOutStart(this.forgeLoadingOverlay, fadeOutStart);
+        ((IForgeLoadingOverlay)this.forgeLoadingOverlay).naruto$setFadeOutStart(fadeOutStart);
     }
 }

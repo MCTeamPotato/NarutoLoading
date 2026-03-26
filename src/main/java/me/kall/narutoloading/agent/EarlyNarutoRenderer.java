@@ -1,11 +1,12 @@
 package me.kall.narutoloading.agent;
 
 import me.kall.narutoloading.core.NarutoTV;
-import me.kall.narutoloading.core.executor.audio.AudioRestartExecutor;
+import me.kall.narutoloading.core.executor.RestartExecutor;
 import me.kall.narutoloading.core.executor.audio.EarlyAudioExecutor;
 import me.kall.narutoloading.core.executor.video.EarlyVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -14,7 +15,7 @@ import java.nio.FloatBuffer;
 import static org.lwjgl.opengl.GL32C.*;
 
 public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Integer> {
-    private static final EarlyNarutoRenderer INSTANCE = new EarlyNarutoRenderer();
+    private static @Nullable EarlyNarutoRenderer INSTANCE = new EarlyNarutoRenderer();
 
     private int program = 0;
     private int vertexArray = 0;
@@ -22,17 +23,21 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
 
     @SuppressWarnings("unused")
     public static void render() {
+        if (INSTANCE == null) return;
         INSTANCE.renderFrame();
     }
 
     @SuppressWarnings("unused")
     public static void restart(String seconds) {
+        if (INSTANCE == null) return;
         INSTANCE.restartAt(seconds);
     }
 
     @SuppressWarnings("unused")
     public static void shutdown() {
+        if (INSTANCE == null) return;
         INSTANCE.cleanup();
+        INSTANCE = null;
     }
 
     private static final String VERT_SOURCE = String.join("\n",
@@ -71,7 +76,7 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
 
     @Override
     public void createAudio() {
-        this.audioExecutor = new EarlyAudioExecutor(() -> () -> AudioRestartExecutor.schedule(this::cleanup, this::init), this.absoluteVideoPath(), this.absoluteAudioPath());
+        this.audioExecutor = new EarlyAudioExecutor(() -> () -> RestartExecutor.schedule(this::cleanup, this::init), this.absoluteVideoPath(), this.absoluteAudioPath());
     }
 
     @Override
@@ -84,11 +89,6 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
         this.texture = glGenTextures();
         this.textureLocation = this.texture;
 
-        this.allocTexture();
-    }
-
-    @SuppressWarnings("DataFlowIssue")
-    private void allocTexture() {
         glBindTexture(GL_TEXTURE_2D, this.texture);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, NarutoConfig.WIDTH, NarutoConfig.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
@@ -97,6 +97,63 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    private int buildShaderProgram() {
+        int vert = this.compileShader(GL_VERTEX_SHADER, VERT_SOURCE);
+        int frag = this.compileShader(GL_FRAGMENT_SHADER, FRAG_SOURCE);
+
+        int program = glCreateProgram();
+        glAttachShader(program, vert);
+        glAttachShader(program, frag);
+        glLinkProgram(program);
+        glDeleteShader(vert);
+        glDeleteShader(frag);
+
+        if (glGetProgrami(program, GL_LINK_STATUS) == GL_FALSE) {
+            String log = glGetProgramInfoLog(program);
+            glDeleteProgram(program);
+            throw new RuntimeException("Shader link failed: " + log);
+        }
+        return program;
+    }
+
+    private int compileShader(int type, String src) {
+        int id = glCreateShader(type);
+        glShaderSource(id, src);
+        glCompileShader(id);
+        if (glGetShaderi(id, GL_COMPILE_STATUS) == GL_FALSE) {
+            String log = glGetShaderInfoLog(id);
+            glDeleteShader(id);
+            throw new RuntimeException("Shader compile failed: " + log);
+        }
+        return id;
+    }
+
+    private int buildQuadVao() {
+        float[] vertices = {-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f};
+
+        int quadVao = glGenVertexArrays();
+        int quadVbo = glGenBuffers();
+        this.buffer = quadVbo;
+
+        glBindVertexArray(quadVao);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+
+        FloatBuffer verticesBuffer = MemoryUtil.memAllocFloat(vertices.length);
+        try {
+            verticesBuffer.put(vertices).flip();
+            glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW);
+        } finally {
+            MemoryUtil.memFree(verticesBuffer);
+        }
+
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0L);
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        return quadVao;
     }
 
     @Override
@@ -144,75 +201,22 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
             glDeleteTextures(this.texture);
             this.texture = null;
         }
+
         if (this.buffer != 0) {
             glDeleteBuffers(this.buffer);
             this.buffer = 0;
         }
+
         if (this.vertexArray != 0) {
             glDeleteVertexArrays(this.vertexArray);
             this.vertexArray = 0;
         }
+
         if (this.program != 0) {
             glDeleteProgram(this.program);
             this.program = 0;
         }
+
         this.textureLocation = null;
-    }
-
-    private int buildShaderProgram() {
-        int vert = this.compileShader(GL_VERTEX_SHADER, VERT_SOURCE);
-        int frag = this.compileShader(GL_FRAGMENT_SHADER, FRAG_SOURCE);
-
-        int program = glCreateProgram();
-        glAttachShader(program, vert);
-        glAttachShader(program, frag);
-        glLinkProgram(program);
-        glDeleteShader(vert);
-        glDeleteShader(frag);
-
-        if (glGetProgrami(program, GL_LINK_STATUS) == GL_FALSE) {
-            String log = glGetProgramInfoLog(program);
-            glDeleteProgram(program);
-            throw new RuntimeException("Shader link failed: " + log);
-        }
-        return program;
-    }
-
-    private int compileShader(int type, String src) {
-        int id = glCreateShader(type);
-        glShaderSource(id, src);
-        glCompileShader(id);
-        if (glGetShaderi(id, GL_COMPILE_STATUS) == GL_FALSE) {
-            String log = glGetShaderInfoLog(id);
-            glDeleteShader(id);
-            throw new RuntimeException("Shader compile failed: " + log);
-        }
-        return id;
-    }
-
-    private int buildQuadVao() {
-        float[] vertices = {-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f};
-
-        int quadVao = glGenVertexArrays();
-        int quadVbo = glGenBuffers();
-        this.buffer = quadVbo;
-
-        glBindVertexArray(quadVao);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
-
-        FloatBuffer buf = MemoryUtil.memAllocFloat(vertices.length);
-        try {
-            buf.put(vertices).flip();
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_STATIC_DRAW);
-        } finally {
-            MemoryUtil.memFree(buf);
-        }
-
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0L);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        return quadVao;
     }
 }

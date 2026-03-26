@@ -32,12 +32,13 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
 
             this.createVideo();
             this.createAudio();
-            this.createLifetime();
 
             if (texture) this.createTexture();
 
             this.setupVideo();
             this.setupAudio();
+
+            this.createLifetime();
             this.setupLifetime();
         }
     }
