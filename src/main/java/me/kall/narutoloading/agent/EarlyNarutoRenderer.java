@@ -11,8 +11,8 @@ import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL32C.*;
 
-public final class NarutoBackgroundHelper extends NarutoTV<ByteBuffer, Integer, Integer> {
-    public static final NarutoBackgroundHelper INSTANCE = new NarutoBackgroundHelper();
+public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Integer> {
+    private static final EarlyNarutoRenderer INSTANCE = new EarlyNarutoRenderer();
 
     private int program = 0;
     private int vertexArray = 0;
@@ -21,6 +21,11 @@ public final class NarutoBackgroundHelper extends NarutoTV<ByteBuffer, Integer, 
     @SuppressWarnings("unused")
     public static void render() {
         INSTANCE.renderFrame();
+    }
+
+    @SuppressWarnings("unused")
+    public static void shutdown() {
+        INSTANCE.cleanup();
     }
 
     private static final String VERT_SOURCE = String.join("\n",

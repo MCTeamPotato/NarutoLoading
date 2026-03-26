@@ -12,6 +12,7 @@ public class NarutoRenderBridge {
     static final Path NARUTO_JAR;
 
     private static volatile Method renderMethod = null;
+    private static volatile Method shutdownMethod = null;
     private static volatile boolean failed = false;
 
     static {
@@ -34,10 +35,25 @@ public class NarutoRenderBridge {
                 }
 
                 NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
-                Class<?> rendererClass = narutoClassLoader.loadClass("me.kall.narutoloading.agent.NarutoBackgroundHelper");
+                Class<?> rendererClass = narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer");
                 renderMethod = rendererClass.getMethod("render");
             }
             renderMethod.invoke(null);
+        } catch (Throwable throwable) {
+            failed = true;
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static void shutdown() {
+        if (failed) return;
+        try {
+            if (renderMethod == null) return;
+            if (shutdownMethod == null) {
+                shutdownMethod = renderMethod.getDeclaringClass().getMethod("shutdown");
+            }
+            shutdownMethod.invoke(null);
         } catch (Throwable throwable) {
             failed = true;
             throw new RuntimeException(throwable);

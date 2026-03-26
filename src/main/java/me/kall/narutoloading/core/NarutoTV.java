@@ -44,15 +44,13 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         }
     }
 
-    public @Nullable LOCATION nextFrame() {
-        if (!this.isRunnable()) return this.textureLocation;
+    public void updateFrame() {
+        if (!this.isRunnable()) return;
         if (this.texture == null) this.init();
         if (this.lifetime != null && this.videoExecutor != null && this.lifetime.shouldUpdateFrame(this.fps)) {
             FRAME frame = this.videoExecutor.fetch(this.lifetime.elapsedSeconds());
             if (frame != null) this.consumeFrame(frame, this.texture);
         }
-
-        return this.textureLocation;
     }
 
     public void renderFrame() {
@@ -63,9 +61,9 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
                 this.lifetime.endRestart();
             }
 
-            LOCATION nextFrame = this.nextFrame();
-            if (nextFrame == null) return;
-            this.renderFrame(nextFrame);
+            this.updateFrame();
+            if (this.textureLocation == null) return;
+            this.renderFrame(this.textureLocation);
         }
     }
 

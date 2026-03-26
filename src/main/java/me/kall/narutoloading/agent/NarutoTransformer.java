@@ -10,33 +10,29 @@ import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 
 public class NarutoTransformer implements ClassFileTransformer {
-    private static final String TARGET_CLASS = "net/minecraftforge/fml/earlydisplay/DisplayWindow";
-    private static final String TARGET_METHOD = "initRender";
-
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain domain, byte[] classFileBuffer) {
-        if (!TARGET_CLASS.equals(className)) return null;
+        if (!"net/minecraftforge/fml/earlydisplay/DisplayWindow".equals(className)) return null;
 
         try {
             ClassReader classReader = new ClassReader(classFileBuffer);
             ClassNode classNode = new ClassNode();
             classReader.accept(classNode, 0);
 
-            boolean ok = false;
-
             for (MethodNode method : classNode.methods) {
-                if (TARGET_METHOD.equals(method.name)) {
-                    ok |= this.replaceElementsInit(method);
-
+                if ("initRender".equals(method.name)) {
+                    this.replaceElementsInit(method);
                     this.removeSquirAdd(method);
                 }
 
                 if ("paintFramebuffer".equals(method.name)) {
                     this.injectBackgroundRender(method);
                 }
-            }
 
-            if (!ok) throw new RuntimeException("[NarutoLoading] WARNING: elements init NOT replaced!");
+                if ("close".equals(method.name)) {
+                    this.injectShutdownOnClose(method);
+                }
+            }
 
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             classNode.accept(classWriter);
@@ -47,8 +43,14 @@ public class NarutoTransformer implements ClassFileTransformer {
         }
     }
 
+    private void injectShutdownOnClose(@NotNull MethodNode method) {
+        InsnList inject = new InsnList();
+        inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "me/kall/narutoloading/agent/NarutoRenderBridge", "shutdown", "()V", false));
+        method.instructions.insert(inject);
+    }
+
     @SuppressWarnings("ExtractMethodRecommender")
-    private boolean replaceElementsInit(@NotNull MethodNode method) {
+    private void replaceElementsInit(@NotNull MethodNode method) {
         for (AbstractInsnNode node : method.instructions.toArray()) {
             if (node.getOpcode() != Opcodes.PUTFIELD) continue;
 
@@ -89,10 +91,9 @@ public class NarutoTransformer implements ClassFileTransformer {
 
             method.instructions.insertBefore(node, replacement);
 
-            return true;
+            return;
         }
 
-        return false;
     }
 
     private void injectBackgroundRender(@NotNull MethodNode method) {
