@@ -3,6 +3,8 @@ package me.kall.narutoloading.noworld;
 import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.core.NarutoTV;
+import me.kall.narutoloading.core.executor.audio.AudioRestartExecutor;
+import me.kall.narutoloading.core.executor.audio.NarutoAudioExecutor;
 import me.kall.narutoloading.core.executor.video.NarutoVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 import net.minecraft.client.Minecraft;
@@ -26,6 +28,11 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
         };
 
         this.videoExecutor = new NarutoVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, () -> this.fps);
+    }
+
+    @Override
+    public void createAudio() {
+        this.audioExecutor = new NarutoAudioExecutor(() -> () -> AudioRestartExecutor.schedule(this::cleanup, this::init), this.absoluteVideoPath(), this.absoluteAudioPath());
     }
 
     @Override

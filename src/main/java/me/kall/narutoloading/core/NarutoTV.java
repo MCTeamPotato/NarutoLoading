@@ -1,8 +1,7 @@
 package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.app.ffmpeg.VideoArgReader;
-import me.kall.narutoloading.core.executor.audio.AudioRestartExecutor;
-import me.kall.narutoloading.core.executor.audio.NarutoAudioExecutor;
+import me.kall.narutoloading.core.executor.AbstractFFmpegExecutor;
 import me.kall.narutoloading.core.executor.video.AbstractVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +13,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
     public @Nullable LOCATION textureLocation;
 
     public @Nullable AbstractVideoExecutor<FRAME> videoExecutor;
-    public @Nullable NarutoAudioExecutor audioExecutor;
+    public @Nullable AbstractFFmpegExecutor audioExecutor;
 
     public @Nullable LifetimeController lifetime;
 
@@ -98,9 +97,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         }
     }
 
-    public void createAudio() {
-        this.audioExecutor = new NarutoAudioExecutor(() -> () -> AudioRestartExecutor.schedule(this::cleanup, this::init), this.absoluteVideoPath(), this.absoluteAudioPath());
-    }
+    public abstract void createAudio();
 
     public void setupAudio() {
         if (this.audioExecutor != null) this.audioExecutor.setup();

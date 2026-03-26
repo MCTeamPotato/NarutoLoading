@@ -1,6 +1,8 @@
 package me.kall.narutoloading.agent;
 
 import me.kall.narutoloading.core.NarutoTV;
+import me.kall.narutoloading.core.executor.audio.AudioRestartExecutor;
+import me.kall.narutoloading.core.executor.audio.EarlyAudioExecutor;
 import me.kall.narutoloading.core.executor.video.EarlyVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +67,11 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
         };
 
         this.videoExecutor = new EarlyVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, () -> this.fps);
+    }
+
+    @Override
+    public void createAudio() {
+        this.audioExecutor = new EarlyAudioExecutor(() -> () -> AudioRestartExecutor.schedule(this::cleanup, this::init), this.absoluteVideoPath(), this.absoluteAudioPath());
     }
 
     @Override
