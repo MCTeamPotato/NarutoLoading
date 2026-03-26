@@ -1,7 +1,5 @@
 package me.kall.narutoloading.core.executor.audio;
 
-import me.kall.narutoloading.data.Paths;
-import me.kall.narutoloading.core.executor.AbstractFFmpegExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.openal.AL;
@@ -14,18 +12,13 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.function.Supplier;
 
-public class NarutoAudioExecutor extends AbstractFFmpegExecutor {
+public class NarutoAudioExecutor extends AbstractAudioExecutor {
     private long device, context;
     private int source;
     private boolean selfContext = false;
 
-    private final @Nullable Supplier<Runnable> onALError;
-    private final Supplier<String> video, audio;
-
     public NarutoAudioExecutor(@Nullable Supplier<Runnable> onALError, Supplier<String> video, Supplier<String> audio) {
-        this.onALError = onALError;
-        this.video = video;
-        this.audio = audio;
+        super(video, audio, onALError);
     }
 
     @Override
@@ -47,7 +40,7 @@ public class NarutoAudioExecutor extends AbstractFFmpegExecutor {
         try {
             AL.createCapabilities(ALC.createCapabilities(this.device));
         } catch (Exception e) {
-            if (this.onALError != null) this.onALError.get().run();
+            if (this.onSoundError != null) this.onSoundError.get().run();
             this.canceled = true;
             return;
         }
@@ -56,11 +49,6 @@ public class NarutoAudioExecutor extends AbstractFFmpegExecutor {
         AL10.alSourcef(this.source, AL10.AL_GAIN, 1.0F);
 
         super.setup(seconds);
-    }
-
-    @Override
-    protected String[] command(String seconds) {
-        return new String[]{Paths.FFMPEG.toString(), "-ss", seconds, "-i", this.audio.get().isEmpty() ? this.video.get() : this.audio.get(), "-vn", "-f", "s16le", "-ac", "2", "-ar", "44100", "-loglevel", "error", "-"};
     }
 
     @Override

@@ -1,7 +1,7 @@
 package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.app.ffmpeg.VideoArgReader;
-import me.kall.narutoloading.core.executor.AbstractFFmpegExecutor;
+import me.kall.narutoloading.core.executor.audio.AbstractAudioExecutor;
 import me.kall.narutoloading.core.executor.video.AbstractVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +13,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
     public @Nullable LOCATION textureLocation;
 
     public @Nullable AbstractVideoExecutor<FRAME> videoExecutor;
-    public @Nullable AbstractFFmpegExecutor audioExecutor;
+    public @Nullable AbstractAudioExecutor audioExecutor;
 
     public @Nullable LifetimeController lifetime;
 
