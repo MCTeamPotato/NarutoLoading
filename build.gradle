@@ -65,10 +65,10 @@ repositories {
 }
 
 def versionMap = [
-    "1.20.1" : [forge: "47.4.2"       , parchment: "2023.09.03", duplicationless: "7349275", embeddium: "5681725", "tf": "5468648"],
-    "1.16.5" : [forge: "36.2.42"      , parchment: "2022.03.06", duplicationless: "7349267", embeddium: "5322311", "tf": "3575220"],
-    "1.21.1" : [neo  : "21.1.192"     , parchment: "2024.11.17", duplicationless: "7349264", embeddium: "6118392", "tf": "7791610"],
-    "1.21.11": [neo  : "21.11.30-beta", parchment: "2025.12.20", duplicationless: "7479295", sodium: "7366773"]
+    "1.20.1" : [forge: "47.4.2"       , parchment: "2023.09.03", duplicationless: "7488665"],
+    "1.16.5" : [forge: "36.2.42"      , parchment: "2022.03.06", duplicationless: "7488659"],
+    "1.21.1" : [neo  : "21.1.192"     , parchment: "2024.11.17", duplicationless: "7488559"],
+    "1.21.11": [neo  : "21.11.30-beta", parchment: "2025.12.20", duplicationless: "7488549"]
 ]
 
 HashMap<String, String> versionInfo = versionMap[minecraft_version]
@@ -87,15 +87,6 @@ dependencies {
     }
 
     if (!isNeo) shadow(annotationProcessor("io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"))
-
-    modImplementation("curse.maven:duplicationless-1380105:${versionInfo.duplicationless}")
-    modImplementation("curse.maven:the-twilight-forest-227639:${versionInfo.tf}")
-
-    if (minecraft_version == "1.21.11") {
-        modImplementation("net.caffeinemc:sodium-neoforge-mod:0.8.3-SNAPSHOT+mc1.21.11-build.823")
-    } else {
-        modImplementation("curse.maven:embeddium-908741:${versionInfo.embeddium}")
-    }
 }
 
 processResources {
@@ -113,12 +104,14 @@ processResources {
     }
 }
 
-Map<String, JavaVersion> javaMap = new HashMap<>();
+def javaInfoMap = [
+        "1.20.1":  [version  : JavaVersion.VERSION_17,  release  : 17, supported: ["Java 17", "Java 21", "Java 22"]],
+        "1.16.5":  [version  : JavaVersion.VERSION_1_8, release  : 8,  supported: ["Java 8", "Java 17", "Java 21", "Java 22"]],
+        "1.21.1":  [version  : JavaVersion.VERSION_21,  release  : 21, supported: ["Java 21", "Java 22"]],
+        "1.21.11": [version  : JavaVersion.VERSION_21,  release  : 21, supported: ["Java 21", "Java 22"]]
+]
 
-javaMap.put("1.20.1", JavaVersion.VERSION_17)
-javaMap.put("1.16.5", JavaVersion.VERSION_1_8)
-javaMap.put("1.21.1", JavaVersion.VERSION_21)
-javaMap.put("1.21.11", JavaVersion.VERSION_21)
+def javaInfo = javaInfoMap[minecraft_version]
 
 jar {
     manifest {
@@ -130,30 +123,16 @@ jar {
 
 java {
     withSourcesJar()
-    JavaVersion javaVer = javaMap.get(minecraft_version)
+    JavaVersion javaVer = (JavaVersion) javaInfo.version
     sourceCompatibility = javaVer
     targetCompatibility = javaVer
 }
 
-Map<String, Integer> javaIntMap = new HashMap<>();
-
-javaIntMap.put("1.20.1", 17)
-javaIntMap.put("1.16.5", 8)
-javaIntMap.put("1.21.1", 21)
-javaIntMap.put("1.21.11", 21)
-
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = javaIntMap.get(minecraft_version)
+    it.options.release = (int) javaInfo.release
 }
 
 String CHANGELOG = file("CHANGELOG.md").getText("UTF-8")
-
-Map<String, String[]> supportedJavaMap = new HashMap<>();
-
-supportedJavaMap.put("1.20.1", new String[]{"Java 17", "Java 21", "Java 22"})
-supportedJavaMap.put("1.16.5", new String[]{"Java 8", "Java 17", "Java 21", "Java 22"})
-supportedJavaMap.put("1.21.1", new String[]{"Java 21", "Java 22"})
-supportedJavaMap.put("1.21.11", new String[]{"Java 21", "Java 22"})
 
 tasks.register("publishCurseForge", TaskPublishCurseForge) {
     if (!cf_project_id.isEmpty()) {
@@ -166,7 +145,10 @@ tasks.register("publishCurseForge", TaskPublishCurseForge) {
         mainFile.changelog = CHANGELOG
         mainFile.changelogType = "markdown"
         mainFile.addModLoader(isNeo ? "NeoForge" : "Forge")
-        mainFile.addJavaVersion(supportedJavaMap.get(minecraft_version))
+        Iterator<String> supported = javaInfo.supported.iterator()
+        while (supported.hasNext()) {
+            mainFile.addJavaVersion(supported.next());
+        }
         mainFile.addGameVersion(minecraft_version)
         mainFile.addRequirement("duplicationless")
     

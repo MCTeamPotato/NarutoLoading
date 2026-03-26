@@ -1,53 +1,51 @@
 package me.kall.narutoloading.agent;
 
-import me.kall.narutoloading.common.env.BaseEnv;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 public class NarutoAgent {
-    public static void premain(String agentArgs, @NotNull Instrumentation inst) {
-        BaseEnv.setupEnv(true);
-        if (BaseEnv.available()) {
-            System.out.println("[NarutoAgent] BaseEnv loaded successfully.");
-            System.out.println("[NarutoAgent] FFmpeg: " + BaseEnv.getFfmpegProvider().absoluteFFmpeg);
-            System.out.println("[NarutoAgent] FFProbe: " + BaseEnv.getFfmpegProvider().absoluteFFprobe);
-            System.out.println("[NarutoAgent] NarutoConfig: " + BaseEnv.getNarutoConfig().toString());
-            System.out.println("[NarutoAgent] YtDlp: " + BaseEnv.getYtDlpProvider().absoluteYtDlp);
-        }
+    private static final String[] BOOTSTRAP_ENTRIES = {"me/kall/narutoloading/agent/NarutoRenderBridge.class", "me/kall/narutoloading/agent/NarutoRenderBridge$NarutoClassLoader.class"};
 
-        inst.addTransformer(new DisplayWindowTransformer(), false);
-
+    public static void premain(String agentArgs, @NotNull Instrumentation instrumentation) {
+        instrumentation.addTransformer(new NarutoTransformer(), false);
         try {
-            inst.appendToBootstrapClassLoaderSearch(new JarFile(createBootstrapOnlyJar(Path.of("D:/HMCL/.minecraft/versions/1.20.1-Forge").resolve("mods").resolve("narutoloading-1.20.1-2.2.3.jar")).toFile()));
-
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(createBootstrapOnlyJar().toFile()));
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
         }
     }
 
-    private static @NotNull Path createBootstrapOnlyJar(Path sourceJar) throws Exception {
-        Path tempJar = java.nio.file.Files.createTempFile("naruto-bootstrap-", ".jar");
-        tempJar.toFile().deleteOnExit();
+    private static @NotNull Path createBootstrapOnlyJar() {
+        try {
+            Path tempJar = Files.createTempFile("naruto-bootstrap-", ".jar");
+            tempJar.toFile().deleteOnExit();
 
-        String[] entries = {"me/kall/narutoloading/agent/NarutoRenderBridge.class", "me/kall/narutoloading/agent/NarutoRenderBridge$NarutoClassLoader.class"};
+            try (ZipFile source = new ZipFile(NarutoRenderBridge.NARUTO_JAR.toFile());
+                 ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(tempJar.toFile()))) {
 
-        try (java.util.zip.ZipFile source = new java.util.zip.ZipFile(sourceJar.toFile());
-             java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(new java.io.FileOutputStream(tempJar.toFile()))) {
-
-            for (String entryName : entries) {
-                java.util.zip.ZipEntry entry = source.getEntry(entryName);
-                if (entry == null) continue;
-                zos.putNextEntry(new java.util.zip.ZipEntry(entryName));
-                try (java.io.InputStream is = source.getInputStream(entry)) {
-                    is.transferTo(zos);
+                for (String entryName : BOOTSTRAP_ENTRIES) {
+                    ZipEntry zipEntry = source.getEntry(entryName);
+                    if (zipEntry == null) continue;
+                    zipOutputStream.putNextEntry(new ZipEntry(entryName));
+                    try (InputStream inputStream = source.getInputStream(zipEntry)) {
+                        inputStream.transferTo(zipOutputStream);
+                    }
+                    zipOutputStream.closeEntry();
                 }
-                zos.closeEntry();
             }
-        }
 
-        return tempJar;
+            return tempJar;
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
     }
 }

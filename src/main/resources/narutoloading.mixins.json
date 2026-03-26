@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "me.kall.narutoloading.mixin",
-  "plugin": "me.kall.narutoloading.mixin.EarlySetup",
+  "plugin": "me.kall.narutoloading.mixin.MixinExtrasInitializer",
   "compatibilityLevel": "JAVA_8",
   "overwrites": {
     "conformVisibility": false
@@ -11,28 +11,7 @@
     "defaultRequire": 1
   },
   "client": [
-    "inworld.MixinBlockOcclusionCache",
-    "inworld.MixinBlockRenderDispatcher",
-    "inworld.MixinFrustum",
-    "inworld.MixinMinecraft",
-    "inworld.MixinResourceLoadStateTracker",
-    "noworld.clear.MixinFont",
-    "noworld.clear.MixinGuiGraphics",
-    "noworld.clear.MixinStringRenderOutput",
-    "noworld.impl.overlay.MixinForgeLoadingOverlay",
-    "noworld.impl.overlay.MixinLoadingOverlay",
-    "noworld.impl.screen.MixinAbstractSelectionList",
-    "noworld.impl.screen.MixinCreateWorldScreen",
-    "noworld.impl.screen.MixinScreen",
-    "noworld.impl.screen.MixinScrollPanel",
-    "noworld.impl.screen.MixinTitleScreen",
-    "noworld.impl.screen.MixinWinScreen",
-    "sound.MixinOptions",
-    "sound.MixinSoundEngine"
-  ],
-  "mixins": [
-    "inworld.MixinPortalShape",
-    "inworld.MixinServerLevel",
-    "inworld.MixinTFPortalBlock"
+    "overlay.MixinForgeLoadingOverlay",
+    "overlay.MixinLoadingOverlay"
   ]
 }

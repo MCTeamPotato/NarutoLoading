@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[36,)"
-issueTrackerURL = "https://github.com/MCTeamPotato/NarutoLoading/issues"
+#issueTrackerURL = ""
 license = "MIT"
 
 [[mods]]
@@ -9,17 +9,5 @@ version = "${version}"
 displayName = "NarutoLoading"
 authors = "Kall"
 description = '''
-The dumbest possible way to play videos during Minecraft loading screens.
-
-NarutoLoading replaces the vanilla background with custom video & audio playback,
-just so you can stare at your favorite CG a little longer than necessary.
 '''
-
-logoFile = "naruto.png"
-
-[[dependencies.narutoloading]]
-modId="duplicationless"
-mandatory=true
-versionRange="[1.1.5,)"
-ordering="NONE"
-side="CLIENT"
+#logoFile = ""
