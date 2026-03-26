@@ -1,6 +1,7 @@
 package me.kall.narutoloading.agent;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -13,6 +14,7 @@ public class NarutoRenderBridge {
 
     private static volatile Method renderMethod = null;
     private static volatile Method shutdownMethod = null;
+    private static volatile Method restartMethod = null;
     private static volatile boolean failed = false;
 
     static {
@@ -28,7 +30,7 @@ public class NarutoRenderBridge {
         if (failed) return;
         try {
             if (renderMethod == null) {
-                ClassLoader forgeClassLoader = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(frames -> frames.map(stackFrame -> stackFrame.getDeclaringClass().getClassLoader()).filter(Objects::nonNull).findFirst()).orElse(null);
+                ClassLoader forgeClassLoader = getForgeClassLoader();
                 if (forgeClassLoader == null) {
                     failed = true;
                     return;
@@ -39,6 +41,31 @@ public class NarutoRenderBridge {
                 renderMethod = rendererClass.getMethod("render");
             }
             renderMethod.invoke(null);
+        } catch (Throwable throwable) {
+            failed = true;
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    private static @Nullable ClassLoader getForgeClassLoader() {
+        return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+                .walk(frames -> frames
+                        .map(stackFrame -> stackFrame.getDeclaringClass().getClassLoader())
+                        .filter(Objects::nonNull)
+                        .findFirst()
+                )
+                .orElse(null);
+    }
+
+    @SuppressWarnings("unused")
+    public static void restartAt(String seconds) {
+        if (failed) return;
+        try {
+            if (renderMethod == null) return;
+            if (restartMethod == null) {
+                restartMethod = renderMethod.getDeclaringClass().getMethod("restart", String.class);
+            }
+            restartMethod.invoke(null, seconds);
         } catch (Throwable throwable) {
             failed = true;
             throw new RuntimeException(throwable);

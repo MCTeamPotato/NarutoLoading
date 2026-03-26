@@ -7,7 +7,6 @@ import me.kall.narutoloading.core.executor.video.AbstractVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
@@ -114,20 +113,22 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         }
     }
 
+    public void restart() {
+        this.cleanup();
+        this.init();
+    }
+
+    public void restartAt(String seconds) {
+        boolean hasVideo = this.videoExecutor != null;
+        boolean hasAudio = this.audioExecutor != null;
+        if (hasVideo) this.videoExecutor.shutdown();
+        if (hasAudio) this.audioExecutor.shutdown();
+        if (hasVideo) this.videoExecutor.setup(seconds);
+        if (hasAudio) this.audioExecutor.setup(seconds);
+    }
+
     public void createLifetime() {
-        Supplier<Runnable> endRestart = () -> () -> {
-            this.cleanup();
-            this.init();
-        };
-        Supplier<Consumer<String>> synchronizer = () -> (elapsedSeconds) -> {
-            boolean hasVideo = this.videoExecutor != null;
-            boolean hasAudio = this.audioExecutor != null;
-            if (hasVideo) this.videoExecutor.shutdown();
-            if (hasAudio) this.audioExecutor.shutdown();
-            if (hasVideo) this.videoExecutor.setup(elapsedSeconds);
-            if (hasAudio) this.audioExecutor.setup(elapsedSeconds);
-        };
-        this.lifetime = new LifetimeController(this.duration, System.nanoTime(), endRestart, synchronizer, () -> this.audioExecutor != null);
+        this.lifetime = new LifetimeController(this.duration, System.nanoTime(), () -> this::restart, () -> this::restartAt, () -> this.audioExecutor != null);
     }
 
     public void setupLifetime() {

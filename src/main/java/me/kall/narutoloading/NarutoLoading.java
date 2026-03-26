@@ -1,5 +1,6 @@
 package me.kall.narutoloading;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -11,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 public final class NarutoLoading {
     public static final String MOD_ID = "narutoloading";
     public static final Logger LOGGER = LogManager.getLogger(NarutoLoading.class);
+
+    public static final ThreadLocal<GuiGraphics> GUI_GRAPHICS = new ThreadLocal<>();
 
     public NarutoLoading(@NotNull FMLJavaModLoadingContext context) {
         IEventBus modBus = context.getModEventBus();

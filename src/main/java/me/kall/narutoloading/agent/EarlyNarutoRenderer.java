@@ -24,6 +24,11 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
     }
 
     @SuppressWarnings("unused")
+    public static void restart(String seconds) {
+        INSTANCE.restartAt(seconds);
+    }
+
+    @SuppressWarnings("unused")
     public static void shutdown() {
         INSTANCE.cleanup();
     }
@@ -50,8 +55,7 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
 
     @Override
     public boolean isRunnable() {
-        String video = this.absoluteVideoPath().get();
-        return video != null && !video.isBlank();
+        return true;
     }
 
     @Override
