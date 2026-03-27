@@ -1,5 +1,6 @@
 package me.kall.narutoloading.agent;
 
+import me.kall.narutoloading.core.LifetimeController;
 import me.kall.narutoloading.core.NarutoTV;
 import me.kall.narutoloading.core.executor.RestartExecutor;
 import me.kall.narutoloading.core.executor.audio.EarlyAudioExecutor;
@@ -53,15 +54,15 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
     @Override
     public void createVideo() {
         Runnable onLagSpike = () -> {
-            if (this.lifetime != null) this.lifetime.lagSpikeDetected = true;
+            LifetimeController lifetime = this.lifetime.get();
+            if (lifetime != null) lifetime.lagSpikeDetected.set(true);
         };
-
-        this.videoExecutor = new EarlyVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, () -> this.fps);
+        this.videoExecutor.set(new EarlyVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, this::getFps));
     }
 
     @Override
     public void createAudio() {
-        this.audioExecutor = new EarlyAudioExecutor(() -> () -> RestartExecutor.schedule(this::cleanup, this::init), this.absoluteVideoPath(), this.absoluteAudioPath());
+        this.audioExecutor.set(new EarlyAudioExecutor(() -> () -> RestartExecutor.schedule(this::restart), this.absoluteVideoPath(), this.absoluteAudioPath()));
     }
 
     @Override
@@ -71,10 +72,11 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
             this.vertexArray = this.buildQuadVao();
         }
 
-        this.texture = glGenTextures();
-        this.textureLocation = this.texture;
+        int texture = glGenTextures();
+        this.texture.set(texture);
+        this.textureLocation.set(texture);
 
-        glBindTexture(GL_TEXTURE_2D, this.texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, NarutoConfig.WIDTH, NarutoConfig.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -85,22 +87,22 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
     }
 
     private int buildShaderProgram() {
-        int vert = this.compileShader(GL_VERTEX_SHADER, VERT_SOURCE);
+        int vert = this.compileShader(GL_VERTEX_SHADER,   VERT_SOURCE);
         int frag = this.compileShader(GL_FRAGMENT_SHADER, FRAG_SOURCE);
 
-        int program = glCreateProgram();
-        glAttachShader(program, vert);
-        glAttachShader(program, frag);
-        glLinkProgram(program);
+        int prog = glCreateProgram();
+        glAttachShader(prog, vert);
+        glAttachShader(prog, frag);
+        glLinkProgram(prog);
         glDeleteShader(vert);
         glDeleteShader(frag);
 
-        if (glGetProgrami(program, GL_LINK_STATUS) == GL_FALSE) {
-            String log = glGetProgramInfoLog(program);
-            glDeleteProgram(program);
+        if (glGetProgrami(prog, GL_LINK_STATUS) == GL_FALSE) {
+            String log = glGetProgramInfoLog(prog);
+            glDeleteProgram(prog);
             throw new RuntimeException("Shader link failed: " + log);
         }
-        return program;
+        return prog;
     }
 
     private int compileShader(int type, String src) {
@@ -174,10 +176,10 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
 
     @Override
     public void cleanupTexture() {
-        if (this.texture != null) {
-            glDeleteTextures(this.texture);
-            this.texture = null;
-        }
+        Integer texture = this.texture.getAndSet(null);
+        if (texture != null) glDeleteTextures(texture);
+
+        this.textureLocation.set(null);
 
         if (this.buffer != 0) {
             glDeleteBuffers(this.buffer);
@@ -193,7 +195,5 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
             glDeleteProgram(this.program);
             this.program = 0;
         }
-
-        this.textureLocation = null;
     }
 }

@@ -10,12 +10,16 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 public class NarutoAudioExecutor extends AbstractAudioExecutor {
-    private long device, context;
-    private int source;
-    private boolean selfContext = false;
+    private final AtomicLong device = new AtomicLong(0L);
+    private final AtomicLong context = new AtomicLong(0L);
+    private final AtomicInteger source = new AtomicInteger(0);
+    private final AtomicBoolean selfContext = new AtomicBoolean(false);
 
     public NarutoAudioExecutor(@Nullable Supplier<Runnable> onALError, Supplier<String> video, Supplier<String> audio) {
         super(video, audio, onALError);
@@ -23,30 +27,35 @@ public class NarutoAudioExecutor extends AbstractAudioExecutor {
 
     @Override
     public void setup(String seconds) {
-        this.canceled = false;
-
         long currentContext = ALC10.alcGetCurrentContext();
-
         if (currentContext == MemoryUtil.NULL) {
-            this.device = ALC10.alcOpenDevice((ByteBuffer) null);
-            this.context = ALC10.alcCreateContext(this.device, (int[]) null);
-            ALC10.alcMakeContextCurrent(this.context);
-            this.selfContext = true;
+            long device = ALC10.alcOpenDevice((ByteBuffer) null);
+            long context = ALC10.alcCreateContext(device, (int[]) null);
+            ALC10.alcMakeContextCurrent(context);
+            this.device.set(device);
+            this.context.set(context);
+            this.selfContext.set(true);
         } else {
-            this.context = currentContext;
-            this.device = ALC10.alcGetContextsDevice(this.context);
+            this.context.set(currentContext);
+            this.device.set(ALC10.alcGetContextsDevice(currentContext));
         }
 
         try {
-            AL.createCapabilities(ALC.createCapabilities(this.device));
+            AL.createCapabilities(ALC.createCapabilities(this.device.get()));
         } catch (Exception e) {
             if (this.onSoundError != null) this.onSoundError.get().run();
-            this.canceled = true;
+            this.canceled.set(true);
             return;
         }
 
-        this.source = AL10.alGenSources();
-        AL10.alSourcef(this.source, AL10.AL_GAIN, 1.0F);
+        if (this.canceled.get()) {
+            this.cleanup();
+            return;
+        }
+
+        int sources = AL10.alGenSources();
+        this.source.set(sources);
+        AL10.alSourcef(sources, AL10.AL_GAIN, 1.0F);
 
         super.setup(seconds);
     }
@@ -56,7 +65,7 @@ public class NarutoAudioExecutor extends AbstractAudioExecutor {
         byte[] buffer = new byte[4096];
         int read;
 
-        while (!this.canceled && (read = inputStream.read(buffer)) != -1) {
+        while (!this.canceled.get() && (read = inputStream.read(buffer)) != -1) {
             ByteBuffer data = MemoryUtil.memAlloc(read);
             data.put(buffer, 0, read).flip();
 
@@ -64,45 +73,38 @@ public class NarutoAudioExecutor extends AbstractAudioExecutor {
             AL10.alBufferData(alBuffer, AL10.AL_FORMAT_STEREO16, data, 44100);
             MemoryUtil.memFree(data);
 
-            AL10.alSourceQueueBuffers(this.source, alBuffer);
+            int source = this.source.get();
+            AL10.alSourceQueueBuffers(source, alBuffer);
 
-            if (AL10.alGetSourcei(this.source, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) {
-                AL10.alSourcePlay(this.source);
+            if (AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) {
+                AL10.alSourcePlay(source);
             }
 
-            int processed = AL10.alGetSourcei(this.source, AL10.AL_BUFFERS_PROCESSED);
+            int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
             while (processed-- > 0) {
-                AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
+                AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(source));
             }
         }
     }
 
     @Override
     protected void cleanup() {
-        if (this.source != 0) {
-            AL10.alSourceStop(this.source);
-
-            int queued = AL10.alGetSourcei(this.source, AL10.AL_BUFFERS_QUEUED);
+        int source = this.source.getAndSet(0);
+        if (source != 0) {
+            AL10.alSourceStop(source);
+            int queued = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
             while (queued-- > 0) {
-                AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(this.source));
+                AL10.alDeleteBuffers(AL10.alSourceUnqueueBuffers(source));
             }
-
-            AL10.alDeleteSources(this.source);
-            this.source = 0;
+            AL10.alDeleteSources(source);
         }
 
-        if (this.selfContext) {
-            this.selfContext = false;
+        if (this.selfContext.compareAndSet(true, false)) {
+            long context = this.context.getAndSet(0L);
+            if (context != 0L) ALC10.alcDestroyContext(context);
 
-            if (this.context != 0) {
-                ALC10.alcDestroyContext(this.context);
-                this.context = 0;
-            }
-
-            if (this.device != 0) {
-                ALC10.alcCloseDevice(this.device);
-                this.device = 0;
-            }
+            long device = this.device.getAndSet(0L);
+            if (device != 0L) ALC10.alcCloseDevice(device);
         }
     }
 }

@@ -5,13 +5,15 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class NarutoRenderBridge {
     static final Path NARUTO_JAR;
 
-    private static volatile Class<?> rendererClass = null;
-    private static volatile Method renderMethod = null;
-    private static volatile boolean end = false;
+    private static final AtomicReference<Class<?>> rendererClass = new AtomicReference<>(null);
+    private static final AtomicReference<Method> renderMethod = new AtomicReference<>(null);
+    private static final AtomicBoolean end = new AtomicBoolean(false);
 
     static {
         Path narutoJar = null;
@@ -30,34 +32,39 @@ public class NarutoRenderBridge {
         if (NARUTO_JAR == null) throw new RuntimeException("NarutoLoading jar not found.");
     }
 
-
     @SuppressWarnings("resource")
     private static void ensureInitialized() throws Exception {
-        if (rendererClass != null) return;
+        if (rendererClass.get() != null) return;
 
-        ClassLoader forgeClassLoader = Thread.currentThread().getContextClassLoader();
-        if (forgeClassLoader == null) {
-            end = true;
-            return;
+        synchronized (NarutoRenderBridge.class) {
+            if (rendererClass.get() != null) return;
+
+            ClassLoader forgeClassLoader = Thread.currentThread().getContextClassLoader();
+            if (forgeClassLoader == null) {
+                end.set(true);
+                return;
+            }
+
+            NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
+            rendererClass.set(narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer"));
         }
-
-        NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
-
-        rendererClass = narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer");
     }
 
     @SuppressWarnings("unused")
     public static void render() {
-        if (end) return;
+        if (end.get()) return;
         try {
             ensureInitialized();
-            if (rendererClass == null) return;
+            Class<?> cls = rendererClass.get();
+            if (cls == null) return;
 
-            if (renderMethod == null) renderMethod = rendererClass.getMethod("render");
+            if (renderMethod.get() == null) {
+                renderMethod.compareAndSet(null, cls.getMethod("render"));
+            }
 
-            renderMethod.invoke(null);
+            renderMethod.get().invoke(null);
         } catch (Throwable throwable) {
-            end = true;
+            end.set(true);
             throw new RuntimeException(throwable);
         }
     }

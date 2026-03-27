@@ -10,11 +10,16 @@ import java.util.function.Consumer;
 public class RestartExecutor {
     public static final long DELAY_NANOSECONDS = 1_000_000_000L;
 
-    private static final ScheduledExecutorService RESTARTER = Executors.newSingleThreadScheduledExecutor(task -> {
-        Thread restartThread = new Thread(task, RestartExecutor.class.getSimpleName());
-        restartThread.setDaemon(true);
-        return restartThread;
-    });
+    private static final ScheduledExecutorService RESTARTER =
+            Executors.newSingleThreadScheduledExecutor(task -> {
+                Thread t = new Thread(task, RestartExecutor.class.getSimpleName());
+                t.setDaemon(true);
+                return t;
+            });
+
+    public static void schedule(Runnable task) {
+        RESTARTER.schedule(task, DELAY_NANOSECONDS, TimeUnit.NANOSECONDS);
+    }
 
     public static void schedule(Runnable shutdownTask, Runnable setupTask) {
         schedule(shutdownTask, setupTask, DELAY_NANOSECONDS, null);

@@ -2,6 +2,7 @@ package me.kall.narutoloading.noworld;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.core.LifetimeController;
 import me.kall.narutoloading.core.NarutoTV;
 import me.kall.narutoloading.core.executor.RestartExecutor;
 import me.kall.narutoloading.core.executor.audio.NarutoAudioExecutor;
@@ -24,21 +25,22 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
     @Override
     public void createVideo() {
         Runnable onLagSpike = () -> {
-            if (this.lifetime != null) this.lifetime.lagSpikeDetected = true;
+            LifetimeController lifetime = this.lifetime.get();
+            if (lifetime != null) lifetime.lagSpikeDetected.set(true);
         };
-
-        this.videoExecutor = new NarutoVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, () -> this.fps);
+        this.videoExecutor.set(new NarutoVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, this::getFps));
     }
 
     @Override
     public void createAudio() {
-        this.audioExecutor = new NarutoAudioExecutor(() -> () -> RestartExecutor.schedule(this::cleanup, this::init), this.absoluteVideoPath(), this.absoluteAudioPath());
+        this.audioExecutor.set(new NarutoAudioExecutor(() -> () -> RestartExecutor.schedule(this::restart), this.absoluteVideoPath(), this.absoluteAudioPath()));
     }
 
     @Override
     public boolean isRunnable() {
         Minecraft minecraft = Minecraft.getInstance();
         Screen screen = minecraft.screen;
+
         if (screen instanceof WinScreen || screen instanceof GenericDirtMessageScreen) return true;
         if (minecraft.getOverlay() instanceof LoadingOverlay) return true;
         if (minecraft.isPaused()) return false;
@@ -53,8 +55,8 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
 
     @Override
     public void createTexture() {
-        if (this.texture == null) this.texture = new DynamicTexture(NarutoConfig.WIDTH, NarutoConfig.HEIGHT, false);
-        if (this.textureLocation == null) this.textureLocation = this.textureManager().register("naruto_video_dynamic", this.texture);
+        if (this.texture.get() == null) this.texture.set(new DynamicTexture(NarutoConfig.WIDTH, NarutoConfig.HEIGHT, false));
+        if (this.textureLocation.get() == null) this.textureLocation.set(this.textureManager().register("naruto_video_dynamic", this.texture.get()));
     }
 
     @Override
@@ -70,21 +72,16 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
         if (graphics == null) return;
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
-        assert this.textureLocation != null;
-        graphics.blit(this.textureLocation, 0, 0, 0, 0, width, height, width, height);
+        graphics.blit(textureLocation, 0, 0, 0, 0, width, height, width, height);
     }
 
     @Override
     public void cleanupTexture() {
-        if (this.texture != null) {
-            this.texture.close();
-            this.texture = null;
-        }
+        DynamicTexture dynamicTexture = this.texture.getAndSet(null);
+        if (dynamicTexture != null) dynamicTexture.close();
 
-        if (this.textureLocation != null) {
-            this.textureManager().release(this.textureLocation);
-            this.textureLocation = null;
-        }
+        ResourceLocation textureLocation = this.textureLocation.getAndSet(null);
+        if (textureLocation != null) this.textureManager().release(textureLocation);
     }
 
     private @NotNull TextureManager textureManager() {

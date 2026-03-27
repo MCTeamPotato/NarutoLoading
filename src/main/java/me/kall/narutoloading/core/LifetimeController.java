@@ -1,85 +1,86 @@
 package me.kall.narutoloading.core;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class LifetimeController {
-    private long absoluteSetupTime;
-    private long pausedAt = 0L;
-    private long lastFetchFrameTime = -1;
+    private final AtomicLong absoluteSetupTime;
+    private final AtomicLong pausedAt = new AtomicLong(0L);
+    private final AtomicLong lastFetchFrameTime = new AtomicLong(-1L);
 
-    private boolean running = false;
-    private boolean paused = false;
+    private final AtomicBoolean running = new AtomicBoolean(false);
+    private final AtomicBoolean paused = new AtomicBoolean(false);
 
-    public volatile boolean lagSpikeDetected = false;
-    private long lastLagSpikeRestart = -1;
+    public  final AtomicBoolean lagSpikeDetected = new AtomicBoolean(false);
+    private final AtomicLong lastLagSpikeRestart = new AtomicLong(-1L);
 
-    public volatile boolean syncSoundEngine = false;
+    public  final AtomicBoolean syncSoundEngine = new AtomicBoolean(false);
 
     private final Supplier<Runnable> restarter;
     private final Supplier<Consumer<String>> synchronizer;
-    private final double duration;
+    private final double  duration;
     private final BooleanSupplier audioAvailable;
 
     public LifetimeController(double duration, long absoluteSetupTime, Supplier<Runnable> restarter, Supplier<Consumer<String>> synchronizer, BooleanSupplier audioAvailable) {
         this.duration = duration;
-        this.absoluteSetupTime = absoluteSetupTime;
+        this.absoluteSetupTime = new AtomicLong(absoluteSetupTime);
         this.restarter = restarter;
         this.synchronizer = synchronizer;
         this.audioAvailable = audioAvailable;
     }
 
     public void pause() {
-        if (!this.paused && this.running && !this.audioAvailable.getAsBoolean()) {
-            this.paused = true;
-            this.pausedAt = System.nanoTime();
+        if (!this.paused.get() && this.running.get() && !this.audioAvailable.getAsBoolean()) {
+            this.paused.set(true);
+            this.pausedAt.set(System.nanoTime());
         }
     }
 
     public void resume() {
-        if (this.paused && this.running && !this.audioAvailable.getAsBoolean()) {
-            this.paused = false;
-            this.absoluteSetupTime += System.nanoTime() - this.pausedAt;
+        if (this.paused.get() && this.running.get() && !this.audioAvailable.getAsBoolean()) {
+            this.paused.set(false);
+            this.absoluteSetupTime.addAndGet(System.nanoTime() - this.pausedAt.get());
         }
     }
 
     public boolean shouldUpdateFrame(double fps) {
-        if (this.paused) return false;
+        if (this.paused.get()) return false;
         long now = System.nanoTime();
+        long last = this.lastFetchFrameTime.get();
 
-        if (this.lastFetchFrameTime == -1L) {
-            this.lastFetchFrameTime = now;
+        if (last == -1L) {
+            this.lastFetchFrameTime.set(now);
             return true;
         }
 
-        double intervalNanos = (double) now - (double) this.lastFetchFrameTime;
-        if (intervalNanos >= (1_000_000_000.0 / fps)) {
-            this.lastFetchFrameTime = now;
+        if ((double)(now - last) >= 1_000_000_000.0 / fps) {
+            this.lastFetchFrameTime.set(now);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public void start() {
-        this.running = true;
+        this.running.set(true);
     }
 
     public void stop() {
-        this.running = false;
+        this.running.set(false);
     }
 
     public boolean isRunning() {
-        return this.running;
+        return this.running.get();
     }
 
     public double elapsedSeconds() {
-        return ((double)this.elapsedMillis()) / 1000.0D;
+        return this.elapsedMillis() / 1000.0D;
     }
 
     public long elapsedMillis() {
-        return (System.nanoTime() - this.absoluteSetupTime) / 1_000_000L;
+        return (System.nanoTime() - this.absoluteSetupTime.get()) / 1_000_000L;
     }
 
     public void endRestart() {
@@ -89,23 +90,21 @@ public class LifetimeController {
     }
 
     public void lagSpikeRestart() {
-        if (this.lagSpikeDetected) {
-            this.lagSpikeDetected = false;
-            if (this.lastLagSpikeRestart == -1) {
-                this.lastLagSpikeRestart = System.nanoTime();
+        if (this.lagSpikeDetected.compareAndSet(true, false)) {
+            long last = this.lastLagSpikeRestart.get();
+            if (last == -1L) {
+                this.lastLagSpikeRestart.set(System.nanoTime());
                 return;
             }
-
-            if (System.nanoTime() - this.lastLagSpikeRestart > 2_000_000_000L) {
+            if (System.nanoTime() - last > 2_000_000_000L) {
                 this.synchronize();
-                this.lastLagSpikeRestart = System.nanoTime();
+                this.lastLagSpikeRestart.set(System.nanoTime());
             }
         }
     }
 
     public void syncSoundEngine() {
-        if (this.syncSoundEngine) {
-            this.syncSoundEngine = false;
+        if (this.syncSoundEngine.compareAndSet(true, false)) {
             if (this.audioAvailable.getAsBoolean()) {
                 this.synchronize();
             }
@@ -113,8 +112,8 @@ public class LifetimeController {
     }
 
     private void synchronize() {
-        long restartStartTime = System.nanoTime();
+        long start = System.nanoTime();
         this.synchronizer.get().accept(String.valueOf(this.elapsedSeconds()));
-        this.absoluteSetupTime += (System.nanoTime() - restartStartTime);
+        this.absoluteSetupTime.addAndGet(System.nanoTime() - start);
     }
 }

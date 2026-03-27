@@ -1,7 +1,7 @@
 package me.kall.narutoloading.core.executor.video;
 
-import me.kall.narutoloading.data.Paths;
 import me.kall.narutoloading.core.executor.AbstractFFmpegExecutor;
+import me.kall.narutoloading.data.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,17 +11,18 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 public abstract class AbstractVideoExecutor<T> extends AbstractFFmpegExecutor {
-    protected @Nullable LinkedBlockingQueue<Frame<T>> frames;
-    protected long frameIndex;
-    protected @Nullable ReadableByteChannel channel;
+    private final AtomicReference<LinkedBlockingQueue<Frame<T>>> frames = new AtomicReference<>();
+    private final AtomicLong frameIndex = new AtomicLong(0);
+    private final AtomicReference<ReadableByteChannel> channel = new AtomicReference<>();
 
     protected final @Nullable Supplier<Runnable> onLagSpike;
-
     protected final Supplier<String> video;
     protected final IntSupplier width, height;
     protected final DoubleSupplier fps;
@@ -36,8 +37,8 @@ public abstract class AbstractVideoExecutor<T> extends AbstractFFmpegExecutor {
 
     @Override
     public void setup(String seconds) {
-        this.frameIndex = (long) (Double.parseDouble(seconds) * this.fps.getAsDouble());
-        this.frames = new LinkedBlockingQueue<>(60);
+        this.frameIndex.set((long)(Double.parseDouble(seconds) * this.fps.getAsDouble()));
+        this.frames.set(new LinkedBlockingQueue<>(60));
         super.setup(seconds);
     }
 
@@ -50,65 +51,62 @@ public abstract class AbstractVideoExecutor<T> extends AbstractFFmpegExecutor {
     protected void runLoop(@NotNull InputStream inputStream) throws Exception {
         int frameSize = this.width.getAsInt() * this.height.getAsInt() * 3;
 
-        this.channel = Channels.newChannel(inputStream);
+        ReadableByteChannel channel = Channels.newChannel(inputStream);
+        this.channel.set(channel);
+
+        LinkedBlockingQueue<Frame<T>> frames = this.frames.get();
+        if (frames == null) return;
+
         ByteBuffer buffer = ByteBuffer.allocateDirect(frameSize);
 
-        assert this.channel != null;
-        assert this.frames != null;
-
-        while (!this.canceled) {
+        while (!this.canceled.get()) {
             buffer.clear();
-
             while (buffer.hasRemaining()) {
-                if (this.channel.read(buffer) == -1) return;
+                if (channel.read(buffer) == -1) return;
             }
-
             T frameData = this.buildFrame(buffer.flip(), frameSize);
-            this.frameIndex++;
-            this.frames.put(new Frame<>(this.frameIndex, frameData));
+            frames.put(new Frame<>(this.frameIndex.incrementAndGet(), frameData));
         }
     }
 
     public @Nullable T fetch(double elapsedSeconds) {
-        if (this.frames == null || this.frames.isEmpty()) return null;
+        LinkedBlockingQueue<Frame<T>> queue = this.frames.get();
+        if (queue == null || queue.isEmpty()) return null;
 
-        Frame<T> frame = this.frames.poll();
+        Frame<T> frame = queue.poll();
         if (frame == null) return null;
 
         boolean skipped = false;
-
-        while (frame != null && ((double) frame.index) / this.fps.getAsDouble() < elapsedSeconds) {
-            this.release(frame.data);
-            frame = this.frames.poll();
+        while (frame != null && (double) frame.index() / this.fps.getAsDouble() < elapsedSeconds) {
+            this.release(frame.data());
+            frame = queue.poll();
             skipped = true;
         }
 
         if (skipped && frame == null && this.onLagSpike != null) this.onLagSpike.get().run();
-
-        return frame == null ? null : frame.data;
+        return frame == null ? null : frame.data();
     }
 
     @Override
     public void cleanup() {
-        if (this.channel != null) {
+        ReadableByteChannel channel = this.channel.getAndSet(null);
+        if (channel != null) {
             try {
-                this.channel.close();
-            } catch (IOException exception) {
-                throw new RuntimeException(exception);
+                channel.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            this.channel = null;
         }
 
-        if (this.frames != null) {
-            for (Frame<T> frame : this.frames) {
-                this.release(frame.data);
+        LinkedBlockingQueue<Frame<T>> frames = this.frames.getAndSet(null);
+        if (frames != null) {
+            for (Frame<T> f : frames) {
+                this.release(f.data());
             }
-            this.frames = null;
         }
     }
 
     protected abstract T buildFrame(ByteBuffer buffer, int frameSize);
-
     protected abstract void release(T frame);
 
     protected record Frame<T>(long index, T data) {}

@@ -13,19 +13,18 @@ public class Sources {
     private static final String AUDIO_FILE_NAME = "audio";
 
     public static final List<Source> SOURCES = new ArrayList<>();
-
     private static final Set<Source> ROLLED = new HashSet<>();
 
-    public static @Nullable Source rollSource() {
-        Sources.scanSources();
+    public static synchronized @Nullable Source rollSource() {
+        scanSources();
         if (SOURCES.isEmpty()) return null;
+
         Source source = SOURCES.get(ThreadLocalRandom.current().nextInt(SOURCES.size()));
         if (SOURCES.size() > 1) {
             while (ROLLED.contains(source)) {
                 source = SOURCES.get(ThreadLocalRandom.current().nextInt(SOURCES.size()));
             }
         }
-
         ROLLED.add(source);
         return source;
     }
@@ -75,7 +74,7 @@ public class Sources {
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.absoluteAudioPath, this.absoluteAudioPath);
+            return Objects.hash(this.absoluteVideoPath, this.absoluteAudioPath);
         }
     }
 }

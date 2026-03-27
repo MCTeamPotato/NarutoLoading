@@ -1,64 +1,66 @@
 package me.kall.narutoloading.core.executor;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractFFmpegExecutor {
-    protected volatile boolean canceled;
+    protected final AtomicBoolean canceled = new AtomicBoolean(false);
 
-    protected @Nullable ExecutorService executor;
-    protected @Nullable Process process;
-    protected @Nullable InputStream inputStream;
+    private final AtomicReference<ExecutorService> executor = new AtomicReference<>();
+    private final AtomicReference<Process> process = new AtomicReference<>();
+    private final AtomicReference<InputStream> inputStream = new AtomicReference<>();
 
     public final void setup() {
         this.setup("0");
     }
 
     public void setup(String seconds) {
-        this.canceled = false;
+        this.canceled.set(false);
 
-        this.executor = Executors.newSingleThreadExecutor(task -> {
+        ExecutorService newExecutor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, this.getClass().getSimpleName());
             thread.setDaemon(true);
             return thread;
         });
+        this.executor.set(newExecutor);
 
-        this.executor.submit(() -> {
+        newExecutor.submit(() -> {
             try {
-                this.process = new ProcessBuilder(command(seconds)).redirectErrorStream(true).start();
-                this.inputStream = this.process.getInputStream();
-                this.runLoop(this.inputStream);
+                Process p = new ProcessBuilder(this.command(seconds)).redirectErrorStream(true).start();
+                this.process.set(p);
+                InputStream is = p.getInputStream();
+                this.inputStream.set(is);
+                this.runLoop(is);
             } catch (Exception exception) {
-                throw new RuntimeException(exception);
+                if (!this.canceled.get()) {
+                    throw new RuntimeException(exception);
+                }
             }
         });
     }
 
     public void shutdown() {
-        this.canceled = true;
+        this.canceled.set(true);
 
-        if (this.executor != null) {
-            this.executor.shutdownNow();
-            this.executor = null;
-        }
+        ExecutorService executorService = this.executor.getAndSet(null);
+        if (executorService != null) executorService.shutdownNow();
 
-        if (this.process != null) {
-            this.process.destroyForcibly();
-            this.process = null;
-        }
+        Process process = this.process.getAndSet(null);
+        if (process != null) process.destroyForcibly();
 
-        if (this.inputStream != null) {
+        InputStream inputStream = this.inputStream.getAndSet(null);
+        if (inputStream != null) {
             try {
-                this.inputStream.close();
-            } catch (IOException exception) {
-                throw new RuntimeException(exception);
+                inputStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            this.inputStream = null;
         }
 
         this.cleanup();
