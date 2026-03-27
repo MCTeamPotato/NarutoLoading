@@ -36,42 +36,7 @@ public class NarutoTransformer implements ClassFileTransformer {
             }
         }
 
-        if ("net/minecraft/client/Minecraft".equals(className)) {
-            try {
-                ClassReader classReader = new ClassReader(classFileBuffer);
-                ClassNode classNode = new ClassNode();
-                classReader.accept(classNode, 0);
-
-                for (MethodNode method : classNode.methods) {
-                    if ("<init>".equals(method.name)) this.injectShutdownAfterSetOverlay(method);
-                }
-
-                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                classNode.accept(classWriter);
-                return classWriter.toByteArray();
-
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
         return null;
-    }
-
-    private void injectShutdownAfterSetOverlay(@NotNull MethodNode method) {
-        for (AbstractInsnNode node : method.instructions.toArray()) {
-            if (node.getOpcode() != Opcodes.INVOKEVIRTUAL) continue;
-
-            MethodInsnNode min = (MethodInsnNode) node;
-            if ("net/minecraft/client/Minecraft".equals(min.owner) && "m_91150_".equals(min.name)) {
-                InsnList inject = new InsnList();
-                inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "me/kall/narutoloading/agent/NarutoRenderBridge", "shutdown", "()V", false));
-                method.instructions.insert(node, inject);
-                return;
-            }
-        }
-
-        throw new RuntimeException("[NarutoLoading] setOverlay call not found in <init>");
     }
 
     @SuppressWarnings("ExtractMethodRecommender")
@@ -148,7 +113,7 @@ public class NarutoTransformer implements ClassFileTransformer {
             }
         }
 
-        if (squirCall == null) throw new RuntimeException("[NarutoLoading] WARNING: squir call not found");
+        if (squirCall == null) throw new RuntimeException("[NarutoLoading] squir call not found");
 
         AbstractInsnNode addCall = squirCall.getNext();
         while ((addCall instanceof LabelNode || addCall instanceof LineNumberNode || addCall instanceof FrameNode)) {

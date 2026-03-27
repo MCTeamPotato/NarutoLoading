@@ -1,38 +1,41 @@
 package me.kall.narutoloading.agent;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
-import java.util.Objects;
+import java.util.List;
 
 public class NarutoRenderBridge {
     static final Path NARUTO_JAR;
 
     private static volatile Class<?> rendererClass = null;
-
     private static volatile Method renderMethod = null;
-    private static volatile Method shutdownMethod = null;
-    private static volatile Method restartMethod = null;
-
     private static volatile boolean end = false;
 
     static {
-        try {
-            NARUTO_JAR = Path.of("D:/HMCL/.minecraft/versions/1.20.1-Forge/mods").resolve("narutoloading-1.20.1-3.0.0.jar");
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
+        Path narutoJar = null;
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> inputArguments = runtimeMxBean.getInputArguments();
+        for (String arg : inputArguments) {
+            if (arg.startsWith("-javaagent:")) {
+                String agentPath = arg.substring("-javaagent:".length());
+                if (agentPath.contains("narutoloading")) {
+                    narutoJar = Path.of(agentPath);
+                    break;
+                }
+            }
         }
+        NARUTO_JAR = narutoJar;
+        if (NARUTO_JAR == null) throw new RuntimeException("NarutoLoading jar not found.");
     }
+
 
     @SuppressWarnings("resource")
     private static void ensureInitialized() throws Exception {
         if (rendererClass != null) return;
 
-        ClassLoader forgeClassLoader = getForgeClassLoader();
+        ClassLoader forgeClassLoader = Thread.currentThread().getContextClassLoader();
         if (forgeClassLoader == null) {
             end = true;
             return;
@@ -52,91 +55,10 @@ public class NarutoRenderBridge {
 
             if (renderMethod == null) renderMethod = rendererClass.getMethod("render");
 
-
             renderMethod.invoke(null);
         } catch (Throwable throwable) {
             end = true;
             throw new RuntimeException(throwable);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public static void restartAt(String seconds) {
-        if (end) return;
-        try {
-            ensureInitialized();
-            if (rendererClass == null) return;
-
-            if (restartMethod == null) restartMethod = rendererClass.getMethod("restart", String.class);
-
-            restartMethod.invoke(null, seconds);
-        } catch (Throwable throwable) {
-            end = true;
-            throw new RuntimeException(throwable);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public static void shutdown() {
-        if (end) return;
-        try {
-            ensureInitialized();
-            if (rendererClass == null) return;
-
-            if (shutdownMethod == null) {
-                shutdownMethod = rendererClass.getMethod("shutdown");
-            }
-
-            shutdownMethod.invoke(null);
-
-            shutdownMethod = null;
-            renderMethod = null;
-            restartMethod = null;
-            rendererClass = null;
-
-            end = true;
-        } catch (Throwable throwable) {
-            end = true;
-            throw new RuntimeException(throwable);
-        }
-    }
-
-    private static @Nullable ClassLoader getForgeClassLoader() {
-        return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
-                .walk(frames -> frames
-                        .map(stackFrame -> stackFrame.getDeclaringClass().getClassLoader())
-                        .filter(Objects::nonNull)
-                        .findFirst()
-                )
-                .orElse(null);
-    }
-
-    public static final class NarutoClassLoader extends URLClassLoader {
-        private final ClassLoader forgClassLoader;
-
-        private static final String LWJGL_PACKAGE = "org.lwjgl.";
-
-        public NarutoClassLoader(URL jarUrl, ClassLoader forgClassLoader) {
-            super(new URL[]{jarUrl}, forgClassLoader);
-            this.forgClassLoader = forgClassLoader;
-        }
-
-        @Override
-        public Class<?> loadClass(@NotNull String name, boolean resolve) throws ClassNotFoundException {
-            if (name.startsWith(LWJGL_PACKAGE)) return this.forgClassLoader.loadClass(name);
-
-            synchronized (this.getClassLoadingLock(name)) {
-                Class<?> loadedClass = this.findLoadedClass(name);
-                if (loadedClass != null) return loadedClass;
-
-                try {
-                    loadedClass = this.findClass(name);
-                    if (resolve) this.resolveClass(loadedClass);
-                    return loadedClass;
-                } catch (ClassNotFoundException ignored) {
-                    return this.forgClassLoader.loadClass(name);
-                }
-            }
         }
     }
 }

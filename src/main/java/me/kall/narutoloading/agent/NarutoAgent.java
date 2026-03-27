@@ -13,7 +13,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class NarutoAgent {
-    private static final String[] BOOTSTRAP_ENTRIES = {"me/kall/narutoloading/agent/NarutoRenderBridge.class", "me/kall/narutoloading/agent/NarutoRenderBridge$NarutoClassLoader.class"};
+    private static final String[] BOOTSTRAP_ENTRIES = {"me/kall/narutoloading/agent/NarutoRenderBridge.class", "me/kall/narutoloading/agent/NarutoClassLoader.class"};
 
     public static void premain(String agentArgs, @NotNull Instrumentation instrumentation) {
         instrumentation.addTransformer(new NarutoTransformer(), false);

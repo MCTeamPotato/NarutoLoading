@@ -6,7 +6,6 @@ import me.kall.narutoloading.core.executor.audio.EarlyAudioExecutor;
 import me.kall.narutoloading.core.executor.video.EarlyVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -15,7 +14,7 @@ import java.nio.FloatBuffer;
 import static org.lwjgl.opengl.GL32C.*;
 
 public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Integer> {
-    private static @Nullable EarlyNarutoRenderer INSTANCE = new EarlyNarutoRenderer();
+    private static final EarlyNarutoRenderer INSTANCE = new EarlyNarutoRenderer();
 
     private int program = 0;
     private int vertexArray = 0;
@@ -23,21 +22,7 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
 
     @SuppressWarnings("unused")
     public static void render() {
-        if (INSTANCE == null) return;
         INSTANCE.renderFrame();
-    }
-
-    @SuppressWarnings("unused")
-    public static void restart(String seconds) {
-        if (INSTANCE == null) return;
-        INSTANCE.restartAt(seconds);
-    }
-
-    @SuppressWarnings("unused")
-    public static void shutdown() {
-        if (INSTANCE == null) return;
-        INSTANCE.cleanup();
-        INSTANCE = null;
     }
 
     private static final String VERT_SOURCE = String.join("\n",
@@ -159,16 +144,8 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
     @Override
     public void consumeFrame(@NotNull ByteBuffer frame, Integer texture) {
         glBindTexture(GL_TEXTURE_2D, texture);
-
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        int expectedSize = NarutoConfig.WIDTH * NarutoConfig.HEIGHT * 3;
-        if (frame.remaining() >= expectedSize) {
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, NarutoConfig.WIDTH, NarutoConfig.HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, frame);
-        } else {
-            throw new RuntimeException("[NarutoLoading] Frame buffer too small! Expected: " + expectedSize + " Got: " + frame.remaining());
-        }
-
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, NarutoConfig.WIDTH, NarutoConfig.HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, frame);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
