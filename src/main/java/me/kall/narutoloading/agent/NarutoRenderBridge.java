@@ -13,7 +13,8 @@ public class NarutoRenderBridge {
 
     private static final AtomicReference<Class<?>> RENDERER_CLASS = new AtomicReference<>(null);
     private static final AtomicReference<Method> RENDER_METHOD = new AtomicReference<>(null);
-    private static final AtomicBoolean END = new AtomicBoolean(false);
+
+    public static final AtomicBoolean END = new AtomicBoolean(false);
 
     static {
         Path narutoJar = null;
