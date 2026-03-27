@@ -40,10 +40,7 @@ public class NarutoRenderBridge {
             if (RENDERER_CLASS.get() != null) return;
 
             ClassLoader forgeClassLoader = Thread.currentThread().getContextClassLoader();
-            if (forgeClassLoader == null) {
-                END.set(true);
-                return;
-            }
+            if (forgeClassLoader == null) throw new RuntimeException("Forge classloader not found");
 
             NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
             RENDERER_CLASS.set(narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer"));
@@ -55,13 +52,7 @@ public class NarutoRenderBridge {
         if (END.get()) return;
         try {
             ensureInitialized();
-            Class<?> cls = RENDERER_CLASS.get();
-            if (cls == null) return;
-
-            if (RENDER_METHOD.get() == null) {
-                RENDER_METHOD.compareAndSet(null, cls.getMethod("render"));
-            }
-
+            if (RENDER_METHOD.get() == null) RENDER_METHOD.compareAndSet(null, RENDERER_CLASS.get().getMethod("render"));
             RENDER_METHOD.get().invoke(null);
         } catch (Throwable throwable) {
             END.set(true);

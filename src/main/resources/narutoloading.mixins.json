@@ -12,6 +12,7 @@
   },
   "client": [
     "context.MixinGameRenderer",
+    "context.MixinMinecraft",
     "overlay.MixinForgeLoadingOverlay",
     "overlay.MixinLoadingOverlay"
   ]
