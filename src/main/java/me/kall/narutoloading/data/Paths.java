@@ -8,9 +8,10 @@ public class Paths {
     public static final Path GAME_DIR = Path.of("D:/HMCL/.minecraft/versions/1.20.1-Forge").toAbsolutePath();
     public static final Path CONFIG_DIR = GAME_DIR.resolve("config");
     public static final Path SOURCES = CONFIG_DIR.resolve("narutoloading-sources");
-    public static final Path MODS_DIR = GAME_DIR.resolve("mods");
+
     public static final Path FFMPEG = GAME_DIR.resolve("ffmpeg-win").resolve("bin").resolve("ffmpeg.exe");
     public static final Path FFPROBE = GAME_DIR.resolve("ffmpeg-win").resolve("bin").resolve("ffprobe.exe");
+
     public static final Path YT_DLP = GAME_DIR.resolve("yt-dlp").resolve("yt-dlp.exe");
 
     public static @NotNull String absolute(@NotNull String relativePath) {

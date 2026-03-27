@@ -26,11 +26,12 @@ public class NarutoAgent {
 
     private static @NotNull Path createBootstrapOnlyJar() {
         try {
-            Path tempJar = Files.createTempFile("naruto-bootstrap-", ".jar");
-            tempJar.toFile().deleteOnExit();
+            Path narutoBootstrap = Path.of("D:/HMCL/.minecraft/versions/1.20.1-Forge").resolve("naruto-bootstrap.jar");
+            if (narutoBootstrap.toFile().exists()) return narutoBootstrap;
+            Files.createFile(narutoBootstrap);
 
             try (ZipFile source = new ZipFile(NarutoRenderBridge.NARUTO_JAR.toFile());
-                 ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(tempJar.toFile()))) {
+                 ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(narutoBootstrap.toFile()))) {
 
                 for (String entryName : BOOTSTRAP_ENTRIES) {
                     ZipEntry zipEntry = source.getEntry(entryName);
@@ -43,7 +44,7 @@ public class NarutoAgent {
                 }
             }
 
-            return tempJar;
+            return narutoBootstrap;
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
