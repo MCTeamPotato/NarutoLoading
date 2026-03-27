@@ -47,7 +47,7 @@ public abstract class AbstractVideoExecutor<T> extends AbstractFFmpegExecutor {
     }
 
     @Override
-    protected void runLoop(@NotNull InputStream inputStream) throws Exception{
+    protected void runLoop(@NotNull InputStream inputStream) throws Exception {
         int frameSize = this.width.getAsInt() * this.height.getAsInt() * 3;
 
         this.channel = Channels.newChannel(inputStream);

@@ -12,7 +12,7 @@ public class EarlyAudioExecutor extends AbstractAudioExecutor {
 
     private static final int BUFFER_BYTES = 8192;
 
-    private volatile @Nullable SourceDataLine line;
+    private @Nullable SourceDataLine line;
 
     public EarlyAudioExecutor(@Nullable Supplier<Runnable> onError, Supplier<String> video, Supplier<String> audio) {
         super(video, audio, onError);
