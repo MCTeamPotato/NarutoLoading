@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class NarutoRenderBridge {
     static final Path NARUTO_JAR;
 
-    private static final AtomicReference<Class<?>> rendererClass = new AtomicReference<>(null);
-    private static final AtomicReference<Method> renderMethod = new AtomicReference<>(null);
-    private static final AtomicBoolean end = new AtomicBoolean(false);
+    private static final AtomicReference<Class<?>> RENDERER_CLASS = new AtomicReference<>(null);
+    private static final AtomicReference<Method> RENDER_METHOD = new AtomicReference<>(null);
+    private static final AtomicBoolean END = new AtomicBoolean(false);
 
     static {
         Path narutoJar = null;
@@ -34,37 +34,37 @@ public class NarutoRenderBridge {
 
     @SuppressWarnings("resource")
     private static void ensureInitialized() throws Exception {
-        if (rendererClass.get() != null) return;
+        if (RENDERER_CLASS.get() != null) return;
 
         synchronized (NarutoRenderBridge.class) {
-            if (rendererClass.get() != null) return;
+            if (RENDERER_CLASS.get() != null) return;
 
             ClassLoader forgeClassLoader = Thread.currentThread().getContextClassLoader();
             if (forgeClassLoader == null) {
-                end.set(true);
+                END.set(true);
                 return;
             }
 
             NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
-            rendererClass.set(narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer"));
+            RENDERER_CLASS.set(narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer"));
         }
     }
 
     @SuppressWarnings("unused")
     public static void render() {
-        if (end.get()) return;
+        if (END.get()) return;
         try {
             ensureInitialized();
-            Class<?> cls = rendererClass.get();
+            Class<?> cls = RENDERER_CLASS.get();
             if (cls == null) return;
 
-            if (renderMethod.get() == null) {
-                renderMethod.compareAndSet(null, cls.getMethod("render"));
+            if (RENDER_METHOD.get() == null) {
+                RENDER_METHOD.compareAndSet(null, cls.getMethod("render"));
             }
 
-            renderMethod.get().invoke(null);
+            RENDER_METHOD.get().invoke(null);
         } catch (Throwable throwable) {
-            end.set(true);
+            END.set(true);
             throw new RuntimeException(throwable);
         }
     }
