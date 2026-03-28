@@ -50,7 +50,7 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
     public boolean isRunnable() {
         String shutdown = System.getProperty("narutoloading.shutdown");
         if (shutdown == null) return true;
-        this.cleanup();
+        this.cleanup(false);
         return false;
     }
 

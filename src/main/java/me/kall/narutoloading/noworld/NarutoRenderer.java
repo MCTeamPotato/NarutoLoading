@@ -46,7 +46,7 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
         if (minecraft.isPaused()) return false;
 
         if (minecraft.level != null) {
-            this.cleanup();
+            this.cleanup(false);
             return false;
         }
 

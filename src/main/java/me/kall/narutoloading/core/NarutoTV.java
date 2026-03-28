@@ -38,28 +38,10 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
 
     protected final ReentrantLock lifecycleLock = new ReentrantLock();
 
-    public void init() {
+    public void cleanup(boolean reuseTexture) {
         this.lifecycleLock.lock();
         try {
-            this.doInit();
-        } finally {
-            this.lifecycleLock.unlock();
-        }
-    }
-
-    public void cleanup() {
-        this.lifecycleLock.lock();
-        try {
-            AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.getAndSet(null);
-            if (videoExecutor != null) videoExecutor.shutdown();
-
-            AbstractAudioExecutor audioExecutor = this.audioExecutor.getAndSet(null);
-            if (audioExecutor != null) audioExecutor.shutdown();
-
-            LifetimeController lifetime = this.lifetime.getAndSet(null);
-            if (lifetime != null) lifetime.stop();
-
-            this.cleanupTexture();
+            this.doCleanup(reuseTexture);
         } finally {
             this.lifecycleLock.unlock();
         }
@@ -68,8 +50,8 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
     public void restart() {
         this.lifecycleLock.lock();
         try {
-            this.doCleanup();
-            this.doInit();
+            this.doCleanup(true);
+            this.doInit(true);
         } finally {
             this.lifecycleLock.unlock();
         }
@@ -93,7 +75,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         }
     }
 
-    private void doInit() {
+    private void doInit(boolean reuseTexture) {
         if (!this.isRunnable()) return;
 
         VideoArgReader reader = new VideoArgReader(absoluteVideoPath().get());
@@ -102,7 +84,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
 
         this.createVideo();
         this.createAudio();
-        this.createTexture();
+        if (!reuseTexture) this.createTexture();
 
         AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
         AbstractAudioExecutor audioExecutor = this.audioExecutor.get();
@@ -114,7 +96,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         lifetime.start();
     }
 
-    private void doCleanup() {
+    private void doCleanup(boolean reuseTexture) {
         AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.getAndSet(null);
         if (videoExecutor != null) videoExecutor.shutdown();
 
@@ -124,7 +106,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         LifetimeController lifetime = this.lifetime.getAndSet(null);
         if (lifetime != null) lifetime.stop();
 
-        this.cleanupTexture();
+        if (!reuseTexture) this.cleanupTexture();
     }
 
     public void updateFrame() {
@@ -132,7 +114,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
 
         this.lifecycleLock.lock();
         try {
-            if (this.texture.get() == null) this.doInit();
+            if (this.texture.get() == null) this.doInit(false);
         } finally {
             this.lifecycleLock.unlock();
         }

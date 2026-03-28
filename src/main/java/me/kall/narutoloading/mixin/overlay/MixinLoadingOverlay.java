@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -33,13 +34,20 @@ public abstract class MixinLoadingOverlay {
     private void renderLoadingOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, @NotNull CallbackInfo ci) {
         ci.cancel();
         long millis = Util.getMillis();
-        if (this.fadeIn && this.fadeInStart == -1L) {
-            this.fadeInStart = millis;
-        }
+        if (this.fadeIn && this.fadeInStart == -1L) this.fadeInStart = millis;
 
         float fadeOutTimer = this.fadeOutStart > -1L ? (float)(millis - this.fadeOutStart) / 1000.0F : -1.0F;
         float fadeInTimer = this.fadeInStart > -1L ? (float)(millis - this.fadeInStart) / 500.0F : -1.0F;
 
+        this.naruto$processOverlay(fadeOutTimer, fadeInTimer, guiGraphics, mouseX, mouseY, partialTick);
+
+        if (this.fadeOutStart == -1L && this.reload.isDone() && (!this.fadeIn || fadeInTimer >= 2.0F)) {
+            this.naruto$finalize(guiGraphics);
+        }
+    }
+
+    @Unique
+    private void naruto$processOverlay(float fadeOutTimer, float fadeInTimer, GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (fadeOutTimer >= 1.0F) {
             if (this.minecraft.screen != null) {
                 this.minecraft.screen.render(guiGraphics, 0, 0, partialTick);
@@ -50,31 +58,45 @@ public abstract class MixinLoadingOverlay {
             }
         }
 
-        int j1 = (int)(Math.min(guiGraphics.guiWidth() * 0.75, guiGraphics.guiHeight()) * 0.5);
         this.currentProgress = Mth.clamp(this.currentProgress * 0.95F + this.reload.getActualProgress() * 0.050000012F, 0.0F, 1.0F);
         if (fadeOutTimer < 1.0F) {
             int guiWidth = guiGraphics.guiWidth();
-            int scaledGuiHeight = (int)(guiGraphics.guiHeight() * 0.8325);
-            this.drawProgressBar(guiGraphics, guiWidth / 2 - j1, scaledGuiHeight - 5, guiWidth / 2 + j1, scaledGuiHeight + 5, 1.0F - Mth.clamp(fadeOutTimer, 0.0F, 1.0F));
+            int guiHeight = guiGraphics.guiHeight();
+
+            int scaledGuiHeight = (int)(0.8325 * (double) guiHeight);
+            int scaledBarHeight = (int)(Math.min(guiWidth * 0.75, guiHeight) * 0.5);
+
+            int minX = guiWidth / 2 - scaledBarHeight;
+            int minY = scaledGuiHeight - 5;
+            int maxX = guiWidth / 2 + scaledBarHeight;
+            int maxY = scaledGuiHeight + 5;
+
+            float fadeTick = 1.0F - Mth.clamp(fadeOutTimer, 0.0F, 1.0F);
+
+            this.drawProgressBar(guiGraphics, minX, minY, maxX, maxY, fadeTick);
         }
 
         if (fadeOutTimer >= 2.0F) {
             this.minecraft.setOverlay(null);
         }
+    }
 
-        if (this.fadeOutStart == -1L && this.reload.isDone() && (!this.fadeIn || fadeInTimer >= 2.0F)) {
-            this.fadeOutStart = Util.getMillis();
+    @Unique
+    private void naruto$finalize(GuiGraphics guiGraphics) {
+        this.fadeOutStart = Util.getMillis();
 
-            try {
-                this.reload.checkExceptions();
-                this.onFinish.accept(Optional.empty());
-            } catch (Throwable var23) {
-                this.onFinish.accept(Optional.of(var23));
-            }
+        try {
+            this.reload.checkExceptions();
+            this.onFinish.accept(Optional.empty());
+        } catch (Throwable var23) {
+            this.onFinish.accept(Optional.of(var23));
+        }
 
-            if (this.minecraft.screen != null) {
-                this.minecraft.screen.init(this.minecraft, guiGraphics.guiWidth(), guiGraphics.guiHeight());
-            }
+        if (this.minecraft.screen != null) {
+            int guiWidth = guiGraphics.guiWidth();
+            int guiHeight = guiGraphics.guiHeight();
+
+            this.minecraft.screen.init(this.minecraft, guiWidth, guiHeight);
         }
     }
 }
