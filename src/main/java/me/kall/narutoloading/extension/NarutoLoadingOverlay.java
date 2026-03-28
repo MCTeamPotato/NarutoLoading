@@ -24,7 +24,7 @@ public class NarutoLoadingOverlay {
     }
 
     public void render(final @NotNull GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
-        this.renderNaruto();
+        NarutoRenderer.getInstance().renderFrame();
 
         Minecraft minecraft = this.forgeLoadingOverlay.naruto$minecraft();
         ReloadInstance reload = this.forgeLoadingOverlay.naruto$reload();
@@ -38,10 +38,6 @@ public class NarutoLoadingOverlay {
         this.processOverlay(graphics, mouseX, mouseY, partialTick, minecraft, fadeOutTimer);
 
         if (fadeOutStart == -1L && reload.isDone()) this.finalize(minecraft, reload, progress);
-    }
-
-    private void renderNaruto() {
-        NarutoRenderer.getInstance().renderFrame();
     }
 
     private void processOverlay(GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick, Minecraft minecraft, float fadeOutTimer) {

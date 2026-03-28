@@ -21,6 +21,10 @@ public class RestartExecutor {
         RESTARTER.schedule(restartTask, DELAY_NANOSECONDS, TimeUnit.NANOSECONDS);
     }
 
+    public static void schedule(Runnable restartTask, long nanoseconds) {
+        RESTARTER.schedule(restartTask, nanoseconds, TimeUnit.NANOSECONDS);
+    }
+
     public static void schedule(Runnable shutdownTask, Runnable setupTask, @Nullable Consumer<Runnable> dispatcher) {
         Runnable restartTask = () -> {
             try {

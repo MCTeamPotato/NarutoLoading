@@ -26,8 +26,6 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
         double absoluteRunStartNanoTime = (double) Long.parseLong(System.getProperty("narutoloading.run.start"));
         double absoluteRunEndNanoTime = (double) Long.parseLong(System.getProperty("narutoloading.run.end"));
         INSTANCE.restartAt(String.valueOf((absoluteRunEndNanoTime - absoluteRunStartNanoTime) / 1_000_000_000.0));
-        System.clearProperty("narutoloading.run.start");
-        System.clearProperty("narutoloading.run.end");
     }
 
     public static NarutoRenderer getInstance() {
