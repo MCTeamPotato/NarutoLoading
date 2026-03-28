@@ -8,15 +8,22 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+@SuppressWarnings("unused")
 public class NarutoRenderBridge {
-    static final Path NARUTO_JAR;
+    private static final Path NARUTO_JAR;
 
     private static final AtomicReference<Class<?>> RENDERER_CLASS = new AtomicReference<>(null);
     private static final AtomicReference<Method> RENDER_METHOD = new AtomicReference<>(null);
+    private static final AtomicReference<Method> SHUTDOWN_METHOD = new AtomicReference<>(null);
 
     public static final AtomicBoolean END = new AtomicBoolean(false);
 
     static {
+        System.err.println("-----------------------");
+        for (int i = 0; i < 5; i++) {
+            System.err.println(Thread.currentThread().getContextClassLoader().getClass());
+        }
+        System.err.println("-----------------------");
         Path narutoJar = null;
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> inputArguments = runtimeMxBean.getInputArguments();
@@ -39,16 +46,11 @@ public class NarutoRenderBridge {
 
         synchronized (NarutoRenderBridge.class) {
             if (RENDERER_CLASS.get() != null) return;
-
-            ClassLoader forgeClassLoader = Thread.currentThread().getContextClassLoader();
-            if (forgeClassLoader == null) throw new RuntimeException("Forge classloader not found");
-
-            NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), forgeClassLoader);
+            NarutoClassLoader narutoClassLoader = new NarutoClassLoader(NARUTO_JAR.toUri().toURL(), Thread.currentThread().getContextClassLoader());
             RENDERER_CLASS.set(narutoClassLoader.loadClass("me.kall.narutoloading.agent.EarlyNarutoRenderer"));
         }
     }
 
-    @SuppressWarnings("unused")
     public static void render() {
         if (END.get()) return;
         try {
@@ -57,6 +59,18 @@ public class NarutoRenderBridge {
             RENDER_METHOD.get().invoke(null);
         } catch (Throwable throwable) {
             END.set(true);
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    public static void shutdown() {
+        END.set(true);
+
+        try {
+            ensureInitialized();
+            if (SHUTDOWN_METHOD.get() == null) SHUTDOWN_METHOD.compareAndSet(null, RENDERER_CLASS.get().getMethod("shutdown"));
+            SHUTDOWN_METHOD.get().invoke(null);
+        } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
     }

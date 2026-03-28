@@ -6,18 +6,18 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 public final class NarutoClassLoader extends URLClassLoader {
-    private final ClassLoader forgClassLoader;
+    private final ClassLoader contextClassLoader;
 
     private static final String LWJGL_PACKAGE = "org.lwjgl.";
 
-    public NarutoClassLoader(URL jarUrl, ClassLoader forgClassLoader) {
-        super(new URL[]{jarUrl}, forgClassLoader);
-        this.forgClassLoader = forgClassLoader;
+    public NarutoClassLoader(URL jarUrl, ClassLoader contextClassLoader) {
+        super(new URL[]{jarUrl}, contextClassLoader);
+        this.contextClassLoader = contextClassLoader;
     }
 
     @Override
     public Class<?> loadClass(@NotNull String name, boolean resolve) throws ClassNotFoundException {
-        if (name.startsWith(LWJGL_PACKAGE)) return this.forgClassLoader.loadClass(name);
+        if (name.startsWith(LWJGL_PACKAGE)) return this.contextClassLoader.loadClass(name);
 
         synchronized (this.getClassLoadingLock(name)) {
             Class<?> loadedClass = this.findLoadedClass(name);
@@ -28,7 +28,7 @@ public final class NarutoClassLoader extends URLClassLoader {
                 if (resolve) this.resolveClass(loadedClass);
                 return loadedClass;
             } catch (ClassNotFoundException ignored) {
-                return this.forgClassLoader.loadClass(name);
+                return this.contextClassLoader.loadClass(name);
             }
         }
     }

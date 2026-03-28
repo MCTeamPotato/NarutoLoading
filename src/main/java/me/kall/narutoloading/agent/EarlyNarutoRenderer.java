@@ -26,6 +26,11 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
         INSTANCE.renderFrame();
     }
 
+    @SuppressWarnings("unused")
+    public static void shutdown() {
+        INSTANCE.cleanup();
+    }
+
     private static final String VERT_SOURCE = String.join("\n",
             "#version 330 core",
             "layout(location = 0) in vec2 aPos;",
@@ -48,7 +53,7 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
 
     @Override
     public boolean isRunnable() {
-        return true;
+        return !NarutoRenderBridge.END.get();
     }
 
     @Override
