@@ -1,5 +1,7 @@
 package me.kall.narutoloading.mixin.overlay;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import me.kall.narutoloading.extension.IForgeLoadingOverlay;
 import me.kall.narutoloading.extension.NarutoLoadingOverlay;
 import net.minecraft.client.Minecraft;
@@ -8,7 +10,6 @@ import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraftforge.client.loading.ForgeLoadingOverlay;
 import net.minecraftforge.fml.earlydisplay.DisplayWindow;
 import net.minecraftforge.fml.loading.progress.ProgressMeter;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -71,9 +72,8 @@ public class MixinForgeLoadingOverlay implements IForgeLoadingOverlay {
         this.fadeOutStart = fadeOutStart;
     }
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void renderForgeLoadingOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, @NotNull CallbackInfo ci) {
+    @WrapMethod(method = "render")
+    private void renderForgeLoadingOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, Operation<Void> original) {
         this.naruto$loadingOverlay.render(guiGraphics, mouseX, mouseY, partialTick);
-        ci.cancel();
     }
 }

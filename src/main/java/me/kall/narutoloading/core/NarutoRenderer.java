@@ -56,6 +56,7 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
         Screen screen = minecraft.screen;
 
         if (screen instanceof WinScreen || screen instanceof GenericDirtMessageScreen) return true;
+        if (screen != null && screen.isPauseScreen()) return true;
         if (minecraft.getOverlay() instanceof LoadingOverlay) return true;
         if (minecraft.isPaused()) return false;
 

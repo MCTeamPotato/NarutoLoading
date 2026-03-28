@@ -1,5 +1,7 @@
 package me.kall.narutoloading.mixin.overlay;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -7,14 +9,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.LoadingOverlay;
 import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -31,10 +29,10 @@ public abstract class MixinLoadingOverlay {
 
     @Shadow protected abstract void drawProgressBar(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick);
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void renderLoadingOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, @NotNull CallbackInfo ci) {
-        ci.cancel();
+    @WrapMethod(method = "render")
+    private void renderLoadingOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, Operation<Void> original) {
         NarutoRenderer.getInstance().renderFrame();
+
         long millis = Util.getMillis();
         if (this.fadeIn && this.fadeInStart == -1L) this.fadeInStart = millis;
 
