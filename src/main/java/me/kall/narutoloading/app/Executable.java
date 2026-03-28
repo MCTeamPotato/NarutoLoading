@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 
 public class Executable {
-    public static @NotNull String executeCommand(@NotNull String[] command) {
+    public static @NotNull String executeCommand(@NotNull String[] command, boolean print) {
         Process process;
         try {
             process = new ProcessBuilder(command).redirectErrorStream(true).start();
@@ -20,7 +20,7 @@ public class Executable {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                if (print) System.out.println(line);
                 output.append(line.trim()).append("\n");
             }
         } catch (IOException exception) {

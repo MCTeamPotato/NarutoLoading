@@ -1,5 +1,6 @@
 package me.kall.narutoloading.mixin.overlay;
 
+import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -33,6 +34,7 @@ public abstract class MixinLoadingOverlay {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void renderLoadingOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, @NotNull CallbackInfo ci) {
         ci.cancel();
+        NarutoRenderer.getInstance().renderFrame();
         long millis = Util.getMillis();
         if (this.fadeIn && this.fadeInStart == -1L) this.fadeInStart = millis;
 

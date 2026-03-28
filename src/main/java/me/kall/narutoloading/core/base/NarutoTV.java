@@ -1,22 +1,20 @@
-package me.kall.narutoloading.core;
+package me.kall.narutoloading.core.base;
 
 import me.kall.narutoloading.app.ffmpeg.VideoArgReader;
 import me.kall.narutoloading.core.executor.audio.AbstractAudioExecutor;
 import me.kall.narutoloading.core.executor.video.AbstractVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
 
 public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> extends VideoArgContainer {
-    protected final AtomicReference<TEXTURE> texture = new AtomicReference<>();
-    protected final AtomicReference<LOCATION> textureLocation = new AtomicReference<>();
+    public final AtomicReference<TEXTURE> texture = new AtomicReference<>();
+    public final AtomicReference<LOCATION> textureLocation = new AtomicReference<>();
 
-    protected final AtomicReference<AbstractVideoExecutor<FRAME>> videoExecutor = new AtomicReference<>();
-    protected final AtomicReference<AbstractAudioExecutor> audioExecutor = new AtomicReference<>();
-    protected final AtomicReference<LifetimeController> lifetime = new AtomicReference<>();
+    public final AtomicReference<AbstractVideoExecutor<FRAME>> videoExecutor = new AtomicReference<>();
+    public final AtomicReference<AbstractAudioExecutor> audioExecutor = new AtomicReference<>();
+    public final AtomicReference<LifetimeController> lifetime = new AtomicReference<>();
 
     public void init(boolean reuseTexture) {
         synchronized (this) {
@@ -37,10 +35,27 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> extends VideoArgContain
         }
     }
 
+    public void restartAt(String seconds) {
+        synchronized (this) {
+            if (this.texture.get() == null) this.doInit(false);
+
+            AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
+            AbstractAudioExecutor audioExecutor = this.audioExecutor.get();
+            LifetimeController lifetime = this.lifetime.get();
+            boolean hasVideo = videoExecutor != null;
+            boolean hasAudio = audioExecutor != null;
+            if (hasAudio) audioExecutor.shutdown();
+            if (hasVideo) videoExecutor.shutdown();
+            if (hasAudio) audioExecutor.setup(seconds);
+            if (hasVideo) videoExecutor.setup(seconds);
+            if (lifetime != null) lifetime.seekTo(Double.parseDouble(seconds));
+        }
+    }
+
     private void doInit(boolean reuseTexture) {
         if (!this.isRunnable()) return;
 
-        VideoArgReader reader = new VideoArgReader(absoluteVideoPath().get());
+        VideoArgReader reader = new VideoArgReader(this.absoluteVideoPath().get());
         this.setFps(reader.fps());
         this.setDuration(reader.duration());
 
@@ -51,36 +66,11 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> extends VideoArgContain
         LifetimeController lifetime = new LifetimeController(this.getDuration(), System.nanoTime(), () -> () -> {
             synchronized (this) {
                 this.doCleanup(true);
+                NarutoConfig.roll();
                 this.doInit(true);
             }
-        }, () -> (seconds) -> {
-            synchronized (this) {
-                AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
-                AbstractAudioExecutor audioExecutor = this.audioExecutor.get();
-                boolean hasVideo = videoExecutor != null;
-                boolean hasAudio = audioExecutor != null;
-                if (hasAudio) audioExecutor.shutdown();
-                if (hasVideo) videoExecutor.shutdown();
-                if (hasAudio) audioExecutor.setup(seconds);
-                if (hasVideo) videoExecutor.setup(seconds);
-
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception exception) {
-                    throw new RuntimeException(exception);
-                }
-
-                if (this.lifetime.get() != null) {
-                    this.lifetime.get().seekTo(Double.parseDouble(seconds));
-                }
-            }
-        }, () -> this.audioExecutor.get() != null);
+        }, () -> this::restartAt, () -> this.audioExecutor.get() != null);
         this.lifetime.set(lifetime);
-
-        //Waiting for FFmpeg video buffer list to be fulfilled.
-        //One second is definitely enough.
-        LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
-
         lifetime.start();
     }
 
@@ -119,7 +109,7 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> extends VideoArgContain
         lifetime.lagSpikeRestart();
         lifetime.endRestart();
 
-        if (lifetime.shouldUpdateFrame(getFps())) {
+        if (lifetime.shouldUpdateFrame(this.getFps())) {
             FRAME frame = videoExecutor.fetch(lifetime.elapsedSeconds());
             if (frame != null) this.consumeFrame(frame, texture);
         }
@@ -133,6 +123,12 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> extends VideoArgContain
 
     public Supplier<String> absoluteAudioPath() {
         return NarutoConfig::getAudio;
+    }
+
+    public boolean isRunning() {
+        LifetimeController lifetime = this.lifetime.get();
+        if (lifetime == null) return false;
+        return lifetime.isRunning();
     }
 
     public abstract boolean isRunnable();

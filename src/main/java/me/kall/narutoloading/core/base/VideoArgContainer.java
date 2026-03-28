@@ -1,4 +1,4 @@
-package me.kall.narutoloading.core;
+package me.kall.narutoloading.core.base;
 
 import java.util.concurrent.atomic.AtomicLong;
 

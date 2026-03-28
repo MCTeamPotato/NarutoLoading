@@ -1,4 +1,4 @@
-package me.kall.narutoloading.core;
+package me.kall.narutoloading.core.base;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,14 +14,14 @@ public class LifetimeController {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean paused = new AtomicBoolean(false);
 
-    public  final AtomicBoolean lagSpikeDetected = new AtomicBoolean(false);
+    public final AtomicBoolean lagSpikeDetected = new AtomicBoolean(false);
     private final AtomicLong lastLagSpikeRestart = new AtomicLong(-1L);
 
-    public  final AtomicBoolean syncSoundEngine = new AtomicBoolean(false);
+    public final AtomicBoolean syncSoundEngine = new AtomicBoolean(false);
 
     private final Supplier<Runnable> restarter;
     private final Supplier<Consumer<String>> synchronizer;
-    private final double  duration;
+    private final double duration;
     private final BooleanSupplier audioAvailable;
 
     public LifetimeController(double duration, long absoluteSetupTime, Supplier<Runnable> restarter, Supplier<Consumer<String>> synchronizer, BooleanSupplier audioAvailable) {

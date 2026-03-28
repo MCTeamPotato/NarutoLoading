@@ -12,7 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class MixinMinecraft {
     @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;setOverlay(Lnet/minecraft/client/gui/screens/Overlay;)V"))
     private void stopEarlyRenderer(Minecraft instance, Overlay loadingGui, @NotNull Operation<Void> original) {
-        System.setProperty("narutoloading.shutdown", "true");
+        synchronized (System.class) {
+            System.setProperty("narutoloading.shutdown", "true");
+            String absoluteRunEndTime = System.getProperty("narutoloading.run.end");
+            if (absoluteRunEndTime == null) System.setProperty("narutoloading.run.end", String.valueOf(System.nanoTime()));
+        }
+
         original.call(instance, loadingGui);
     }
 }

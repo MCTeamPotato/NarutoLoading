@@ -13,7 +13,13 @@
   "client": [
     "context.MixinGameRenderer",
     "context.MixinMinecraft",
+    "element.MixinPanoramaRenderer",
+    "fade.MixinFont",
+    "fade.MixinGuiGraphics",
+    "fade.MixinStringRenderOutput",
     "overlay.MixinForgeLoadingOverlay",
-    "overlay.MixinLoadingOverlay"
+    "overlay.MixinLoadingOverlay",
+    "screen.MixinTitleScreen",
+    "sound.MixinSoundEngine"
   ]
 }

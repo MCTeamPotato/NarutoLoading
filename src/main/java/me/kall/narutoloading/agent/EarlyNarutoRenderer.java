@@ -1,7 +1,7 @@
 package me.kall.narutoloading.agent;
 
-import me.kall.narutoloading.core.LifetimeController;
-import me.kall.narutoloading.core.NarutoTV;
+import me.kall.narutoloading.core.base.LifetimeController;
+import me.kall.narutoloading.core.base.NarutoTV;
 import me.kall.narutoloading.core.executor.RestartExecutor;
 import me.kall.narutoloading.core.executor.audio.EarlyAudioExecutor;
 import me.kall.narutoloading.core.executor.video.EarlyVideoExecutor;
@@ -55,8 +55,6 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
             return true;
         }
         this.cleanup(false);
-        String absoluteRunEndTime = System.getProperty("narutoloading.run.end");
-        if (absoluteRunEndTime == null) System.setProperty("narutoloading.run.end", String.valueOf(System.nanoTime()));
         return false;
     }
 

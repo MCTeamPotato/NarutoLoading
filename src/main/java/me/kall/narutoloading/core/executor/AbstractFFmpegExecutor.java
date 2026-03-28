@@ -23,21 +23,20 @@ public abstract class AbstractFFmpegExecutor {
     public void setup(String seconds) {
         this.canceled.set(false);
 
-        ExecutorService newExecutor = Executors.newSingleThreadExecutor(task -> {
+        ExecutorService executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, this.getClass().getSimpleName());
             thread.setDaemon(true);
             return thread;
         });
-        this.executor.set(newExecutor);
+        this.executor.set(executor);
 
-        newExecutor.submit(() -> {
+        executor.submit(() -> {
             try {
                 Process process = new ProcessBuilder(this.command(seconds)).redirectErrorStream(true).start();
                 this.process.set(process);
                 InputStream inputStream = process.getInputStream();
                 this.inputStream.set(inputStream);
                 this.runLoop(inputStream);
-                System.err.println("Running " + this.getClass().getSimpleName());
             } catch (Exception exception) {
                 if (!this.canceled.get()) {
                     throw new RuntimeException(exception);

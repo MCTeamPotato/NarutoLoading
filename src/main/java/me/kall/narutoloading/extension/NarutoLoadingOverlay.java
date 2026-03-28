@@ -1,6 +1,7 @@
 package me.kall.narutoloading.extension;
 
 import com.mojang.blaze3d.platform.Window;
+import me.kall.narutoloading.core.NarutoRenderer;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,6 +24,8 @@ public class NarutoLoadingOverlay {
     }
 
     public void render(final @NotNull GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+        this.renderNaruto();
+
         Minecraft minecraft = this.forgeLoadingOverlay.naruto$minecraft();
         ReloadInstance reload = this.forgeLoadingOverlay.naruto$reload();
         ProgressMeter progress = this.forgeLoadingOverlay.naruto$progress();
@@ -35,6 +38,10 @@ public class NarutoLoadingOverlay {
         this.processOverlay(graphics, mouseX, mouseY, partialTick, minecraft, fadeOutTimer);
 
         if (fadeOutStart == -1L && reload.isDone()) this.finalize(minecraft, reload, progress);
+    }
+
+    private void renderNaruto() {
+        NarutoRenderer.getInstance().renderFrame();
     }
 
     private void processOverlay(GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick, Minecraft minecraft, float fadeOutTimer) {

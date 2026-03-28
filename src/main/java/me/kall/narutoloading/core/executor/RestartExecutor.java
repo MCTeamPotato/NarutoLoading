@@ -17,15 +17,11 @@ public class RestartExecutor {
                 return t;
             });
 
-    public static void schedule(Runnable task) {
-        RESTARTER.schedule(task, DELAY_NANOSECONDS, TimeUnit.NANOSECONDS);
+    public static void schedule(Runnable restartTask) {
+        RESTARTER.schedule(restartTask, DELAY_NANOSECONDS, TimeUnit.NANOSECONDS);
     }
 
-    public static void schedule(Runnable shutdownTask, Runnable setupTask) {
-        schedule(shutdownTask, setupTask, DELAY_NANOSECONDS, null);
-    }
-
-    public static void schedule(Runnable shutdownTask, Runnable setupTask, long delayNanoseconds, @Nullable Consumer<Runnable> dispatcher) {
+    public static void schedule(Runnable shutdownTask, Runnable setupTask, @Nullable Consumer<Runnable> dispatcher) {
         Runnable restartTask = () -> {
             try {
                 shutdownTask.run();
@@ -40,6 +36,6 @@ public class RestartExecutor {
             } else {
                 restartTask.run();
             }
-        }, delayNanoseconds, TimeUnit.NANOSECONDS);
+        }, DELAY_NANOSECONDS, TimeUnit.NANOSECONDS);
     }
 }

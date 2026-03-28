@@ -27,7 +27,10 @@ public class NarutoAudioExecutor extends AbstractAudioExecutor {
 
     @Override
     public void setup(String seconds) {
+        this.canceled.set(false);
+
         long currentContext = ALC10.alcGetCurrentContext();
+
         if (currentContext == MemoryUtil.NULL) {
             long device = ALC10.alcOpenDevice((ByteBuffer) null);
             long context = ALC10.alcCreateContext(device, (int[]) null);
@@ -44,12 +47,8 @@ public class NarutoAudioExecutor extends AbstractAudioExecutor {
             AL.createCapabilities(ALC.createCapabilities(this.device.get()));
         } catch (Exception e) {
             if (this.onSoundError != null) this.onSoundError.get().run();
+            System.err.println("Error createCapabilities for AL");
             this.canceled.set(true);
-            return;
-        }
-
-        if (this.canceled.get()) {
-            this.cleanup();
             return;
         }
 

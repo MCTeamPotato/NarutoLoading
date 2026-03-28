@@ -23,12 +23,12 @@ public class YtDlp {
     }
 
     public static @Nullable Path downloadVideo(String url, @NotNull Path outputDirectory, String outputName) {
-        Executable.executeCommand(videoCommand(url, outputDirectory.resolve(outputName + ".%(ext)s").toString()));
+        Executable.executeCommand(videoCommand(url, outputDirectory.resolve(outputName + ".%(ext)s").toString()), true);
         return getDownloaded(outputDirectory, outputName);
     }
 
     public static @Nullable Path downloadAudio(String url, @NotNull Path outputDirectory, String outputName) {
-        Executable.executeCommand(audioCommand(url, outputDirectory.resolve(outputName + ".%(ext)s").toString()));
+        Executable.executeCommand(audioCommand(url, outputDirectory.resolve(outputName + ".%(ext)s").toString()), true);
         return getDownloaded(outputDirectory, outputName);
     }
 

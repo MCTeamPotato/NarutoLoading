@@ -50,16 +50,16 @@ public class FFmpeg {
     }
 
     public static @NotNull String genJson(String video) {
-        return Executable.executeCommand(new String[]{Paths.FFPROBE.toString(), "-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", video});
+        return Executable.executeCommand(new String[]{Paths.FFPROBE.toString(), "-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", video}, false);
     }
 
     public static boolean isMono(String audioPath) {
-        return "1".equals(Executable.executeCommand(new String[]{Paths.FFPROBE.toString(), "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=channels", "-of", "default=noprint_wrappers=1:nokey=1", audioPath}).trim());
+        return "1".equals(Executable.executeCommand(new String[]{Paths.FFPROBE.toString(), "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=channels", "-of", "default=noprint_wrappers=1:nokey=1", audioPath}, false).trim());
     }
 
     public static boolean convertToMonoOgg(String inputPath, String outputPath) {
         try {
-            System.out.println(Executable.executeCommand(new String[]{Paths.FFMPEG.toString(), "-i", inputPath, "-vn", "-acodec", "libvorbis", "-ac", "1", "-q:a", "4", "-y", outputPath}));
+            System.out.println(Executable.executeCommand(new String[]{Paths.FFMPEG.toString(), "-i", inputPath, "-vn", "-acodec", "libvorbis", "-ac", "1", "-q:a", "4", "-y", outputPath}, false));
             return new File(outputPath).exists();
         } catch (Exception exception) {
             throw new RuntimeException(exception);

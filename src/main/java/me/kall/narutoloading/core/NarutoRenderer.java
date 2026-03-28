@@ -1,9 +1,9 @@
-package me.kall.narutoloading.noworld;
+package me.kall.narutoloading.core;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.core.LifetimeController;
-import me.kall.narutoloading.core.NarutoTV;
+import me.kall.narutoloading.core.base.LifetimeController;
+import me.kall.narutoloading.core.base.NarutoTV;
 import me.kall.narutoloading.core.executor.RestartExecutor;
 import me.kall.narutoloading.core.executor.audio.NarutoAudioExecutor;
 import me.kall.narutoloading.core.executor.video.NarutoVideoExecutor;
@@ -20,7 +20,19 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, ResourceLocation> {
-    public static final NarutoRenderer INSTANCE = new NarutoRenderer();
+    private static final NarutoRenderer INSTANCE = new NarutoRenderer();
+
+    static {
+        double absoluteRunStartNanoTime = (double) Long.parseLong(System.getProperty("narutoloading.run.start"));
+        double absoluteRunEndNanoTime = (double) Long.parseLong(System.getProperty("narutoloading.run.end"));
+        INSTANCE.restartAt(String.valueOf((absoluteRunEndNanoTime - absoluteRunStartNanoTime) / 1_000_000_000.0));
+        System.clearProperty("narutoloading.run.start");
+        System.clearProperty("narutoloading.run.end");
+    }
+
+    public static NarutoRenderer getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public void createVideo() {
@@ -28,12 +40,16 @@ public class NarutoRenderer extends NarutoTV<NativeImage, DynamicTexture, Resour
             LifetimeController lifetime = this.lifetime.get();
             if (lifetime != null) lifetime.lagSpikeDetected.set(true);
         };
-        this.videoExecutor.set(new NarutoVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, this::getFps));
+        NarutoVideoExecutor videoExecutor = new NarutoVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, this::getFps);
+        this.videoExecutor.set(videoExecutor);
+        videoExecutor.setup();
     }
 
     @Override
     public void createAudio() {
-        this.audioExecutor.set(new NarutoAudioExecutor(() -> () -> RestartExecutor.schedule(this::restart), this.absoluteVideoPath(), this.absoluteAudioPath()));
+        NarutoAudioExecutor audioExecutor = new NarutoAudioExecutor(() -> () -> RestartExecutor.schedule(() -> this.cleanup(true), () -> this.init(true), task -> Minecraft.getInstance().execute(task)), this.absoluteVideoPath(), this.absoluteAudioPath());
+        this.audioExecutor.set(audioExecutor);
+        audioExecutor.setup();
     }
 
     @Override
