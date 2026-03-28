@@ -1,35 +1,23 @@
 package me.kall.narutoloading.agent;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
 public class NarutoRenderBridge {
-    private static final Path NARUTO_JAR;
+    public static final Path NARUTO_JAR;
 
     private static final AtomicReference<Class<?>> RENDERER_CLASS = new AtomicReference<>(null);
     private static final AtomicReference<Method> RENDER_METHOD = new AtomicReference<>(null);
     private static final AtomicReference<Method> SHUTDOWN_METHOD = new AtomicReference<>(null);
 
-    public static final AtomicBoolean END = new AtomicBoolean(false);
-
     static {
-        System.err.println("-----------------------");
-        for (int i = 0; i < 5; i++) {
-            System.err.println(Thread.currentThread().getContextClassLoader().getClass());
-        }
-        System.err.println("-----------------------");
         Path narutoJar = null;
-        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-        List<String> inputArguments = runtimeMxBean.getInputArguments();
-        for (String arg : inputArguments) {
-            if (arg.startsWith("-javaagent:")) {
-                String agentPath = arg.substring("-javaagent:".length());
+        for (String jvmArgument : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+            if (jvmArgument.startsWith("-javaagent:")) {
+                String agentPath = jvmArgument.substring("-javaagent:".length());
                 if (agentPath.contains("narutoloading")) {
                     narutoJar = Path.of(agentPath);
                     break;
@@ -37,7 +25,6 @@ public class NarutoRenderBridge {
             }
         }
         NARUTO_JAR = narutoJar;
-        if (NARUTO_JAR == null) throw new RuntimeException("NarutoLoading jar not found.");
     }
 
     @SuppressWarnings("resource")
@@ -52,24 +39,10 @@ public class NarutoRenderBridge {
     }
 
     public static void render() {
-        if (END.get()) return;
         try {
             ensureInitialized();
             if (RENDER_METHOD.get() == null) RENDER_METHOD.compareAndSet(null, RENDERER_CLASS.get().getMethod("render"));
             RENDER_METHOD.get().invoke(null);
-        } catch (Throwable throwable) {
-            END.set(true);
-            throw new RuntimeException(throwable);
-        }
-    }
-
-    public static void shutdown() {
-        END.set(true);
-
-        try {
-            ensureInitialized();
-            if (SHUTDOWN_METHOD.get() == null) SHUTDOWN_METHOD.compareAndSet(null, RENDERER_CLASS.get().getMethod("shutdown"));
-            SHUTDOWN_METHOD.get().invoke(null);
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
