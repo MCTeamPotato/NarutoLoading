@@ -116,4 +116,9 @@ public class LifetimeController {
         this.synchronizer.get().accept(String.valueOf(this.elapsedSeconds()));
         this.absoluteSetupTime.addAndGet(System.nanoTime() - start);
     }
+
+    public void seekTo(double seconds) {
+        this.absoluteSetupTime.set(System.nanoTime() - (long)(seconds * 1_000_000_000.0));
+        this.lastFetchFrameTime.set(-1L);
+    }
 }

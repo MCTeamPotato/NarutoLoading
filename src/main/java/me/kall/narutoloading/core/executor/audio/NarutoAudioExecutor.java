@@ -21,8 +21,8 @@ public class NarutoAudioExecutor extends AbstractAudioExecutor {
     private final AtomicInteger source = new AtomicInteger(0);
     private final AtomicBoolean selfContext = new AtomicBoolean(false);
 
-    public NarutoAudioExecutor(@Nullable Supplier<Runnable> onALError, Supplier<String> video, Supplier<String> audio) {
-        super(video, audio, onALError);
+    public NarutoAudioExecutor(@Nullable Supplier<Runnable> onSoundError, Supplier<String> video, Supplier<String> audio) {
+        super(video, audio, onSoundError);
     }
 
     @Override

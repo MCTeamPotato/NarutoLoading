@@ -32,11 +32,12 @@ public abstract class AbstractFFmpegExecutor {
 
         newExecutor.submit(() -> {
             try {
-                Process p = new ProcessBuilder(this.command(seconds)).redirectErrorStream(true).start();
-                this.process.set(p);
-                InputStream is = p.getInputStream();
-                this.inputStream.set(is);
-                this.runLoop(is);
+                Process process = new ProcessBuilder(this.command(seconds)).redirectErrorStream(true).start();
+                this.process.set(process);
+                InputStream inputStream = process.getInputStream();
+                this.inputStream.set(inputStream);
+                this.runLoop(inputStream);
+                System.err.println("Running " + this.getClass().getSimpleName());
             } catch (Exception exception) {
                 if (!this.canceled.get()) {
                     throw new RuntimeException(exception);

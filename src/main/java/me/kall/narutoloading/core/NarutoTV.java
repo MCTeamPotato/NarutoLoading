@@ -5,35 +5,18 @@ import me.kall.narutoloading.core.executor.audio.AbstractAudioExecutor;
 import me.kall.narutoloading.core.executor.video.AbstractVideoExecutor;
 import me.kall.narutoloading.data.NarutoConfig;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
 
-public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
+public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> extends VideoArgContainer {
     protected final AtomicReference<TEXTURE> texture = new AtomicReference<>();
     protected final AtomicReference<LOCATION> textureLocation = new AtomicReference<>();
+
     protected final AtomicReference<AbstractVideoExecutor<FRAME>> videoExecutor = new AtomicReference<>();
     protected final AtomicReference<AbstractAudioExecutor> audioExecutor = new AtomicReference<>();
     protected final AtomicReference<LifetimeController> lifetime = new AtomicReference<>();
-
-    private final AtomicLong fpsBits = new AtomicLong(Double.doubleToRawLongBits(0.0));
-    private final AtomicLong durationBits = new AtomicLong(Double.doubleToRawLongBits(0.0));
-
-    protected double getFps() {
-        return Double.longBitsToDouble(this.fpsBits.get());
-    }
-
-    protected double getDuration() {
-        return Double.longBitsToDouble(this.durationBits.get());
-    }
-
-    private void setFps(double fps) {
-        this.fpsBits.set(Double.doubleToRawLongBits(fps));
-    }
-
-    private void setDuration(double duration) {
-        this.durationBits.set(Double.doubleToRawLongBits(duration));
-    }
 
     public void init(boolean reuseTexture) {
         synchronized (this) {
@@ -49,23 +32,8 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
 
     public void restart() {
         synchronized (this) {
-            this.doCleanup(true);
-            this.doInit(true);
-        }
-    }
-
-    public void restartAt(String seconds) {
-        synchronized (this) {
-            AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
-            AbstractAudioExecutor audioExecutor = this.audioExecutor.get();
-            if (videoExecutor != null) {
-                videoExecutor.shutdown();
-                videoExecutor.setup(seconds);
-            }
-            if (audioExecutor != null) {
-                audioExecutor.shutdown();
-                audioExecutor.setup(seconds);
-            }
+            this.doCleanup(false);
+            this.doInit(false);
         }
     }
 
@@ -80,13 +48,39 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         this.createAudio();
         if (!reuseTexture) this.createTexture();
 
-        AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
-        AbstractAudioExecutor audioExecutor = this.audioExecutor.get();
-        if (videoExecutor != null) videoExecutor.setup();
-        if (audioExecutor != null) audioExecutor.setup();
+        LifetimeController lifetime = new LifetimeController(this.getDuration(), System.nanoTime(), () -> () -> {
+            synchronized (this) {
+                this.doCleanup(true);
+                this.doInit(true);
+            }
+        }, () -> (seconds) -> {
+            synchronized (this) {
+                AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
+                AbstractAudioExecutor audioExecutor = this.audioExecutor.get();
+                boolean hasVideo = videoExecutor != null;
+                boolean hasAudio = audioExecutor != null;
+                if (hasAudio) audioExecutor.shutdown();
+                if (hasVideo) videoExecutor.shutdown();
+                if (hasAudio) audioExecutor.setup(seconds);
+                if (hasVideo) videoExecutor.setup(seconds);
 
-        LifetimeController lifetime = new LifetimeController(this.getDuration(), System.nanoTime(), () -> this::restart, () -> this::restartAt, () -> this.audioExecutor.get() != null);
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception exception) {
+                    throw new RuntimeException(exception);
+                }
+
+                if (this.lifetime.get() != null) {
+                    this.lifetime.get().seekTo(Double.parseDouble(seconds));
+                }
+            }
+        }, () -> this.audioExecutor.get() != null);
         this.lifetime.set(lifetime);
+
+        //Waiting for FFmpeg video buffer list to be fulfilled.
+        //One second is definitely enough.
+        LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
+
         lifetime.start();
     }
 

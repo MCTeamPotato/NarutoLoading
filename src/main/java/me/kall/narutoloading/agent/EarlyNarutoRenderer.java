@@ -66,12 +66,16 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
             LifetimeController lifetime = this.lifetime.get();
             if (lifetime != null) lifetime.lagSpikeDetected.set(true);
         };
-        this.videoExecutor.set(new EarlyVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, this::getFps));
+        EarlyVideoExecutor executor = new EarlyVideoExecutor(() -> onLagSpike, this.absoluteVideoPath(), () -> NarutoConfig.WIDTH, () -> NarutoConfig.HEIGHT, this::getFps);
+        this.videoExecutor.set(executor);
+        executor.setup();
     }
 
     @Override
     public void createAudio() {
-        this.audioExecutor.set(new EarlyAudioExecutor(() -> () -> RestartExecutor.schedule(this::restart), this.absoluteVideoPath(), this.absoluteAudioPath()));
+        EarlyAudioExecutor executor = new EarlyAudioExecutor(() -> () -> RestartExecutor.schedule(this::restart), this.absoluteVideoPath(), this.absoluteAudioPath());
+        this.audioExecutor.set(executor);
+        executor.setup();
     }
 
     @Override
