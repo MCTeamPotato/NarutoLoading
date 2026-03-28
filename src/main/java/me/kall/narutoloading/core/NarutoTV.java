@@ -7,7 +7,6 @@ import me.kall.narutoloading.data.NarutoConfig;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
@@ -36,30 +35,27 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         this.durationBits.set(Double.doubleToRawLongBits(duration));
     }
 
-    protected final ReentrantLock lifecycleLock = new ReentrantLock();
+    public void init(boolean reuseTexture) {
+        synchronized (this) {
+            this.doInit(reuseTexture);
+        }
+    }
 
     public void cleanup(boolean reuseTexture) {
-        this.lifecycleLock.lock();
-        try {
+        synchronized (this) {
             this.doCleanup(reuseTexture);
-        } finally {
-            this.lifecycleLock.unlock();
         }
     }
 
     public void restart() {
-        this.lifecycleLock.lock();
-        try {
+        synchronized (this) {
             this.doCleanup(true);
             this.doInit(true);
-        } finally {
-            this.lifecycleLock.unlock();
         }
     }
 
     public void restartAt(String seconds) {
-        this.lifecycleLock.lock();
-        try {
+        synchronized (this) {
             AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
             AbstractAudioExecutor audioExecutor = this.audioExecutor.get();
             if (videoExecutor != null) {
@@ -70,8 +66,6 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
                 audioExecutor.shutdown();
                 audioExecutor.setup(seconds);
             }
-        } finally {
-            this.lifecycleLock.unlock();
         }
     }
 
@@ -109,40 +103,34 @@ public abstract class NarutoTV<FRAME, TEXTURE, LOCATION> {
         if (!reuseTexture) this.cleanupTexture();
     }
 
-    public void updateFrame() {
+    public void renderFrame() {
         if (!this.isRunnable()) return;
 
-        this.lifecycleLock.lock();
-        try {
-            if (this.texture.get() == null) this.doInit(false);
-        } finally {
-            this.lifecycleLock.unlock();
+        synchronized (this) {
+            if (this.texture.get() == null) {
+                this.doInit(false);
+            }
         }
 
         LifetimeController lifetime = this.lifetime.get();
         AbstractVideoExecutor<FRAME> videoExecutor = this.videoExecutor.get();
         TEXTURE texture = this.texture.get();
-
-        if (lifetime != null && videoExecutor != null && texture != null && lifetime.shouldUpdateFrame(getFps())) {
-            FRAME frame = videoExecutor.fetch(lifetime.elapsedSeconds());
-            if (frame != null) consumeFrame(frame, texture);
-        }
-    }
-
-    public void renderFrame() {
-        if (!this.isRunnable()) return;
-
-        LifetimeController lifetime = this.lifetime.get();
-        if (lifetime != null) {
-            lifetime.syncSoundEngine();
-            lifetime.lagSpikeRestart();
-            lifetime.endRestart();
-        }
-
-        this.updateFrame();
-
         LOCATION location = this.textureLocation.get();
-        if (location != null) this.renderFrame(location);
+
+        if (lifetime == null || videoExecutor == null || texture == null || location == null) {
+            throw new RuntimeException("Error occurs during NarutoTV initialization. Lifetime: " + lifetime + ". Video Executor: " + videoExecutor + ". Texture: " + texture + ". Texture Location: " + location);
+        }
+
+        lifetime.syncSoundEngine();
+        lifetime.lagSpikeRestart();
+        lifetime.endRestart();
+
+        if (lifetime.shouldUpdateFrame(getFps())) {
+            FRAME frame = videoExecutor.fetch(lifetime.elapsedSeconds());
+            if (frame != null) this.consumeFrame(frame, texture);
+        }
+
+        this.renderFrame(location);
     }
 
     public Supplier<String> absoluteVideoPath() {

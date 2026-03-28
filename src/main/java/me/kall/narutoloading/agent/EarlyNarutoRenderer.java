@@ -49,8 +49,14 @@ public final class EarlyNarutoRenderer extends NarutoTV<ByteBuffer, Integer, Int
     @Override
     public boolean isRunnable() {
         String shutdown = System.getProperty("narutoloading.shutdown");
-        if (shutdown == null) return true;
+        if (shutdown == null) {
+            String absoluteRunStartTime = System.getProperty("narutoloading.run.start");
+            if (absoluteRunStartTime == null) System.setProperty("narutoloading.run.start", String.valueOf(System.nanoTime()));
+            return true;
+        }
         this.cleanup(false);
+        String absoluteRunEndTime = System.getProperty("narutoloading.run.end");
+        if (absoluteRunEndTime == null) System.setProperty("narutoloading.run.end", String.valueOf(System.nanoTime()));
         return false;
     }
 
