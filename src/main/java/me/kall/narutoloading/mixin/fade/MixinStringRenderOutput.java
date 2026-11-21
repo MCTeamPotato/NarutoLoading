@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.fade;
 
-import me.kall.narutoloading.fade.FadeCenter;
+import me.kall.narutoloading.client.fade.FadeCenter;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -14,7 +14,7 @@ public abstract class MixinStringRenderOutput {
     @Mutable @Shadow @Final private float a;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void narutoInit(CallbackInfo ci) {
-        this.a *= FadeCenter.fadeAlpha();
+    private void fade$init(CallbackInfo ci) {
+        this.a = this.a * FadeCenter.fadeAlpha();
     }
 }

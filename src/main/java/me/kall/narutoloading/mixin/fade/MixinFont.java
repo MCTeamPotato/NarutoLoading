@@ -1,49 +1,44 @@
 package me.kall.narutoloading.mixin.fade;
 
-import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.fade.FadeCenter;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import me.kall.narutoloading.client.fade.FadeCenter;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(value = Font.class, priority = 500)
-public class MixinFont {
-    @ModifyVariable(method = {
-            "drawInBatch8xOutline",
-            "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
-            "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
-            "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I",
-            "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I"
-    }, at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private int modifyColor(int value) {
-        return FadeCenter.modifyAlpha(value);
+@Mixin(value = Font.class, priority = 1500)
+public abstract class MixinFont {
+    @Unique private static final Component EMPTY_COMPONENT = Component.empty();
+    @Unique private static final String EMPTY_STRING = "";
+
+    @WrapMethod(method = "drawInBatch8xOutline")
+    private void fade$drawInBatch8xOutline(FormattedCharSequence text, float x, float y, int color, int backgroundColor, Matrix4f matrix, MultiBufferSource bufferSource, int packedLightCoords, @NotNull Operation<Void> original) {
+        original.call(FadeCenter.isHidden() ? FormattedCharSequence.EMPTY : text, x, y, FadeCenter.modifyTextAlpha(color), FadeCenter.modifyAlpha(backgroundColor), matrix, bufferSource, packedLightCoords);
     }
 
-    @ModifyVariable(method = "drawInBatch8xOutline", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private FormattedCharSequence clearDrawInBatch8xOutline(FormattedCharSequence formattedCharSequence) {
-        return FadeCenter.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+    @WrapMethod(method = "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I")
+    private int fade$drawInBatch(FormattedCharSequence text, float x, float y, int color, boolean dropShadow, Matrix4f matrix, MultiBufferSource buffer, Font.DisplayMode displayMode, int backgroundColor, int packedLightCoords, @NotNull Operation<Integer> original) {
+        return original.call(FadeCenter.isHidden() ? FormattedCharSequence.EMPTY : text, x, y, FadeCenter.modifyTextAlpha(color), !FadeCenter.isHidden() && dropShadow, matrix, buffer, displayMode, FadeCenter.modifyAlpha(backgroundColor), packedLightCoords);
     }
 
-    @ModifyVariable(method = "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private FormattedCharSequence clearDrawInBatch(FormattedCharSequence formattedCharSequence) {
-        return FadeCenter.transparency() ? FormattedCharSequence.EMPTY : formattedCharSequence;
+    @WrapMethod(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I")
+    private int fade$drawInBatch(Component text, float x, float y, int color, boolean dropShadow, Matrix4f matrix, MultiBufferSource buffer, Font.DisplayMode displayMode, int backgroundColor, int packedLightCoords, @NotNull Operation<Integer> original) {
+        return original.call(FadeCenter.isHidden() ? EMPTY_COMPONENT : text, x, y, FadeCenter.modifyTextAlpha(color), !FadeCenter.isHidden() && dropShadow, matrix, buffer, displayMode, FadeCenter.modifyAlpha(backgroundColor), packedLightCoords);
     }
 
-    @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private String clearDrawInBatch(String string) {
-        return FadeCenter.transparency() ? NarutoLoading.BLANK : string;
+    @WrapMethod(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I")
+    private int fade$drawInBatch(String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix, MultiBufferSource buffer, Font.DisplayMode displayMode, int backgroundColor, int packedLightCoords, @NotNull Operation<Integer> original) {
+        return original.call(FadeCenter.isHidden() ? EMPTY_STRING : text, x, y, FadeCenter.modifyTextAlpha(color), !FadeCenter.isHidden() && dropShadow, matrix, buffer, displayMode, FadeCenter.modifyAlpha(backgroundColor), packedLightCoords);
     }
 
-    @ModifyVariable(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private String clearDrawInBatch2(String string) {
-        return FadeCenter.transparency() ? NarutoLoading.BLANK : string;
-    }
-
-    @ModifyVariable(method = "drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private Component clearDrawInBatch(Component component) {
-        return FadeCenter.transparency() ? NarutoLoading.EMPTY_COMPONENT : component;
+    @WrapMethod(method = "drawInBatch(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I")
+    private int fade$drawInBatch(String text, float x, float y, int color, boolean dropShadow, Matrix4f matrix, MultiBufferSource buffer, Font.DisplayMode displayMode, int backgroundColor, int packedLightCoords, boolean bidirectional, @NotNull Operation<Integer> original) {
+        return original.call(FadeCenter.isHidden() ? EMPTY_STRING : text, x, y, FadeCenter.modifyTextAlpha(color), !FadeCenter.isHidden() && dropShadow, matrix, buffer, displayMode, FadeCenter.modifyAlpha(backgroundColor), packedLightCoords, bidirectional);
     }
 }

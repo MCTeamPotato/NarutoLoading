@@ -1,68 +1,241 @@
 package me.kall.narutoloading.app.ffmpeg;
 
 import me.kall.narutoloading.app.Executable;
-import me.kall.narutoloading.data.Paths;
+import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
+import me.kall.narutoloading.app.ffmpeg.data.VideoArgs;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.openal.AL11;
 
 import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class FFmpeg {
-    private static final Pattern VIDEO_STREAM = Pattern.compile("\\{[^}]*\"codec_type\"\\s*:\\s*\"video\"[^}]*}");
-    private static final Pattern R_FPS = Pattern.compile("\"r_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
-    private static final Pattern AVG_FPS = Pattern.compile("\"avg_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
-    private static final Pattern FORMAT_DURATION = Pattern.compile("\"format\"\\s*:\\s*\\{[^}]*\"duration\"\\s*:\\s*\"([0-9.]+)\"");
+public final class FFmpeg {
+    private static final String VIDEO_ENTRIES = "stream=codec_type,width,height,r_frame_rate,avg_frame_rate,start_time:format=duration";
+    private static final String AUDIO_ENTRIES = "stream=codec_type,channels,sample_rate,start_time:format=duration";
+    private static final String MONO_ENTRIES = "stream=codec_type,channels";
 
-    public static double getFps(String json) {
-        Matcher videoMatcher = VIDEO_STREAM.matcher(json);
+    private static final String STREAM_CODEC_TYPE = "streams.stream.0.codec_type";
+    private static final String STREAM_WIDTH = "streams.stream.0.width";
+    private static final String STREAM_HEIGHT = "streams.stream.0.height";
+    private static final String STREAM_AVG_FPS = "streams.stream.0.avg_frame_rate";
+    private static final String STREAM_R_FPS = "streams.stream.0.r_frame_rate";
+    private static final String STREAM_START_TIME = "streams.stream.0.start_time";
+    private static final String STREAM_CHANNELS = "streams.stream.0.channels";
+    private static final String STREAM_SAMPLE_RATE = "streams.stream.0.sample_rate";
+    private static final String FORMAT_DURATION = "format.duration";
 
-        if (!videoMatcher.find()) throw new RuntimeException("Matcher#find failed for " + VIDEO_STREAM);
+    private static final String NOT_AVAILABLE = "N/A";
 
-        String videoBlock = videoMatcher.group();
+    public final AtomicReference<@Nullable String> ffmpeg = new AtomicReference<>();
+    public final AtomicReference<@Nullable String> ffprobe = new AtomicReference<>();
 
-        double fps = parseFraction(videoBlock, R_FPS);
-        if (fps > 0) return fps;
+    public @Nullable VideoArgs deriveVideo(@Nullable String absPathStr) {
+        String ffprobe = this.ffprobe.get();
+        if (ffprobe == null || absPathStr == null) return null;
 
-        fps = parseFraction(videoBlock, AVG_FPS);
-        if (fps > 0) {
-            return fps;
+        Path absPath = regularFile(absPathStr, "video");
+        if (absPath == null) return null;
+
+        Map<String, String> values = this.probe(absPathStr, "v:0", VIDEO_ENTRIES);
+        if (values == null) {
+            System.err.println("[NarutoLoading] FFprobe " + ffprobe + " returned no data for " + absPath + " or encounters exception during the process.");
+            return null;
+        }
+
+        if (!"video".equals(values.get(STREAM_CODEC_TYPE))) {
+            System.err.println("[NarutoLoading] Video stream is not found in " + absPathStr);
+            return null;
+        }
+
+        double avg = parseRate(values.get(STREAM_AVG_FPS));
+        double fps = avg > 0D && Double.isFinite(avg) ? avg : parseRate(values.get(STREAM_R_FPS));
+        if (!(fps > 0D) || !Double.isFinite(fps)) {
+            System.err.println("[NarutoLoading] There is no usable frame rate for " + absPathStr);
+            return null;
+        }
+
+        int width = parseInteger(values, STREAM_WIDTH, -1);
+        if (width <= 0) {
+            System.err.println("[NarutoLoading] There is no usable width for " + absPathStr);
+            return null;
+        }
+
+        int height = parseInteger(values, STREAM_HEIGHT, -1);
+        if (height <= 0) {
+            System.err.println("[NarutoLoading] There is no usable height for " + absPathStr);
+            return null;
+        }
+
+        double duration = parseDouble(values, FORMAT_DURATION, Double.NaN);
+        if (Double.isNaN(duration)) {
+            System.err.println("[NarutoLoading] There is no usable duration for " + absPathStr);
+            return null;
+        }
+
+        double startSec = parseDouble(values, STREAM_START_TIME, 0D);
+        return new VideoArgs(absPathStr, fps, width, height, duration, startSec);
+    }
+
+    public @Nullable AudioArgs deriveAudio(@Nullable String absPathStr) {
+        String ffprobe = this.ffprobe.get();
+        if (ffprobe == null || absPathStr == null) return null;
+
+        Path absPath = regularFile(absPathStr, "audio");
+        if (absPath == null) return null;
+
+        Map<String, String> values = this.probe(absPathStr, "a:0", AUDIO_ENTRIES);
+        if (values == null) {
+            System.err.println("[NarutoLoading] FFprobe " + ffprobe + " returned no data for " + absPath + " or encounters exception during the process.");
+            return null;
+        }
+
+        if (!"audio".equals(values.get(STREAM_CODEC_TYPE))) {
+            System.err.println("[NarutoLoading] Audio stream is not found in " + absPathStr);
+            return null;
+        }
+
+        int channelCount = parseInteger(values, STREAM_CHANNELS, -1);
+        if (channelCount <= 0) {
+            System.err.println("[NarutoLoading] There is no usable channel count for " + absPathStr);
+            return null;
+        }
+
+        int sampleRate = parseInteger(values, STREAM_SAMPLE_RATE, -1);
+        if (sampleRate <= 0) {
+            System.err.println("[NarutoLoading] There is no usable sample rate for " + absPathStr);
+            return null;
+        }
+
+        int openALFormat;
+        if (channelCount == 1) {
+            openALFormat = AL11.AL_FORMAT_MONO16;
+        } else if (channelCount == 2) {
+            openALFormat = AL11.AL_FORMAT_STEREO16;
         } else {
-            throw new RuntimeException("Invalid fps " + fps);
+            System.err.println("[NarutoLoading] Unsupported OpenAL format for " + channelCount + " channel(s) in " + absPathStr);
+            return null;
+        }
+
+        double duration = parseDouble(values, FORMAT_DURATION, Double.NaN);
+        if (Double.isNaN(duration)) {
+            System.err.println("[NarutoLoading] There is no usable duration for " + absPathStr);
+            return null;
+        }
+
+        double startSec = parseDouble(values, STREAM_START_TIME, 0D);
+        return new AudioArgs(absPathStr, channelCount, sampleRate, openALFormat, startSec, duration);
+    }
+
+    public @Nullable String monoize(@Nullable String absPathStr) {
+        String ffmpeg = this.ffmpeg.get();
+        if (absPathStr == null || ffmpeg == null) return null;
+
+        Path absPath = regularFile(absPathStr, "audio");
+        if (absPath == null) return null;
+
+        if ("ogg".equalsIgnoreCase(FilenameUtils.getExtension(absPathStr)) && this.monoCheck(absPathStr)) return absPathStr;
+
+        String name = FilenameUtils.getBaseName(absPathStr);
+
+        File absOutput = absPath.getParent().resolve(name + ".ogg").toFile();
+        String absOutputStr = absOutput.getAbsolutePath();
+
+        if (absOutput.exists()) {
+            if (this.monoCheck(absOutputStr)) return absOutputStr;
+
+            if (!absOutput.delete()) {
+                System.err.println("[NarutoLoading] Error deleting stale mono audio output " + absOutputStr);
+                return null;
+            }
+        }
+
+        return Executable.runCommand(ffmpeg, "-i", absPathStr, "-vn", "-acodec", "libvorbis", "-ac", "1", "-q:a", "4", "-y", absOutputStr) != null ? absOutputStr : null;
+    }
+
+    private static @Nullable Path regularFile(@NotNull String absPathStr, @NotNull String kind) {
+        Path absPath;
+        try {
+            absPath = Path.of(absPathStr);
+        } catch (InvalidPathException exception) {
+            System.err.println("[NarutoLoading] " + absPathStr + " path string cannot be converted to a Path object: " + exception.getMessage());
+            return null;
+        }
+
+        if (!Files.isRegularFile(absPath)) {
+            System.err.println("[NarutoLoading] " + absPathStr + " does not exist or is not a valid regular " + kind + " file.");
+            return null;
+        }
+
+        return absPath;
+    }
+
+    private boolean monoCheck(String absPathStr) {
+        if (this.ffprobe.get() == null) return false;
+        Map<String, String> values = this.probe(absPathStr, "a:0", MONO_ENTRIES);
+        return values != null && "audio".equals(values.get(STREAM_CODEC_TYPE)) && parseInteger(values, STREAM_CHANNELS, -1) == 1;
+    }
+
+    private @Nullable Map<String, String> probe(@NotNull String absPathStr, @NotNull String selector, @NotNull String entries) {
+        String ffprobe = this.ffprobe.get();
+        if (ffprobe == null) return null;
+
+        String output = Executable.runCommand(ffprobe, "-v", "quiet", "-select_streams", selector, "-show_entries", entries, "-of", "flat", absPathStr);
+        if (output == null || output.isEmpty()) return null;
+
+        Map<String, String> values = new HashMap<>();
+        for (String line : output.split("\n")) {
+            int separator = line.indexOf('=');
+            if (separator <= 0) continue;
+
+            String value = line.substring(separator + 1);
+            if (value.length() > 1 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+                value = value.substring(1, value.length() - 1);
+            }
+
+            values.put(line.substring(0, separator), value);
+        }
+
+        return values.isEmpty() ? null : values;
+    }
+
+    private static int parseInteger(@NotNull Map<String, String> values, @NotNull String key, int fallback) {
+        String value = values.get(key);
+        if (value == null || value.equals(NOT_AVAILABLE)) return fallback;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException exception) {
+            return fallback;
         }
     }
 
-    private static double parseFraction(String text, @NotNull Pattern pattern) {
-        Matcher matcher = pattern.matcher(text);
-        if (!matcher.find()) throw new RuntimeException("Matcher#find failed for " + pattern);
-
-        double num = Double.parseDouble(matcher.group(1));
-        double den = Double.parseDouble(matcher.group(2));
-
-        if (den == 0) throw new RuntimeException("Invalid den: 0");
-        return num / den;
-    }
-
-    public static double getDuration(String json) {
-        Matcher matcher = FORMAT_DURATION.matcher(json);
-        if (matcher.find()) return Double.parseDouble(matcher.group(1)) * 1000;
-        return -1;
-    }
-
-    public static @NotNull String genJson(String video) {
-        return Executable.executeCommand(new String[]{Paths.FFPROBE.toString(), "-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", video}, false);
-    }
-
-    public static boolean isMono(String audioPath) {
-        return "1".equals(Executable.executeCommand(new String[]{Paths.FFPROBE.toString(), "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=channels", "-of", "default=noprint_wrappers=1:nokey=1", audioPath}, false).trim());
-    }
-
-    public static boolean convertToMonoOgg(String inputPath, String outputPath) {
+    private static double parseDouble(@NotNull Map<String, String> values, @NotNull String key, double fallback) {
+        String value = values.get(key);
+        if (value == null || value.equals(NOT_AVAILABLE)) return fallback;
         try {
-            System.out.println(Executable.executeCommand(new String[]{Paths.FFMPEG.toString(), "-i", inputPath, "-vn", "-acodec", "libvorbis", "-ac", "1", "-q:a", "4", "-y", outputPath}, false));
-            return new File(outputPath).exists();
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
+            return Double.parseDouble(value);
+        } catch (NumberFormatException exception) {
+            return fallback;
+        }
+    }
+
+    private static double parseRate(@Nullable String value) {
+        if (value == null || value.equals(NOT_AVAILABLE)) return Double.NaN;
+
+        int slash = value.indexOf('/');
+        if (slash <= 0) return Double.NaN;
+
+        try {
+            double denominator = Double.parseDouble(value.substring(slash + 1));
+            return denominator == 0D ? Double.NaN : Double.parseDouble(value.substring(0, slash)) / denominator;
+        } catch (NumberFormatException exception) {
+            return Double.NaN;
         }
     }
 }

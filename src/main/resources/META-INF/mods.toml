@@ -1,13 +1,32 @@
 modLoader = "javafml"
 loaderVersion = "[36,)"
 #issueTrackerURL = ""
-license = "MIT"
+license = "LGPL-v3"
 
 [[mods]]
 modId = "narutoloading"
 version = "${version}"
 displayName = "NarutoLoading"
-authors = "Kall"
+#logoFile = "logo.png"
+authors = "Kasualix"
+#credits = ""
 description = '''
+
 '''
 #logoFile = ""
+
+# The yt-dlp download screen is built with NarutoUI, which in turn needs Modern UI. Both are
+# optional: without them the mod keeps working, it just has no config screen.
+[[dependencies.narutoloading]]
+modId = "modernui"
+mandatory = false
+versionRange = "[3.12.0,)"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[dependencies.narutoloading]]
+modId = "narutoui"
+mandatory = false
+versionRange = "[1.20.1-1.10.0,)"
+ordering = "AFTER"
+side = "CLIENT"

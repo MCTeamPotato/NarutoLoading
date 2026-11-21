@@ -2,7 +2,7 @@ package me.kall.narutoloading.mixin.context;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.client.context.Graphics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
@@ -16,14 +16,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
     @WrapOperation(method = "render", at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;)Lnet/minecraft/client/gui/GuiGraphics;"))
-    private GuiGraphics capture(Minecraft minecraft, MultiBufferSource.BufferSource bufferSource, @NotNull Operation<GuiGraphics> original) {
-        GuiGraphics graphics = original.call(minecraft, bufferSource);
-        NarutoLoading.GUI_GRAPHICS.set(graphics);
-        return graphics;
+    private GuiGraphics captureGuiGraphics(Minecraft minecraft, MultiBufferSource.BufferSource bufferSource, @NotNull Operation<GuiGraphics> original) {
+        GuiGraphics guiGraphics = original.call(minecraft, bufferSource);
+        Graphics.set(guiGraphics);
+        return guiGraphics;
     }
 
     @Inject(method = "render", at = @At("RETURN"))
-    private void clean(CallbackInfo ci) {
-        NarutoLoading.GUI_GRAPHICS.remove();
+    private void releaseGuiGraphics(CallbackInfo ci) {
+        Graphics.set(null);
     }
 }
