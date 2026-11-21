@@ -26,11 +26,13 @@ public abstract class MixinGuiGraphics {
 
     @WrapMethod(method = "fill(Lnet/minecraft/client/renderer/RenderType;IIIIII)V")
     private void fade$fill(RenderType renderType, int minX, int minY, int maxX, int maxY, int z, int color, @NotNull Operation<Void> original) {
+        if (FadeCenter.isHidden()) return;
         original.call(renderType, minX, minY, maxX, maxY, z, FadeCenter.modifyAlpha(color));
     }
 
     @WrapMethod(method = "fillGradient(Lcom/mojang/blaze3d/vertex/VertexConsumer;IIIIIII)V")
     private void fade$fillGradient(VertexConsumer consumer, int x1, int y1, int x2, int y2, int z, int colorFrom, int colorTo, @NotNull Operation<Void> original) {
+        if (FadeCenter.isHidden()) return;
         original.call(consumer, x1, y1, x2, y2, z, FadeCenter.modifyAlpha(colorFrom), FadeCenter.modifyAlpha(colorTo));
     }
 

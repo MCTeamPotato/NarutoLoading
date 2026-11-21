@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(value = MuiConfigFragment.class, remap = false)
 public abstract class MixinMuiConfigFragment {
     @WrapOperation(method = {"onCreateView", "rebuildForResize"}, at = @At(value = "INVOKE", target = "Lme/kall/narutoui/mui/background/MuiBackground;attach(Lme/kall/narutoui/mui/screen/MuiScreenHost;Licyllis/modernui/widget/FrameLayout;)V"), require = 0)
-    private void substituteBackground(MuiBackground background, MuiScreenHost host, FrameLayout root, Operation<Void> original) {
+    private void substitute(MuiBackground background, MuiScreenHost host, FrameLayout root, Operation<Void> original) {
         if (Substitution.check()) {
             root.setBackground(new ColorDrawable(0x00000000));
             return;

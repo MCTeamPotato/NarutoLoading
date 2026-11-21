@@ -80,7 +80,8 @@ public final class NarutoScreen {
     }
 
     private @NotNull Screen build(@Nullable Screen parent) {
-        FadeCenter.preview(() -> this.draft.fadable, () -> this.draft.ticksBeforeFade);
+        FadeCenter.preview(() -> this.draft.fadable, () -> this.draft.ticksBeforeFade,
+                () -> this.draft.fadeOutStep, () -> this.draft.fadeInStep);
 
         return MuiSettingsScreen.builder("NarutoLoading")
                 .subtitle("narutoloading.screen.subtitle")
@@ -257,6 +258,12 @@ public final class NarutoScreen {
                         .number("narutoloading.config.fadeTicks", "narutoloading.config.fadeTicks.desc", 0, 1200,
                                 () -> this.draft.ticksBeforeFade,
                                 value -> this.edit(() -> this.draft.ticksBeforeFade = value))
+                        .number("narutoloading.config.fadeOutStep", "narutoloading.config.fadeOutStep.desc", 0, 100,
+                                () -> this.draft.fadeOutStep,
+                                value -> this.edit(() -> this.draft.fadeOutStep = value))
+                        .number("narutoloading.config.fadeInStep", "narutoloading.config.fadeInStep.desc", 0, 100,
+                                () -> this.draft.fadeInStep,
+                                value -> this.edit(() -> this.draft.fadeInStep = value))
                         .enabledWhen(() -> this.draft.fadable))
                 .section("narutoloading.config.section.sources", section -> section
                         .textField("narutoloading.config.sourcesDir", "narutoloading.config.sourcesDir.desc", this.draft.sourcesDir,

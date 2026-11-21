@@ -27,6 +27,8 @@ public class NarutoConfig {
     public static final String SHIMMER_FPS = "shimmerFps";
     public static final String FADABLE = "fadable";
     public static final String TICKS_BEFORE_FADE = "ticksBeforeFade";
+    public static final String FADE_OUT_STEP = "fadeOutStep";
+    public static final String FADE_IN_STEP = "fadeInStep";
 
     private static final Config CONFIG = create();
 
@@ -61,7 +63,9 @@ public class NarutoConfig {
                 .defaultValue(SHIMMER_STRENGTH, 1.0D)
                 .defaultValue(SHIMMER_FPS, 30)
                 .defaultValue(FADABLE, true)
-                .defaultValue(TICKS_BEFORE_FADE, 100);
+                .defaultValue(TICKS_BEFORE_FADE, 100)
+                .defaultValue(FADE_OUT_STEP, 1)
+                .defaultValue(FADE_IN_STEP, 5);
     }
 
     public static int limitWidth() {
@@ -138,6 +142,14 @@ public class NarutoConfig {
 
     public static int ticksBeforeFade() {
         return CONFIG.getInt(TICKS_BEFORE_FADE, 100);
+    }
+
+    public static int fadeOutStep() {
+        return CONFIG.getInt(FADE_OUT_STEP, 1);
+    }
+
+    public static int fadeInStep() {
+        return CONFIG.getInt(FADE_IN_STEP, 5);
     }
 
     public static void set(@NotNull String key, @Nullable Object value) {

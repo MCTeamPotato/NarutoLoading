@@ -1,6 +1,5 @@
 package me.kall.narutoloading.mixin.substitution;
 
-
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.platform.Window;

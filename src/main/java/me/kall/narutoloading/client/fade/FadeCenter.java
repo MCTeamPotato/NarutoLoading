@@ -21,19 +21,24 @@ public final class FadeCenter {
 
     private static volatile @Nullable BooleanSupplier previewEnabled;
     private static volatile @Nullable IntSupplier previewTicks;
+    private static volatile @Nullable IntSupplier previewFadeOutStep;
+    private static volatile @Nullable IntSupplier previewFadeInStep;
 
     private static int stopTicks = 0;
     private static int fadeAlpha = 100;
-    private static boolean itemFade = false;
 
-    public static void preview(@NotNull BooleanSupplier enabled, @NotNull IntSupplier ticksBeforeFade) {
+    public static void preview(@NotNull BooleanSupplier enabled, @NotNull IntSupplier ticksBeforeFade, @NotNull IntSupplier fadeOutStep, @NotNull IntSupplier fadeInStep) {
         previewEnabled = enabled;
         previewTicks = ticksBeforeFade;
+        previewFadeOutStep = fadeOutStep;
+        previewFadeInStep = fadeInStep;
     }
 
     public static void clearPreview() {
         previewEnabled = null;
         previewTicks = null;
+        previewFadeOutStep = null;
+        previewFadeInStep = null;
     }
 
     public static boolean enabled() {
@@ -46,8 +51,18 @@ public final class FadeCenter {
         return preview == null ? NarutoConfig.ticksBeforeFade() : preview.getAsInt();
     }
 
+    public static int fadeOutStep() {
+        IntSupplier preview = previewFadeOutStep;
+        return preview == null ? NarutoConfig.fadeOutStep() : preview.getAsInt();
+    }
+
+    public static int fadeInStep() {
+        IntSupplier preview = previewFadeInStep;
+        return preview == null ? NarutoConfig.fadeInStep() : preview.getAsInt();
+    }
+
     public static boolean isHidden() {
-        return fadeAlpha == 0;
+        return fadeAlpha < 5;
     }
 
     public static boolean isFull() {
@@ -77,8 +92,7 @@ public final class FadeCenter {
         if (!event.phase.equals(TickEvent.Phase.START)) return;
 
         if (!enabled()) {
-            stopTicks = 0;
-            fadeAlpha = 100;
+            reset();
             return;
         }
 
@@ -95,19 +109,27 @@ public final class FadeCenter {
             stopTicks = 0;
         }
 
-        fadeAlpha = stopTicks >= ticksBeforeFade() ? fadeAlpha - 1 : fadeAlpha + 5;
+        fadeAlpha = stopTicks >= ticksBeforeFade() ? fadeAlpha - Math.max(0, fadeOutStep()) : fadeAlpha + Math.max(0, fadeInStep());
         if (fadeAlpha < 0) fadeAlpha = 0;
         if (fadeAlpha > 100) fadeAlpha = 100;
     }
 
     @SubscribeEvent
     public static void anyInput(InputEvent event) {
-        Minecraft.getInstance().execute(() -> stopTicks = 0);
+        reset();
     }
 
     @SubscribeEvent
-    public static void mouseInput(InputEvent.MouseButton event) {
-        Minecraft.getInstance().execute(() -> fadeAlpha = 100);
+    public static void mouseInput(InputEvent.MouseButton.Pre event) {
+        reset();
+    }
+
+    private static void reset() {
+        Minecraft.getInstance().execute(() -> {
+            fadeAlpha = 100;
+            stopTicks = 0;
+            LAST_MOUSE.set(Double.NaN, Double.NaN);
+        });
     }
 
     private static final class MousePos {

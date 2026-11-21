@@ -26,6 +26,7 @@ public class ClientUiTV extends AbstractTV<NativeImage> {
     @Override
     public boolean prerequisite() {
         if (!Instance.get().media.hasSource()) return false;
+        if (Instance.get().ffmpeg.ffmpeg.get() == null) return false;
         Minecraft minecraft = Minecraft.getInstance();
         Screen screen = minecraft.screen;
         if (screen instanceof WinScreen || screen instanceof GenericDirtMessageScreen) return true;
@@ -59,15 +60,11 @@ public class ClientUiTV extends AbstractTV<NativeImage> {
 
     @Override
     public @Nullable AbstractFrameProducer<NativeImage> createVideo(@Nullable VideoArgs videoArgs) {
-        // Without FFmpeg the producer could never start; returning null keeps the TV idle so the
-        // next tick retries and playback begins as soon as the user configures it.
-        if (Instance.get().ffmpeg.ffmpeg.get() == null) return null;
         return NarutoProducers.buildImage(videoArgs);
     }
 
     @Override
     public @Nullable AudioProducer createAudio(@Nullable AudioArgs audioArgs) {
-        if (Instance.get().ffmpeg.ffmpeg.get() == null) return null;
         return NarutoProducers.buildAudio(audioArgs);
     }
 }

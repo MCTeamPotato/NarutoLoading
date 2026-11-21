@@ -24,6 +24,8 @@ final class NarutoDraft {
     int shimmerFps;
     boolean fadable;
     int ticksBeforeFade;
+    int fadeOutStep;
+    int fadeInStep;
 
     private NarutoDraft() {
         this.maxVideoWidth = NarutoConfig.limitWidth();
@@ -43,6 +45,8 @@ final class NarutoDraft {
         this.shimmerFps = NarutoConfig.shimmerFps();
         this.fadable = NarutoConfig.fadable();
         this.ticksBeforeFade = NarutoConfig.ticksBeforeFade();
+        this.fadeOutStep = NarutoConfig.fadeOutStep();
+        this.fadeInStep = NarutoConfig.fadeInStep();
     }
 
     static @NotNull NarutoDraft load() {
@@ -66,7 +70,9 @@ final class NarutoDraft {
                 || Double.compare(this.shimmerStrength, NarutoConfig.shimmerStrength()) != 0
                 || this.shimmerFps != NarutoConfig.shimmerFps()
                 || this.fadable != NarutoConfig.fadable()
-                || this.ticksBeforeFade != NarutoConfig.ticksBeforeFade();
+                || this.ticksBeforeFade != NarutoConfig.ticksBeforeFade()
+                || this.fadeOutStep != NarutoConfig.fadeOutStep()
+                || this.fadeInStep != NarutoConfig.fadeInStep();
     }
 
     boolean playbackChanged() {
@@ -96,6 +102,8 @@ final class NarutoDraft {
         NarutoConfig.set(NarutoConfig.SHIMMER_FPS, this.shimmerFps);
         NarutoConfig.set(NarutoConfig.FADABLE, this.fadable);
         NarutoConfig.set(NarutoConfig.TICKS_BEFORE_FADE, this.ticksBeforeFade);
+        NarutoConfig.set(NarutoConfig.FADE_OUT_STEP, this.fadeOutStep);
+        NarutoConfig.set(NarutoConfig.FADE_IN_STEP, this.fadeInStep);
         NarutoConfig.save();
     }
 }
