@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
-final class Locator {
+public final class Locator {
     static final boolean WINDOWS = File.separatorChar == '\\';
     private static final int SEARCH_DEPTH = 4;
 
@@ -56,6 +56,10 @@ final class Locator {
         private static @NotNull String key(@NotNull String fileName) {
             return WINDOWS ? fileName.toLowerCase(Locale.ROOT) : fileName;
         }
+    }
+
+    public static @Nullable String locate(@NotNull String target, @NotNull Path gameDir, @Nullable String configuredDir) {
+        return locate(target, gameDir, null, configuredDir == null || configuredDir.isBlank() ? null : Path.of(configuredDir), new Index());
     }
 
     static @Nullable String locate(@NotNull String target, @NotNull Path gameDir, @Nullable String neighbor, @Nullable Path configuredDir, @NotNull Index index) {

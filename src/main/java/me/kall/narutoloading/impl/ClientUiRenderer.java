@@ -23,6 +23,6 @@ public final class ClientUiRenderer extends ImageFrameRenderer {
         int w = graphics.guiWidth();
         int h = graphics.guiHeight();
 
-        graphics.blit(this.textureLocation, 0, 0, 0, 0 , w, h, w, h);
+        graphics.blit(this.textureLocation, 0, 0, 0, 0, w, h, w, h);
     }
 }

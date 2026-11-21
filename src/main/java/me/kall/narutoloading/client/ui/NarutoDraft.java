@@ -12,6 +12,7 @@ final class NarutoDraft {
     float volume;
     String sourcesDir;
     double bufferSeconds;
+    boolean compatMode;
     MediaRepository.Mode selectMode;
     String fixedName;
     boolean muteMusic;
@@ -33,6 +34,7 @@ final class NarutoDraft {
         this.volume = NarutoConfig.volume();
         this.sourcesDir = NarutoConfig.sourcesDir().toString();
         this.bufferSeconds = NarutoConfig.bufferSeconds();
+        this.compatMode = NarutoConfig.compatMode();
         this.selectMode = NarutoConfig.selectMode();
         this.fixedName = NarutoConfig.fixedName();
         this.muteMusic = NarutoConfig.muteMusic();
@@ -59,6 +61,7 @@ final class NarutoDraft {
                 || Float.compare(this.volume, NarutoConfig.volume()) != 0
                 || !this.sourcesDir.equals(NarutoConfig.sourcesDir().toString())
                 || Double.compare(this.bufferSeconds, NarutoConfig.bufferSeconds()) != 0
+                || this.compatMode != NarutoConfig.compatMode()
                 || this.selectMode != NarutoConfig.selectMode()
                 || !this.fixedName.equals(NarutoConfig.fixedName())
                 || this.muteMusic != NarutoConfig.muteMusic()
@@ -90,6 +93,7 @@ final class NarutoDraft {
         NarutoConfig.set(NarutoConfig.AUDIO_VOLUME, this.volume);
         NarutoConfig.set(NarutoConfig.SOURCES_DIR, this.sourcesDir);
         NarutoConfig.set(NarutoConfig.BUFFER_SECONDS, this.bufferSeconds);
+        NarutoConfig.set(NarutoConfig.COMPAT_MODE, this.compatMode);
         NarutoConfig.set(NarutoConfig.SELECT_MODE, this.selectMode.name().toLowerCase(Locale.ROOT));
         NarutoConfig.set(NarutoConfig.FIXED_NAME, this.fixedName);
         NarutoConfig.set(NarutoConfig.MUTE_MUSIC, this.muteMusic);

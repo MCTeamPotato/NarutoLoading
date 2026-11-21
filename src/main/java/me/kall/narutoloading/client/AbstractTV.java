@@ -1,4 +1,4 @@
-package me.kall.narutoloading.client.core;
+package me.kall.narutoloading.client;
 
 import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.app.ffmpeg.data.VideoArgs;

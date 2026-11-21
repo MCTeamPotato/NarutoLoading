@@ -19,6 +19,7 @@ public class NarutoMixinPlugin implements IMixinConfigPlugin {
     @Override
     public boolean shouldApplyMixin(String targetClassName, @NotNull String mixinClassName) {
         if (mixinClassName.endsWith("MixinBlurHandler")) return Integration.MODERN_UI;
+        if (mixinClassName.endsWith("MixinUIManager")) return Integration.MODERN_UI;
         if (mixinClassName.endsWith("MixinMuiConfigFragment")) return Integration.NARUTO_UI;
         return true;
     }

@@ -3,6 +3,7 @@ package me.kall.narutoloading.mixin.substitution;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.platform.Window;
+import me.kall.narutoloading.impl.ClientUiControl;
 import me.kall.narutoloading.impl.Substitution;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -33,6 +34,10 @@ public abstract class MixinForgeLoadingOverlay {
 
     @WrapMethod(method = "render")
     private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, Operation<Void> original) {
+        // The fade-out starts on the frame where reload finishes; hand the early session over now
+        // so the title screen can present it under the fading overlay.
+        if (this.fadeOutStart == -1L && this.reload.isDone()) ClientUiControl.detachEarly();
+
         if (Substitution.checkAndRun()) {
             Minecraft minecraft = this.minecraft;
             ReloadInstance reload = this.reload;

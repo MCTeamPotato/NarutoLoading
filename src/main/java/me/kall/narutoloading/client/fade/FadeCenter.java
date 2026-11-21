@@ -2,6 +2,7 @@ package me.kall.narutoloading.client.fade;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.config.NarutoConfig;
+import me.kall.narutoloading.impl.ClientUiControl;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraftforge.api.distmarker.Dist;
@@ -62,7 +63,7 @@ public final class FadeCenter {
     }
 
     public static boolean isHidden() {
-        return fadeAlpha < 5;
+        return fadeAlpha < 3;
     }
 
     public static boolean isFull() {
@@ -89,7 +90,7 @@ public final class FadeCenter {
 
     @SubscribeEvent
     public static void tick(TickEvent.@NotNull ClientTickEvent event) {
-        if (!event.phase.equals(TickEvent.Phase.START)) return;
+        if (!event.phase.equals(TickEvent.Phase.START) || !ClientUiControl.videoPresent()) return;
 
         if (!enabled()) {
             reset();

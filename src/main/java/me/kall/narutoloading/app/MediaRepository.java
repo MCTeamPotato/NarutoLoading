@@ -2,6 +2,7 @@ package me.kall.narutoloading.app;
 
 import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.app.ffmpeg.data.VideoArgs;
+import me.kall.narutoloading.media.MediaSource;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,8 @@ public final class MediaRepository {
 
     public static final String AUDIO_SUFFIX = ".audio";
 
+    private static final String[] FILE_FILTERS = buildFileFilters();
+
     private static final long IDLE_RESCAN_NANOS = 3_000_000_000L;
 
     public enum Mode {
@@ -60,6 +63,23 @@ public final class MediaRepository {
     public static boolean isMediaFile(@NotNull String fileName) {
         String extension = FilenameUtils.getExtension(fileName).toLowerCase(Locale.ROOT);
         return VIDEO_EXTENSIONS.contains(extension) || AUDIO_EXTENSIONS.contains(extension);
+    }
+
+    /**
+     * Glob patterns for the file dialog, e.g. {@code *.mp4}.
+     */
+    public static @NotNull String[] fileFilters() {
+        return FILE_FILTERS.clone();
+    }
+
+    private static @NotNull String[] buildFileFilters() {
+        List<String> extensions = new ArrayList<>(VIDEO_EXTENSIONS.size() + AUDIO_EXTENSIONS.size());
+        extensions.addAll(VIDEO_EXTENSIONS);
+        extensions.addAll(AUDIO_EXTENSIONS);
+
+        String[] patterns = new String[extensions.size()];
+        for (int index = 0; index < patterns.length; index++) patterns[index] = "*." + extensions.get(index);
+        return patterns;
     }
 
     public static @NotNull String mediaName(@NotNull String fileName) {
@@ -112,6 +132,7 @@ public final class MediaRepository {
 
     private @Nullable Media current;
     private @Nullable String lastName;
+    private @Nullable String pendingPath;
 
     public MediaRepository(@NotNull Supplier<Path> sourcesDir, @NotNull Supplier<Mode> mode, @NotNull Supplier<String> fixedName, @NotNull Function<String, CompletableFuture<@Nullable VideoArgs>> videoReader, @NotNull Function<String, CompletableFuture<@Nullable AudioArgs>> audioReader) {
         this.sourcesDir = sourcesDir;
@@ -149,6 +170,27 @@ public final class MediaRepository {
         }
 
         return false;
+    }
+
+    /**
+     * Makes the media the early window already picked the current one, so the settings screen and
+     * the next playback use the same file. If the list has not been scanned yet, the path is kept
+     * and applied when the scan finishes.
+     */
+    public void adopt(@Nullable String absPath) {
+        if (absPath == null || absPath.isBlank()) return;
+
+        synchronized (this.lock) {
+            for (Media media : this.ready) {
+                if (media.video() != null && media.video().absPath().equals(absPath)) {
+                    this.current = media;
+                    this.lastName = media.name();
+                    return;
+                }
+            }
+
+            this.pendingPath = absPath;
+        }
     }
 
     public @Nullable VideoArgs peekVideo() {
@@ -312,10 +354,66 @@ public final class MediaRepository {
         this.audioCache.keySet().retainAll(seen);
 
         this.ready = List.copyOf(result);
+
+        String pending = this.pendingPath;
+
+        if (pending != null) {
+            synchronized (this.lock) {
+                for (Media media : this.ready) {
+                    if (media.video() != null && media.video().absPath().equals(pending)) {
+                        this.current = media;
+                        this.lastName = media.name();
+                        break;
+                    }
+                }
+
+                this.pendingPath = null;
+            }
+        }
     }
 
     private @NotNull List<Group> scan() {
-        Path dir = this.resolveDir();
+        return scan(this.resolveDir());
+    }
+
+    /**
+     * Synchronous scan + pick used by the early window (no game classes, no async refresh).
+     */
+    public static @Nullable MediaSource pickSource(@NotNull Path directory, @NotNull Mode mode, @Nullable String fixedName) {
+        List<Group> groups = scan(directory);
+
+        List<Group> candidates = new ArrayList<>(groups.size());
+        for (Group group : groups) {
+            if (group.video() != null) candidates.add(group);
+        }
+
+        if (candidates.isEmpty()) return null;
+
+        Group picked = null;
+
+        if (mode == Mode.FIXED && fixedName != null && !fixedName.isBlank()) {
+            String wanted = fixedName.trim();
+            for (Group group : candidates) {
+                if (group.name().equalsIgnoreCase(wanted)) {
+                    picked = group;
+                    break;
+                }
+            }
+        }
+
+        if (picked == null) {
+            picked = mode == Mode.SEQUENTIAL
+                    ? candidates.get(0)
+                    : candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+        }
+
+        Path video = picked.video();
+        Path audio = picked.audio();
+
+        return new MediaSource(video.toAbsolutePath().toString(), audio == null ? null : audio.toAbsolutePath().toString());
+    }
+
+    private static @NotNull List<Group> scan(@NotNull Path dir) {
         if (!Files.isDirectory(dir)) return List.of();
 
         List<Path> files;

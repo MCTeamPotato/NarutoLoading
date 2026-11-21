@@ -13,6 +13,7 @@
     "fade.MixinFont",
     "fade.MixinGuiGraphics",
     "fade.MixinStringRenderOutput",
+    "fade.MixinUIManager",
     "substitution.MixinAbstractSelectionList",
     "substitution.mui.MixinBlurHandler",
     "substitution.MixinCreateWorldScreen",

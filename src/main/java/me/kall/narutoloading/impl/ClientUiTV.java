@@ -5,7 +5,9 @@ import me.kall.narutoloading.app.Instance;
 import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.app.ffmpeg.data.VideoArgs;
 import me.kall.narutoloading.client.context.LevelStatus;
-import me.kall.narutoloading.client.core.AbstractTV;
+import me.kall.narutoloading.client.AbstractTV;
+import me.kall.narutoloading.client.renderer.BufferFrameRenderer;
+import me.kall.narutoloading.client.renderer.FrameRenderer;
 import me.kall.narutoloading.produce.AbstractProducer;
 import me.kall.narutoloading.produce.NarutoProducers;
 import me.kall.narutoloading.produce.audio.AudioProducer;
@@ -14,17 +16,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.WinScreen;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ClientUiTV extends AbstractTV<NativeImage> {
-    public static final ClientUiTV INSTANCE = new ClientUiTV();
+import java.nio.ByteBuffer;
 
-    public ClientUiTV() {
-        super(new ClientUiRenderer());
+public abstract class ClientUiTV<T> extends AbstractTV<T> {
+    private static final String EARLY_SESSION = "narutoloading.early";
+
+    protected ClientUiTV(FrameRenderer<T> renderer) {
+        super(renderer);
     }
 
     @Override
     public boolean prerequisite() {
+        if (System.getProperty(EARLY_SESSION) != null) return false;
         if (!Instance.get().media.hasSource()) return false;
         if (Instance.get().ffmpeg.ffmpeg.get() == null) return false;
         Minecraft minecraft = Minecraft.getInstance();
@@ -59,12 +65,29 @@ public class ClientUiTV extends AbstractTV<NativeImage> {
     }
 
     @Override
-    public @Nullable AbstractFrameProducer<NativeImage> createVideo(@Nullable VideoArgs videoArgs) {
-        return NarutoProducers.buildImage(videoArgs);
-    }
-
-    @Override
     public @Nullable AudioProducer createAudio(@Nullable AudioArgs audioArgs) {
         return NarutoProducers.buildAudio(audioArgs);
+    }
+
+    public static final class Buffer extends ClientUiTV<ByteBuffer> {
+        public Buffer() {
+            super(new BufferFrameRenderer(false));
+        }
+
+        @Override
+        public @NotNull AbstractFrameProducer<ByteBuffer> createVideo(@Nullable VideoArgs videoArgs) {
+            return NarutoProducers.buildBuffer(videoArgs);
+        }
+    }
+
+    public static final class Image extends ClientUiTV<NativeImage> {
+        public Image() {
+            super(new ClientUiRenderer());
+        }
+
+        @Override
+        public @NotNull AbstractFrameProducer<NativeImage> createVideo(@Nullable VideoArgs videoArgs) {
+            return NarutoProducers.buildImage(videoArgs);
+        }
     }
 }

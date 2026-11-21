@@ -8,7 +8,7 @@ import icyllis.modernui.widget.TextView;
 import me.kall.narutoloading.app.Instance;
 import me.kall.narutoloading.app.MediaRepository;
 import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.impl.ClientUiTV;
+import me.kall.narutoloading.impl.ClientUiControl;
 import me.kall.narutoui.mui.field.MuiTextField;
 import me.kall.narutoui.mui.layout.MuiControls;
 import me.kall.narutoui.mui.layout.MuiLayout;
@@ -231,7 +231,7 @@ final class YtDlpPage {
     private void play(@NotNull Instance instance, @NotNull String name) {
         Minecraft.getInstance().execute(() -> {
             if (instance.media.select(name)) {
-                ClientUiTV.INSTANCE.synchronize(true, 0D);
+                ClientUiControl.restart(0D);
                 return;
             }
 

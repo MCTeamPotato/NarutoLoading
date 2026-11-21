@@ -86,6 +86,15 @@ shadowJar {
     mergeServiceFiles()
     archiveClassifier = "dev-shadow"
     exclude "LICENSE_MixinExtras"
+    manifest {
+        attributes(
+                'Premain-Class': 'me.kall.narutoloading.agent.NarutoLoadingAgent',
+                'Agent-Class': 'me.kall.narutoloading.agent.NarutoLoadingAgent',
+                'Can-Redefine-Classes': 'false',
+                'Can-Retransform-Classes': 'false'
+        )
+        attributes.remove('Class-Path')
+    }
 }
 
 remapJar {

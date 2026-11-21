@@ -26,6 +26,7 @@ public class NarutoConfig {
     public static final String SHIMMER_STRENGTH = "shimmerStrength";
     public static final String SHIMMER_FPS = "shimmerFps";
     public static final String FADABLE = "fadable";
+    public static final String COMPAT_MODE = "compatMode";
     public static final String TICKS_BEFORE_FADE = "ticksBeforeFade";
     public static final String FADE_OUT_STEP = "fadeOutStep";
     public static final String FADE_IN_STEP = "fadeInStep";
@@ -63,6 +64,7 @@ public class NarutoConfig {
                 .defaultValue(SHIMMER_STRENGTH, 1.0D)
                 .defaultValue(SHIMMER_FPS, 30)
                 .defaultValue(FADABLE, true)
+                .defaultValue(COMPAT_MODE, false)
                 .defaultValue(TICKS_BEFORE_FADE, 100)
                 .defaultValue(FADE_OUT_STEP, 1)
                 .defaultValue(FADE_IN_STEP, 5);
@@ -138,6 +140,10 @@ public class NarutoConfig {
 
     public static boolean fadable() {
         return CONFIG.getBoolean(FADABLE, true);
+    }
+
+    public static boolean compatMode() {
+        return CONFIG.getBoolean(COMPAT_MODE, false);
     }
 
     public static int ticksBeforeFade() {

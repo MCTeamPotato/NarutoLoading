@@ -5,6 +5,7 @@ import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.app.ffmpeg.data.VideoArgs;
 import me.kall.narutoloading.app.ytdlp.YtDlp;
 import me.kall.narutoloading.config.NarutoConfig;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,6 +96,50 @@ public final class Instance {
         if (!Locator.WINDOWS && !target.toFile().setExecutable(true, false)) System.err.println("[NarutoLoading] Warning: " + target + " may not be executable.");
 
         return this.reloadYtDlp();
+    }
+
+    /**
+     * Copies a media file the user picked into the sources directory and returns the copy. An
+     * existing file is never replaced: a numbered suffix is added instead. If the source already
+     * lives in the sources directory, its path is returned unchanged.
+     */
+    @Contract("_ -> new")
+    public @NotNull CompletableFuture<@Nullable Path> importMedia(@NotNull Path source) {
+        return CompletableFuture.supplyAsync(() -> copyMedia(source), this.download);
+    }
+
+    private static @Nullable Path copyMedia(@NotNull Path source) {
+        Path directory = resolveSourcesDir();
+        Path target = uniqueTarget(directory, source.getFileName().toString());
+
+        try {
+            Files.createDirectories(directory);
+            if (!source.toAbsolutePath().normalize().equals(target.toAbsolutePath().normalize())) Files.copy(source, target);
+        } catch (IOException exception) {
+            System.err.println("[NarutoLoading] Exception copying " + source + " to " + target + ": " + exception.getMessage());
+            return null;
+        }
+
+        return target;
+    }
+
+    private static @NotNull Path resolveSourcesDir() {
+        Path sources = NarutoConfig.sourcesDir();
+        return sources.isAbsolute() ? sources : Path.of(System.getProperty("user.dir", ".")).resolve(sources);
+    }
+
+    private static @NotNull Path uniqueTarget(@NotNull Path directory, @NotNull String fileName) {
+        Path target = directory.resolve(fileName);
+        if (!Files.exists(target)) return target;
+
+        String baseName = FilenameUtils.getBaseName(fileName);
+        String extension = FilenameUtils.getExtension(fileName);
+        String suffix = extension.isEmpty() ? "" : "." + extension;
+
+        for (int index = 2; ; index++) {
+            Path candidate = directory.resolve(baseName + " (" + index + ")" + suffix);
+            if (!Files.exists(candidate)) return candidate;
+        }
     }
 
     @Contract("_ -> new")

@@ -12,7 +12,7 @@ import me.kall.narutoloading.app.Instance;
 import me.kall.narutoloading.app.MediaRepository;
 import me.kall.narutoloading.client.fade.FadeCenter;
 import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.impl.ClientUiTV;
+import me.kall.narutoloading.impl.ClientUiControl;
 import me.kall.narutoloading.produce.audio.AudioProducer;
 import me.kall.narutoui.mui.choice.MuiOption;
 import me.kall.narutoui.mui.color.MuiColorSchemes;
@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -115,6 +116,7 @@ public final class NarutoScreen {
         page.section("narutoloading.playback.section.current", section -> {
             section.value("narutoloading.playback.current", current == null ? I18n.get("narutoloading.playback.current.none") : current.name());
             section.value("narutoloading.playback.count", Integer.toString(all.size()));
+            section.button("narutoloading.playback.import", true, this::importMedia);
 
             if (!all.isEmpty()) {
                 List<MuiOption<String>> options = new ArrayList<>(all.size());
@@ -202,7 +204,7 @@ public final class NarutoScreen {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.execute(() -> {
             selection.run();
-            ClientUiTV.INSTANCE.synchronize(true, 0D);
+            ClientUiControl.restart(0D);
             MuiModApi.postToUiThread(this::reloadPage);
         });
     }
@@ -210,6 +212,49 @@ public final class NarutoScreen {
     private void reloadPage() {
         MuiScreenHost current = this.host;
         if (current != null) current.reloadCurrentPage();
+    }
+
+    private void importMedia() {
+        MuiFilePicker.openFile(I18n.get("narutoloading.playback.import"), I18n.get("narutoloading.playback.import.filter"), this::installMedia, MediaRepository.fileFilters());
+    }
+
+    private void installMedia(@NotNull Path source) {
+        Instance instance = Instance.get();
+
+        instance.importMedia(source).whenComplete((target, throwable) -> {
+            if (throwable != null) System.err.println("[NarutoLoading] Exception importing " + source + ": " + throwable.getMessage());
+
+            if (target == null) {
+                this.notifyImport(I18n.get("narutoloading.playback.import.failed.desc"));
+                return;
+            }
+
+            String name = MediaRepository.mediaName(target.getFileName().toString());
+            instance.media.refresh(() -> this.selectImported(name));
+        });
+    }
+
+    private void selectImported(@NotNull String name) {
+        Minecraft.getInstance().execute(() -> {
+            boolean selected = Instance.get().media.select(name);
+            if (selected) ClientUiControl.restart(0D);
+
+            MuiModApi.postToUiThread(() -> {
+                if (!selected) {
+                    this.notifyImport(I18n.get("narutoloading.playback.import.unplayable", name));
+                    return;
+                }
+
+                this.reloadPage();
+            });
+        });
+    }
+
+    private void notifyImport(@NotNull String message) {
+        MuiModApi.postToUiThread(() -> {
+            MuiScreenHost current = this.host;
+            if (current != null) MuiDialog.notice(current, I18n.get("narutoloading.playback.import.title"), message, I18n.get("narutoloading.ok"), () -> {});
+        });
     }
 
     private void buildConfig(@NotNull MuiSettingsPage page) {
@@ -224,7 +269,10 @@ public final class NarutoScreen {
                                 value -> this.edit(() -> this.draft.maxVideoHeight = value))
                         .decimal("narutoloading.config.buffer", "narutoloading.config.buffer.desc", 0.0D, 5.0D,
                                 () -> this.draft.bufferSeconds,
-                                value -> this.edit(() -> this.draft.bufferSeconds = value)))
+                                value -> this.edit(() -> this.draft.bufferSeconds = value))
+                        .toggle("narutoloading.config.compatMode", "narutoloading.config.compatMode.desc",
+                                () -> this.draft.compatMode,
+                                value -> this.edit(() -> this.draft.compatMode = value)))
                 .section("narutoloading.config.section.appearance", section -> section
                         .toggle("narutoloading.config.shimmer", "narutoloading.config.shimmer.desc",
                                 () -> this.draft.shimmer,
@@ -382,11 +430,12 @@ public final class NarutoScreen {
         try {
             this.draft.write();
             this.applyVolume();
+            ClientUiControl.applyMode();
 
             if (playback) {
                 Instance instance = Instance.get();
                 instance.media.refresh();
-                ClientUiTV.INSTANCE.synchronize(true, 0D);
+                ClientUiControl.restart(0D);
             }
         } catch (Throwable throwable) {
             failure = throwable;
@@ -434,7 +483,7 @@ public final class NarutoScreen {
     }
 
     private void applyVolume() {
-        AudioProducer audio = ClientUiTV.INSTANCE.audio.get();
+        AudioProducer audio = ClientUiControl.active().audio.get();
         if (audio != null) audio.volume(this.draft.volume);
     }
 
@@ -474,7 +523,7 @@ public final class NarutoScreen {
         this.host = null;
         FadeCenter.clearPreview();
 
-        AudioProducer audio = ClientUiTV.INSTANCE.audio.get();
+        AudioProducer audio = ClientUiControl.active().audio.get();
         if (audio != null) audio.volume(NarutoConfig.volume());
     }
 
