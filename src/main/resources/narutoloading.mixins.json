@@ -11,7 +11,7 @@
     "structure.MixinStructureTemplate"
   ],
   "client": [
-    "context.MixinGameRenderer",
+    "context.MixinGuiGraphics",
     "context.MixinOptions",
     "cull.MixinBlock",
     "cull.MixinBlockOcclusionCache",
