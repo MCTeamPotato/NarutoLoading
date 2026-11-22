@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     private static final long NANOS_PER_SECOND = 1_000_000_000L;
+    protected static final long DEFAULT_MAX_BUFFER_BYTES = 512L * 1024L * 1024L;
+    private static final int WARM_FRAMES = 8;
 
     private final String ffmpeg;
 
@@ -36,6 +38,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     private long nextReportNanos;
 
     protected final int frameSize, bufferCapacity;
+    protected final int warmFrames;
     protected final LinkedBlockingQueue<Frame<T>> frames;
 
     private final AtomicReference<T> lastFetched = new AtomicReference<>();
@@ -47,11 +50,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     private final AtomicBoolean starved = new AtomicBoolean();
 
-    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, double bufferSeconds) {
-        this(ffmpeg, args, gpuAccel, frameSize, bufferSeconds, NarutoConfig.limitWidth(), NarutoConfig.limitHeight());
-    }
-
-    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, double bufferSeconds, int maxWidth, int maxHeight) {
+    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, double bufferSeconds, int maxWidth, int maxHeight, long maxBufferBytes) {
         this.ffmpeg = ffmpeg;
 
         this.args = args;
@@ -61,7 +60,8 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         this.maxHeight = maxHeight;
 
         this.frameSize = frameSize;
-        this.bufferCapacity = (int) (this.args.fps() * bufferSeconds);
+        this.bufferCapacity = bufferCapacity(this.args.fps(), bufferSeconds, frameSize, maxBufferBytes);
+        this.warmFrames = Math.min(this.bufferCapacity, WARM_FRAMES);
         this.frames = new LinkedBlockingQueue<>(this.bufferCapacity);
         this.nextReportNanos = System.nanoTime() + reportIntervalNanos();
 
@@ -219,9 +219,25 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         return Math.max(1, NarutoConfig.debugTimeCostsInterval()) * NANOS_PER_SECOND;
     }
 
+    /**
+     * Bounds the queue by both the configured seconds and a native-memory budget. A 4K RGBA frame
+     * is about 25MB, so a two-second buffer would otherwise mean 3GB of live buffers per producer.
+     *
+     * @param fps            video frame rate
+     * @param seconds        configured buffer duration
+     * @param frameSize      bytes per frame
+     * @param maxBufferBytes native-memory budget for this producer
+     * @return the number of frames to keep
+     */
+    private static int bufferCapacity(double fps, double seconds, int frameSize, long maxBufferBytes) {
+        int bySeconds = Math.max(1, (int) (fps * seconds));
+        int byBytes = Math.max(1, (int) (maxBufferBytes / Math.max(1, frameSize)));
+        return Math.min(bySeconds, byBytes);
+    }
+
     private void warm() {
         ExecutorService waitExecutor = this.waitExecutor.get();
-        if (this.frames.remainingCapacity() == 0 && !this.ready.get() && !this.waiting.get() && waitExecutor != null) {
+        if (this.frames.size() >= this.warmFrames && !this.ready.get() && !this.waiting.get() && waitExecutor != null) {
             this.waiting.set(true);
             CompletableFuture.runAsync(() -> {
                 if (this.awaitEager()) {

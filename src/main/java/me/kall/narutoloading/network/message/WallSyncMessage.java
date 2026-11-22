@@ -1,6 +1,6 @@
 package me.kall.narutoloading.network.message;
 
-import me.kall.narutoloading.network.ClientPacketHandler;
+import me.kall.narutoloading.network.handler.ClientPacketHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;

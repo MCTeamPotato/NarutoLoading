@@ -103,6 +103,16 @@ public final class MediaRepository {
         return this.ready;
     }
 
+    /**
+     * Returns whether a background scan is currently running. The list may still be the previous
+     * one until the scan finishes.
+     *
+     * @return {@code true} while scanning
+     */
+    public boolean scanning() {
+        return this.scanning.get();
+    }
+
     public boolean select(@NotNull String name) {
         synchronized (this.lock) {
             for (Media media : this.ready) {

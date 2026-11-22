@@ -2,7 +2,6 @@ package me.kall.narutoloading.config;
 
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.config.api.Config;
-import me.kall.narutoloading.wall.WallRenderMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,17 +22,16 @@ public class NarutoConfig {
     public static final String MUTE_MUSIC = "muteMusic";
     public static final String DEBUG_TIME_COSTS = "debugTimeCosts";
     public static final String DEBUG_TIME_COSTS_INTERVAL = "debugTimeCostsInterval";
+    public static final String THEME = "theme";
     public static final String SHIMMER = "shimmer";
     public static final String SHIMMER_SPEED = "shimmerSpeed";
     public static final String SHIMMER_SCALE = "shimmerScale";
     public static final String SHIMMER_STRENGTH = "shimmerStrength";
     public static final String SHIMMER_FPS = "shimmerFps";
     public static final String FADABLE = "fadable";
-    public static final String COMPAT_MODE = "compatMode";
     public static final String TICKS_BEFORE_FADE = "ticksBeforeFade";
     public static final String FADE_OUT_STEP = "fadeOutStep";
     public static final String FADE_IN_STEP = "fadeInStep";
-    public static final String WORLD_RENDER_MODE = "worldRenderMode";
     public static final String WORLD_MAX_WIDTH = "worldMaxWidth";
     public static final String WORLD_MAX_HEIGHT = "worldMaxHeight";
     public static final String WORLD_BUFFER_SECONDS = "worldBufferSeconds";
@@ -138,10 +136,6 @@ public class NarutoConfig {
         return NarutoSettings.FADABLE.read(CONFIG);
     }
 
-    public static boolean compatMode() {
-        return NarutoSettings.COMPAT_MODE.read(CONFIG);
-    }
-
     public static int ticksBeforeFade() {
         return NarutoSettings.TICKS_BEFORE_FADE.read(CONFIG);
     }
@@ -152,10 +146,6 @@ public class NarutoConfig {
 
     public static int fadeInStep() {
         return NarutoSettings.FADE_IN_STEP.read(CONFIG);
-    }
-
-    public static @NotNull WallRenderMode worldRenderMode() {
-        return NarutoSettings.WORLD_RENDER_MODE.read(CONFIG);
     }
 
     public static int worldLimitWidth() {

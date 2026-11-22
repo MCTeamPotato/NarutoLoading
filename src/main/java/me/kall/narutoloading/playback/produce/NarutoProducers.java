@@ -6,12 +6,17 @@ import me.kall.narutoloading.client.context.LevelStatus;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
 import me.kall.narutoloading.playback.produce.video.BufferFrameProducer;
-import me.kall.narutoloading.playback.produce.video.ImageFrameProducer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class NarutoProducers {
+    /**
+     * Per-wall budget. Four active 4K walls at the client-UI budget would reserve 2GB of native
+     * frame buffers, so walls get a smaller budget each.
+     */
+    private static final long WORLD_MAX_BUFFER_BYTES = 256L * 1024L * 1024L;
+
     private NarutoProducers() {}
 
     @Contract("_, _ -> new")
@@ -25,17 +30,7 @@ public final class NarutoProducers {
     }
 
     @Contract("_, _ -> new")
-    public static @NotNull ImageFrameProducer buildImage(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new ImageFrameProducer(ffmpeg, videoArgs, LevelStatus.notFound(), NarutoConfig.bufferSeconds());
-    }
-
-    @Contract("_, _ -> new")
-    public static @NotNull ImageFrameProducer buildWorldImage(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new ImageFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldBufferSeconds(), NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight());
-    }
-
-    @Contract("_, _ -> new")
     public static @NotNull BufferFrameProducer buildWorldBuffer(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldBufferSeconds(), NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight());
+        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldBufferSeconds(), NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight(), WORLD_MAX_BUFFER_BYTES);
     }
 }

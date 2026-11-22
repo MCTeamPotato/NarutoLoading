@@ -1,7 +1,6 @@
 package me.kall.narutoloading.config;
 
 import me.kall.narutoloading.media.MediaRepository;
-import me.kall.narutoloading.wall.WallRenderMode;
 
 import java.util.List;
 import java.util.Locale;
@@ -19,17 +18,16 @@ public final class NarutoSettings {
     public static final Setting<Boolean> MUTE_MUSIC = Setting.bool(NarutoConfig.MUTE_MUSIC, true, false);
     public static final Setting<Boolean> DEBUG_TIME_COSTS = Setting.bool(NarutoConfig.DEBUG_TIME_COSTS, false, false);
     public static final Setting<Integer> DEBUG_TIME_COSTS_INTERVAL = Setting.integer(NarutoConfig.DEBUG_TIME_COSTS_INTERVAL, 3, false);
+    public static final Setting<String> THEME = Setting.text(NarutoConfig.THEME, "AUTO", false);
     public static final Setting<Boolean> SHIMMER = Setting.bool(NarutoConfig.SHIMMER, true, false);
     public static final Setting<Double> SHIMMER_SPEED = Setting.decimal(NarutoConfig.SHIMMER_SPEED, 1.0D, false);
     public static final Setting<Double> SHIMMER_SCALE = Setting.decimal(NarutoConfig.SHIMMER_SCALE, 1.0D, false);
     public static final Setting<Double> SHIMMER_STRENGTH = Setting.decimal(NarutoConfig.SHIMMER_STRENGTH, 1.0D, false);
     public static final Setting<Integer> SHIMMER_FPS = Setting.integer(NarutoConfig.SHIMMER_FPS, 30, false);
     public static final Setting<Boolean> FADABLE = Setting.bool(NarutoConfig.FADABLE, true, false);
-    public static final Setting<Boolean> COMPAT_MODE = Setting.bool(NarutoConfig.COMPAT_MODE, false, false);
     public static final Setting<Integer> TICKS_BEFORE_FADE = Setting.integer(NarutoConfig.TICKS_BEFORE_FADE, 100, false);
     public static final Setting<Integer> FADE_OUT_STEP = Setting.integer(NarutoConfig.FADE_OUT_STEP, 1, false);
     public static final Setting<Integer> FADE_IN_STEP = Setting.integer(NarutoConfig.FADE_IN_STEP, 5, false);
-    public static final Setting<WallRenderMode> WORLD_RENDER_MODE = Setting.mapped(NarutoConfig.WORLD_RENDER_MODE, WallRenderMode.AUTO, WallRenderMode::parse, mode -> mode.name().toLowerCase(Locale.ROOT), true);
     public static final Setting<Integer> WORLD_MAX_WIDTH = Setting.integer(NarutoConfig.WORLD_MAX_WIDTH, 1280, true);
     public static final Setting<Integer> WORLD_MAX_HEIGHT = Setting.integer(NarutoConfig.WORLD_MAX_HEIGHT, 720, true);
     public static final Setting<Double> WORLD_BUFFER_SECONDS = Setting.decimal(NarutoConfig.WORLD_BUFFER_SECONDS, 1.0D, true);
@@ -56,17 +54,16 @@ public final class NarutoSettings {
             MUTE_MUSIC,
             DEBUG_TIME_COSTS,
             DEBUG_TIME_COSTS_INTERVAL,
+            THEME,
             SHIMMER,
             SHIMMER_SPEED,
             SHIMMER_SCALE,
             SHIMMER_STRENGTH,
             SHIMMER_FPS,
             FADABLE,
-            COMPAT_MODE,
             TICKS_BEFORE_FADE,
             FADE_OUT_STEP,
             FADE_IN_STEP,
-            WORLD_RENDER_MODE,
             WORLD_MAX_WIDTH,
             WORLD_MAX_HEIGHT,
             WORLD_BUFFER_SECONDS,

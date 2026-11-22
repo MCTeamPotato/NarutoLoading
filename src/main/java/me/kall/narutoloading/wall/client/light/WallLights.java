@@ -1,8 +1,8 @@
 package me.kall.narutoloading.wall.client.light;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.wall.Wall;
 import net.minecraft.client.Minecraft;
@@ -17,9 +17,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public final class WallLights {
     public static final int MAX_DISTANCE = 32;
@@ -34,7 +32,7 @@ public final class WallLights {
     private static volatile Long2ByteMap snapshot = new Long2ByteOpenHashMap();
     private static volatile boolean any;
 
-    private static final Map<Wall, State> STATES = new HashMap<>();
+    private static final Object2ObjectOpenHashMap<Wall, State> STATES = new Object2ObjectOpenHashMap<>();
     private static final ArrayDeque<Long> PENDING = new ArrayDeque<>();
 
     private WallLights() {}
@@ -44,7 +42,7 @@ public final class WallLights {
         return snapshot.get(pos.asLong()) & 0xFF;
     }
 
-    public static void sample(@NotNull Wall wall, int width, int height, @Nullable ByteBuffer y, @Nullable NativeImage rgba) {
+    public static void sample(@NotNull Wall wall, int width, int height, @Nullable ByteBuffer y) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
 
@@ -69,7 +67,7 @@ public final class WallLights {
         }
 
         state.sampledNanos = now;
-        sampleCells(state, width, height, y, rgba);
+        sampleCells(state, width, height, y);
     }
 
     public static void release(@NotNull Wall wall) {
@@ -136,7 +134,7 @@ public final class WallLights {
         return new State(positions, new float[positions.length], new byte[positions.length], cols, rows);
     }
 
-    private static void sampleCells(@NotNull State state, int width, int height, @Nullable ByteBuffer y, @Nullable NativeImage rgba) {
+    private static void sampleCells(@NotNull State state, int width, int height, @Nullable ByteBuffer y) {
         int stepX = Math.max(1, width / state.cols / SAMPLES);
         int stepY = Math.max(1, height / state.rows / SAMPLES);
 
@@ -155,7 +153,7 @@ public final class WallLights {
 
                     for (int sx = 0; sx < SAMPLES; sx++) {
                         int px = Math.min(width - 1, baseX + sx * stepX);
-                        total += luminance(px, py, width, y, rgba);
+                        total += luminance(px, py, width, y);
                     }
                 }
 
@@ -187,16 +185,9 @@ public final class WallLights {
         enqueue(changed);
     }
 
-    private static float luminance(int x, int y, int width, @Nullable ByteBuffer planes, @Nullable NativeImage rgba) {
-        if (planes != null) return planes.get(y * width + x) & 0xFF;
-        if (rgba == null) return 0F;
-
-        int abgr = rgba.getPixelRGBA(x, y);
-        int r = abgr & 0xFF;
-        int g = (abgr >> 8) & 0xFF;
-        int b = (abgr >> 16) & 0xFF;
-
-        return 0.299F * r + 0.587F * g + 0.114F * b;
+    private static float luminance(int x, int y, int width, @Nullable ByteBuffer planes) {
+        if (planes == null) return 0F;
+        return planes.get(y * width + x) & 0xFF;
     }
 
     private static void publish() {

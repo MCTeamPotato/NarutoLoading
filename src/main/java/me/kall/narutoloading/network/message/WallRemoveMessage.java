@@ -1,6 +1,6 @@
 package me.kall.narutoloading.network.message;
 
-import me.kall.narutoloading.network.ClientPacketHandler;
+import me.kall.narutoloading.network.handler.ClientPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;

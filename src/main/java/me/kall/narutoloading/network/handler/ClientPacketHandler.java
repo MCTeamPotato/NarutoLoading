@@ -1,4 +1,4 @@
-package me.kall.narutoloading.network;
+package me.kall.narutoloading.network.handler;
 
 import me.kall.narutoloading.client.ui.NarutoScreen;
 import me.kall.narutoloading.wall.Wall;

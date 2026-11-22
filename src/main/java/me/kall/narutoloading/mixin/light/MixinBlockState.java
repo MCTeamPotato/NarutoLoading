@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.extensions.IForgeBlockState;
 import org.spongepowered.asm.mixin.Mixin;
 
-@Mixin(BlockState.class)
+@Mixin(value = BlockState.class, priority = 50)
 public abstract class MixinBlockState implements IForgeBlockState {
     @Override
     public int getLightEmission(BlockGetter level, BlockPos pos) {

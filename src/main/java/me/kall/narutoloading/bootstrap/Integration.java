@@ -10,8 +10,6 @@ public final class Integration {
     public static final boolean EMBEDDIUM = modLoaded("embeddium");
     public static final boolean DUPLICATIONLESS = modLoaded("duplicationless");
 
-    public static final boolean IRIS = modLoaded("oculus") || modLoaded("iris");
-
     private Integration() {}
 
     public static boolean modLoaded(@NotNull String modId) {

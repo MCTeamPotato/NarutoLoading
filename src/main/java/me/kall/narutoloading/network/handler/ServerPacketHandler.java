@@ -1,6 +1,7 @@
-package me.kall.narutoloading.network;
+package me.kall.narutoloading.network.handler;
 
 import it.unimi.dsi.fastutil.longs.LongSet;
+import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallPutMessage;
 import me.kall.narutoloading.network.message.WallRemoveMessage;
 import me.kall.narutoloading.wall.server.ServerConfig;

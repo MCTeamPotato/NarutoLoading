@@ -19,10 +19,6 @@ public final class WallShaders {
         return shader;
     }
 
-    public static boolean available() {
-        return shader != null;
-    }
-
     public static void register(@NotNull RegisterShadersEvent event) {
         shader = null;
 

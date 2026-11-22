@@ -1,6 +1,5 @@
 package me.kall.narutoloading.wall.client;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.media.MediaRepository;
@@ -13,7 +12,6 @@ import me.kall.narutoloading.playback.produce.video.AbstractFrameProducer;
 import me.kall.narutoloading.playback.render.FrameRenderer;
 import me.kall.narutoloading.wall.Wall;
 import me.kall.narutoloading.wall.client.render.WallBufferRenderer;
-import me.kall.narutoloading.wall.client.render.WallImageRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import org.jetbrains.annotations.NotNull;
@@ -71,17 +69,6 @@ public abstract class WallTV<T> extends AbstractTV<T> {
     @Override
     public @Nullable AudioProducer createAudio(@Nullable AudioArgs audioArgs) {
         return NarutoProducers.buildAudio(NarutoContext.get().tools().ffmpeg.ffmpeg.get(), audioArgs);
-    }
-
-    public static final class Image extends WallTV<NativeImage> {
-        public Image(@NotNull Wall wall, @NotNull MediaRepository media) {
-            super(new WallImageRenderer(wall), wall, media);
-        }
-
-        @Override
-        public @NotNull AbstractFrameProducer<NativeImage> createVideo(@Nullable VideoArgs videoArgs) {
-            return NarutoProducers.buildWorldImage(NarutoContext.get().tools().ffmpeg.ffmpeg.get(), videoArgs);
-        }
     }
 
     public static final class Buffer extends WallTV<ByteBuffer> {

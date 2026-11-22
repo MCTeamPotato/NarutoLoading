@@ -52,7 +52,15 @@ public final class EarlySessionHandoff {
 
         try {
             Class<?> type = raw.getClass();
-            session = new Borrowed(raw, type.getMethod("present", boolean.class), type.getMethod("finished"), type.getMethod("close"));
+            Method position;
+            try {
+                position = type.getMethod("positionSec");
+            } catch (NoSuchMethodException ignored) {
+                // An older session without a position can still be presented; it just restarts at 0.
+                position = null;
+            }
+
+            session = new Borrowed(raw, type.getMethod("present", boolean.class), type.getMethod("finished"), position, type.getMethod("close"));
         } catch (Throwable throwable) {
             System.err.println("[NarutoLoading] Unusable early video session: " + throwable.getMessage());
             return null;
@@ -85,7 +93,7 @@ public final class EarlySessionHandoff {
         }
     }
 
-    private record Borrowed(Object session, Method presentMethod, Method finishedMethod, Method closeMethod) implements PlaybackSession {
+    private record Borrowed(Object session, Method presentMethod, Method finishedMethod, @Nullable Method positionMethod, Method closeMethod) implements PlaybackSession {
         @Override
         public void present(boolean flipY) {
             try {
@@ -102,6 +110,18 @@ public final class EarlySessionHandoff {
             } catch (Throwable throwable) {
                 System.err.println("[NarutoLoading] Failed to check the early video: " + throwable.getMessage());
                 return false;
+            }
+        }
+
+        @Override
+        public double positionSec() {
+            Method method = this.positionMethod;
+            if (method == null) return 0D;
+
+            try {
+                return ((Number) method.invoke(this.session)).doubleValue();
+            } catch (Throwable throwable) {
+                return 0D;
             }
         }
 

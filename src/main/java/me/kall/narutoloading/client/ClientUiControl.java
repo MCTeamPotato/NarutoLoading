@@ -1,25 +1,17 @@
 package me.kall.narutoloading.client;
 
-import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.playback.ClientUiTV;
 import me.kall.narutoloading.playback.early.EarlySessionHandoff;
 import me.kall.narutoloading.playback.early.PlaybackSession;
 import me.kall.narutoloading.playback.produce.util.TimeLine;
 
-import java.util.Map;
-
 public final class ClientUiControl {
     private ClientUiControl() {
     }
 
     public static ClientUiTV<?> active() {
-        return NarutoContext.get().modes().active();
-    }
-
-    public static boolean isCompatMode() {
-        return NarutoContext.get().modes().isCompatMode();
+        return NarutoContext.get().clientUi();
     }
 
     public static boolean running() {
@@ -43,17 +35,6 @@ public final class ClientUiControl {
         active().tick();
     }
 
-    public static void applyMode() {
-        EarlySessionHandoff.stop();
-        NarutoContext.get().modes().apply();
-    }
-
-    public static void toggleCompatMode() {
-        NarutoConfig.writeAll(Map.of(NarutoSettings.COMPAT_MODE, !NarutoConfig.compatMode()));
-        NarutoConfig.save();
-        applyMode();
-    }
-
     public static void restart(double seekTo) {
         EarlySessionHandoff.stop();
         active().synchronize(true, seekTo);
@@ -66,6 +47,9 @@ public final class ClientUiControl {
      * @return the current position in seconds
      */
     public static double positionSec() {
+        PlaybackSession session = EarlySessionHandoff.current();
+        if (session != null) return session.positionSec();
+
         TimeLine timeLine = active().timeLine.get();
         return timeLine == null ? 0D : timeLine.positionSec();
     }

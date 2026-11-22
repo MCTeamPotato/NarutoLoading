@@ -6,7 +6,7 @@ import me.kall.narutoloading.core.util.Workers;
 import me.kall.narutoloading.media.download.DownloadService;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.media.probe.ProbeService;
-import me.kall.narutoloading.playback.PlaybackModes;
+import me.kall.narutoloading.playback.ClientUiTV;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -19,7 +19,7 @@ public final class NarutoContext {
     private final ProbeService probe;
     private final MediaRepository media;
     private final DownloadService downloads;
-    private final PlaybackModes modes;
+    private final ClientUiTV.Buffer clientUi;
 
     private NarutoContext() {
         this.workers = new Workers();
@@ -27,7 +27,7 @@ public final class NarutoContext {
         this.probe = new ProbeService(this.tools.ffmpeg, this.workers.probe());
         this.media = new MediaRepository(NarutoConfig::sourcesDir, NarutoConfig::selectMode, NarutoConfig::fixedName, this.probe::readVideo, this.probe::readAudio, this.workers.download());
         this.downloads = new DownloadService(this.tools.ytDlp, this.workers.download());
-        this.modes = new PlaybackModes(this.media, this.tools.ffmpeg);
+        this.clientUi = new ClientUiTV.Buffer(this.media, this.tools.ffmpeg);
     }
 
     public static @NotNull NarutoContext get() {
@@ -54,8 +54,8 @@ public final class NarutoContext {
         return this.downloads;
     }
 
-    public @NotNull PlaybackModes modes() {
-        return this.modes;
+    public @NotNull ClientUiTV.Buffer clientUi() {
+        return this.clientUi;
     }
 
     public void reloadFFmpeg() {

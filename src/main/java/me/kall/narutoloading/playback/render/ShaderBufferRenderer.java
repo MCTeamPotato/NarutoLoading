@@ -2,7 +2,6 @@ package me.kall.narutoloading.playback.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -67,7 +66,7 @@ public final class ShaderBufferRenderer implements FrameRenderer<ByteBuffer> {
         builder.vertex(pose, width, height, 0F).uv(1F, 1F).endVertex();
         builder.vertex(pose, width, 0F, 0F).uv(1F, 0F).endVertex();
         builder.vertex(pose, 0F, 0F, 0F).uv(0F, 0F).endVertex();
-        BufferUploader.drawWithShader(builder.end());
+        CustomShaderDraw.draw(shader, builder.end(), false);
     }
 
     @Override

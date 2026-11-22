@@ -6,15 +6,10 @@ import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
 import me.kall.narutoloading.playback.produce.util.TimeLine;
 import me.kall.narutoloading.wall.Wall;
-import me.kall.narutoloading.wall.WallRenderMode;
-import me.kall.narutoloading.wall.client.compat.ShaderPack;
 import me.kall.narutoloading.wall.client.light.WallLights;
-import me.kall.narutoloading.wall.client.render.WallShaders;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
@@ -26,7 +21,6 @@ import java.util.*;
 
 public final class WallManager {
     private static final int SCHEDULE_TICKS = 5;
-    private static final int MODE_CHECK_TICKS = 10;
     private static final int MAX_START_PER_TICK = 1;
     private static final int MAX_DESTROY_PER_TICK = 2;
     private static final long VISIBLE_MEMORY_NANOS = 4_000_000_000L;
@@ -45,14 +39,13 @@ public final class WallManager {
     private static long pauseStart = -1L;
 
     private static int scheduleCounter;
-    private static int modeCounter;
 
     private WallManager() {}
 
     public static void add(@NotNull Wall wall) {
         Map<Wall, WallTV<?>> walls = DATA.computeIfAbsent(wall.dimension, key -> new LinkedHashMap<>());
 
-        WallTV<?> previous = walls.put(wall, create(wall, useBuffer()));
+        WallTV<?> previous = walls.put(wall, create(wall));
         if (previous != null) previous.shutdown(true);
     }
 
@@ -136,11 +129,6 @@ public final class WallManager {
 
         process();
         processAudio();
-
-        if (++modeCounter >= MODE_CHECK_TICKS) {
-            modeCounter = 0;
-            checkMode();
-        }
 
         for (WallTV<?> tv : list()) {
             TimeLine timeLine = tv.timeLine.get();
@@ -328,21 +316,13 @@ public final class WallManager {
     }
 
     private static void activate(@NotNull WallTV<?> tv) {
-        boolean buffer = useBuffer();
         boolean restart = tv.restartOnActivate;
-        WallTV<?> target = tv;
 
-        if (!matches(tv, buffer)) {
-            target = create(tv.wall, buffer);
-            tv.shutdown(true);
-            replace(tv.wall, target);
-        }
-
-        target.restartOnActivate = false;
-        target.audioSelected = false;
-        target.audioChangedNanos = 0L;
-        target.state = WallTV.State.ACTIVE;
-        target.setup(restart ? 0D : seekFor(target.wall));
+        tv.restartOnActivate = false;
+        tv.audioSelected = false;
+        tv.audioChangedNanos = 0L;
+        tv.state = WallTV.State.ACTIVE;
+        tv.setup(restart ? 0D : seekFor(tv.wall));
     }
 
     private static void deactivate(@NotNull WallTV<?> tv) {
@@ -353,38 +333,6 @@ public final class WallManager {
         tv.shutdown(true);
     }
 
-    private static void checkMode() {
-        boolean buffer = useBuffer();
-        boolean swapped = false;
-
-        for (WallTV<?> tv : list()) {
-            if (!tv.isActive() || matches(tv, buffer)) continue;
-
-            swapActive(tv, buffer);
-            swapped = true;
-        }
-
-        if (swapped) notifyMode(buffer);
-    }
-
-    private static void swapActive(@NotNull WallTV<?> outdated, boolean buffer) {
-        double seekTo = 0D;
-
-        TimeLine timeLine = outdated.timeLine.get();
-        if (timeLine != null) seekTo = timeLine.positionSec();
-
-        Wall wall = outdated.wall;
-        WallTV<?> latest = create(wall, buffer);
-        latest.state = WallTV.State.ACTIVE;
-        latest.lastVisibleNanos = outdated.lastVisibleNanos;
-        latest.audioSelected = outdated.audioSelected;
-        latest.audioChangedNanos = outdated.audioChangedNanos;
-
-        latest.setup(seekTo);
-        outdated.shutdown(true);
-        replace(wall, latest);
-    }
-
     private static @Nullable WallTV<?> find(@NotNull Wall wall) {
         Map<Wall, WallTV<?>> walls = DATA.get(wall.dimension);
         return walls == null ? null : walls.get(wall);
@@ -392,11 +340,6 @@ public final class WallManager {
 
     public static @Nullable WallTV<?> get(@NotNull Wall wall) {
         return find(wall);
-    }
-
-    private static void replace(@NotNull Wall wall, @NotNull WallTV<?> tv) {
-        Map<Wall, WallTV<?>> walls = DATA.get(wall.dimension);
-        if (walls != null) walls.put(wall, tv);
     }
 
     private static double seekFor(@NotNull Wall wall) {
@@ -414,39 +357,8 @@ public final class WallManager {
         return (double) (now - CLOCK_ORIGIN - paused) / NANO_TO_SEC;
     }
 
-    private static boolean matches(@NotNull WallTV<?> tv, boolean buffer) {
-        return buffer == (tv instanceof WallTV.Buffer);
-    }
-
-    private static boolean useBuffer() {
-        if (!WallShaders.available()) return false;
-
-        WallRenderMode mode = NarutoConfig.worldRenderMode();
-        if (mode == WallRenderMode.IMAGE) return false;
-        if (mode == WallRenderMode.BUFFER) return true;
-
-        return !ShaderPack.inUse();
-    }
-
-    private static @NotNull WallTV<?> create(@NotNull Wall wall, boolean buffer) {
-        MediaRepository media = NarutoContext.get().media();
-        return buffer ? new WallTV.Buffer(wall, media) : new WallTV.Image(wall, media);
-    }
-
-    private static void notifyMode(boolean buffer) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return;
-
-        String key;
-        if (buffer) {
-            key = "narutoloading.message.worldMode.buffer";
-        } else if (NarutoConfig.worldRenderMode() == WallRenderMode.AUTO && ShaderPack.inUse()) {
-            key = "narutoloading.message.worldMode.shader";
-        } else {
-            key = "narutoloading.message.worldMode.image";
-        }
-
-        player.displayClientMessage(Component.translatable(key), false);
+    private static @NotNull WallTV<?> create(@NotNull Wall wall) {
+        return new WallTV.Buffer(wall, NarutoContext.get().media());
     }
 
     private record Candidate(WallTV<?> tv, double distance) {}

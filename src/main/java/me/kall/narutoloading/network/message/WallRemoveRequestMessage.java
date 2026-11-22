@@ -1,6 +1,6 @@
 package me.kall.narutoloading.network.message;
 
-import me.kall.narutoloading.network.ServerPacketHandler;
+import me.kall.narutoloading.network.handler.ServerPacketHandler;
 import me.kall.narutoloading.wall.Wall;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;

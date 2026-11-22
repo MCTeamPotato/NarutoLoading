@@ -1,20 +1,22 @@
 package me.kall.narutoloading.client.ui;
 
 import icyllis.modernui.core.Context;
-import icyllis.modernui.core.Core;
 import icyllis.modernui.mc.MuiModApi;
 import icyllis.modernui.view.Gravity;
 import icyllis.modernui.view.View;
 import icyllis.modernui.widget.Button;
 import icyllis.modernui.widget.LinearLayout;
 import icyllis.modernui.widget.TextView;
-import me.kall.narutoloading.core.NarutoContext;
-import me.kall.narutoloading.client.fade.FadeCenter;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.config.NarutoSettings;
+import me.kall.narutoloading.config.Setting;
+import me.kall.narutoloading.core.NarutoContext;
+import me.kall.narutoloading.core.util.GamePaths;
 import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.client.fade.FadeCenter;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
-import me.kall.narutoui.mui.color.MuiColorSchemes;
+import me.kall.narutoloading.wall.Wall;
+import me.kall.narutoui.mui.background.MuiBackground;
 import me.kall.narutoui.mui.factory.MuiWidgetFactory;
 import me.kall.narutoui.mui.layout.MuiControls;
 import me.kall.narutoui.mui.screen.MuiDialog;
@@ -27,7 +29,6 @@ import me.kall.narutoui.mui.shimmer.MuiShimmerable;
 import me.kall.narutoui.mui.theme.MuiTheme;
 import me.kall.narutoui.mui.widget.MuiHintBadge;
 import me.kall.narutoui.mui.widget.MuiLogo;
-import me.kall.narutoloading.wall.Wall;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -37,35 +38,77 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * The single configuration screen of the mod.
+ * <p>
+ * It has two entry modes. Opening it from the mod list (or with Ctrl+V) shows the four global
+ * pages: media, loading screen, world walls and general. Sneak-right-clicking a wall opens the
+ * single-page wall editor instead, so per-wall controls never appear next to loading-screen
+ * settings.
+ * <p>
+ * Every control writes its setting as soon as it changes. A bottom status bar reports the save and
+ * offers a one-step undo; there is no draft, no apply button and no unsaved-changes dialog.
+ */
 public final class NarutoScreen {
+    private static final long STATUS_MILLIS = 4500L;
+    private static final long SAVE_DELAY_MILLIS = 400L;
+    private static final long PLAYBACK_DELAY_MILLIS = 700L;
+
+    /**
+     * Settings that change how the loading-screen player decodes. They are persisted immediately
+     * but the player is only rebuilt after the user stops dragging.
+     */
+    private static final Set<Setting<?>> PLAYBACK_SETTINGS = Set.of(
+            NarutoSettings.MAX_VIDEO_WIDTH,
+            NarutoSettings.MAX_VIDEO_HEIGHT,
+            NarutoSettings.BUFFER_SECONDS);
+
     private static @Nullable NarutoScreen OPEN;
 
     private final NarutoContext context;
-    private final YtDlpPage downloads;
-    private final PlaybackPage playback;
-    private final ConfigPage config;
-    private final WallsPage walls;
+    private final MediaPage mediaPage;
+    private final LoadingPage loadingPage;
+    private final WallsPage wallsPage;
+    private final GeneralPage generalPage;
+    private final @Nullable WallEditorPage wallEditorPage;
+    private final NarutoSettingsState state = NarutoSettingsState.load();
     private final MuiShimmerProfile shimmerProfile = MuiShimmerProfile.create(new ScreenShimmerConfig());
 
-    private NarutoDraft draft = NarutoDraft.load();
-
-    private @Nullable Wall focusWall;
-
     private @Nullable MuiScreenHost host;
-    private @Nullable Button applyButton;
-    private @Nullable Button revertButton;
-    private @Nullable Button doneButton;
+    private @Nullable LinearLayout statusBar;
     private @Nullable TextView statusView;
+    private @Nullable Button undoButton;
 
-    private boolean applying;
-    private boolean closeDialogOpen;
+    private final Set<Setting<?>> pendingWrites = new LinkedHashSet<>();
+    private @Nullable Setting<?> undoSetting;
+    private @Nullable Runnable undoAction;
 
-    private NarutoScreen(@Nullable String link, @NotNull NarutoContext context) {
+    private @Nullable String statusText;
+    private long statusShownAt;
+
+    private int saveGeneration;
+    private int playbackGeneration;
+    private int statusGeneration;
+
+    private boolean downloadFocus;
+    private boolean bulk;
+    private boolean destroyed;
+
+    private NarutoScreen(@Nullable String link, @Nullable Wall wall, @NotNull NarutoContext context) {
         this.context = context;
-        this.downloads = new YtDlpPage(link, context);
-        this.playback = new PlaybackPage(this, context);
-        this.config = new ConfigPage(this);
-        this.walls = new WallsPage(this);
+        this.downloadFocus = link != null && !link.isBlank();
+        this.mediaPage = new MediaPage(this, context, link);
+        this.loadingPage = new LoadingPage(this);
+        this.wallsPage = new WallsPage(this, context);
+        this.generalPage = new GeneralPage(this, context);
+        this.wallEditorPage = wall == null ? null : new WallEditorPage(this, wall);
         context.media().refresh();
     }
 
@@ -77,53 +120,74 @@ public final class NarutoScreen {
         return create(parent, null);
     }
 
+    /**
+     * Opens the global pages. A non-blank link opens the media page with the download card expanded
+     * and the link filled in.
+     *
+     * @param parent previous screen
+     * @param link   clipboard link, or {@code null}
+     * @return the created screen
+     */
     public static @NotNull Screen create(@Nullable Screen parent, @Nullable String link) {
-        return new NarutoScreen(link, NarutoContext.get()).build(parent);
+        return new NarutoScreen(link, null, NarutoContext.get()).build(parent);
     }
 
+    /**
+     * Opens the single-page editor for one wall.
+     *
+     * @param parent previous screen
+     * @param wall   wall to edit, or {@code null} for the global pages
+     * @return the created screen
+     */
     public static @NotNull Screen createForWall(@Nullable Screen parent, @Nullable Wall wall) {
-        NarutoScreen screen = new NarutoScreen(null, NarutoContext.get());
-        screen.focusWall = wall;
-        return screen.build(parent);
+        if (wall == null) return create(parent);
+        return new NarutoScreen(null, wall, NarutoContext.get()).build(parent);
     }
 
     private @NotNull Screen build(@Nullable Screen parent) {
-        FadeCenter.preview(() -> this.draft.get(NarutoSettings.FADABLE), () -> this.draft.get(NarutoSettings.TICKS_BEFORE_FADE), () -> this.draft.get(NarutoSettings.FADE_OUT_STEP), () -> this.draft.get(NarutoSettings.FADE_IN_STEP));
+        FadeCenter.preview(() -> this.state.get(NarutoSettings.FADABLE), () -> this.state.get(NarutoSettings.TICKS_BEFORE_FADE), () -> this.state.get(NarutoSettings.FADE_OUT_STEP), () -> this.state.get(NarutoSettings.FADE_IN_STEP));
 
-        return MuiSettingsScreen.builder("NarutoLoading")
+        MuiSettingsScreen.Builder builder = MuiSettingsScreen.builder("NarutoLoading")
                 .subtitle("narutoloading.screen.subtitle")
                 .widgetFactory(MuiWidgetFactory.shimmer())
                 .shimmerProfile(this.shimmerProfile)
                 .shimmerNavigation()
                 .shimmerTitles()
                 .pauseGame(false)
+                .background(MuiBackground.transparent())
+                .themeProvider(context -> NarutoTheme.resolve(this.state.get(NarutoSettings.THEME), context))
                 .railHeader((context, theme) -> MuiLogo.create(context, theme, "N"))
-                .railFooter((context, theme) -> MuiHintBadge.create(context, theme, "narutoloading.ytdlp.footer"))
-                .actionBar(this::buildActionBar)
+                .railFooter((context, theme) -> MuiHintBadge.create(context, theme, "narutoloading.screen.footer"))
+                .actionBar(this::buildStatusBar)
                 .onCreated(fragment -> {
                     this.host = fragment;
                     OPEN = this;
-                    this.refreshActions();
+                    this.ensureMediaScanned();
                 })
-                .onDestroyed(fragment -> this.onDestroyed())
-                .onCloseRequested(this::onCloseRequested)
-                .initialPage(this.focusWall == null ? "narutoloading.nav.download" : "narutoloading.nav.walls")
-                .page("narutoloading.nav.download", "narutoloading.ytdlp.download.title", "narutoloading.ytdlp.download.subtitle", this.downloads::build)
-                .page("narutoloading.nav.playback", "narutoloading.playback.title", "narutoloading.playback.subtitle", this.playback::build)
-                .page("narutoloading.nav.config", "narutoloading.config.title", "narutoloading.config.subtitle", this.config::build)
-                .page("narutoloading.nav.help", "narutoloading.help.title", "narutoloading.help.subtitle", HelpPage::build)
-                .page("narutoloading.nav.walls", "narutoloading.walls.title", "narutoloading.walls.subtitle", this.walls::build)
-                .create(parent);
-    }
+                .onDestroyed(fragment -> this.onDestroyed());
 
-    Wall focusWall() {
-        Wall wall = this.focusWall;
-        this.focusWall = null;
-        return wall;
+        WallEditorPage editor = this.wallEditorPage;
+
+        if (editor != null) {
+            builder.singlePage()
+                    .page("narutoloading.nav.wall", editor.title(), editor.subtitle(), editor::build);
+        } else {
+            builder.initialPage("narutoloading.nav.media")
+                    .page("narutoloading.nav.media", "narutoloading.media.title", "narutoloading.media.subtitle", this.mediaPage::build)
+                    .page("narutoloading.nav.loading", "narutoloading.loading.title", "narutoloading.loading.subtitle", this.loadingPage::build)
+                    .page("narutoloading.nav.walls", "narutoloading.walls.title", "narutoloading.walls.subtitle", this.wallsPage::build)
+                    .page("narutoloading.nav.general", "narutoloading.general.title", "narutoloading.general.subtitle", this.generalPage::build);
+        }
+
+        return builder.create(parent);
     }
 
     @Nullable MuiScreenHost host() {
         return this.host;
+    }
+
+    @NotNull NarutoSettingsState settings() {
+        return this.state;
     }
 
     public static void remoteChanged() {
@@ -131,15 +195,6 @@ public final class NarutoScreen {
         if (screen == null) return;
 
         MuiModApi.postToUiThread(screen::reloadPage);
-    }
-
-    @NotNull NarutoDraft draft() {
-        return this.draft;
-    }
-
-    void edit(@NotNull Runnable change) {
-        change.run();
-        this.refreshActions();
     }
 
     void reloadPage() {
@@ -150,88 +205,60 @@ public final class NarutoScreen {
     void notifyImport(@NotNull String message) {
         MuiModApi.postToUiThread(() -> {
             MuiScreenHost current = this.host;
-            if (current != null) MuiDialog.notice(current, I18n.get("narutoloading.playback.import.title"), message, I18n.get("narutoloading.ok"), () -> {});
+            if (current != null) MuiDialog.notice(current, I18n.get("narutoloading.media.import.title"), message, I18n.get("narutoloading.ok"), () -> {});
         });
+    }
+
+    boolean consumeDownloadFocus() {
+        boolean focus = this.downloadFocus;
+        this.downloadFocus = false;
+        return focus;
     }
 
     void applyVolume() {
         AudioProducer audio = ClientUiControl.active().audio.get();
-        if (audio != null) audio.volume(this.draft.get(NarutoSettings.AUDIO_VOLUME));
+        if (audio != null) audio.volume(this.state.get(NarutoSettings.AUDIO_VOLUME));
     }
 
-    private @NotNull View buildActionBar(@NotNull Context context) {
-        MuiTheme theme = MuiTheme.modern(context);
-        LinearLayout bar = MuiControls.row(context);
-        bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.addView(new View(context), new LinearLayout.LayoutParams(0, 1, 1.0F));
-
-        this.statusView = MuiControls.text(context, theme, "", 12, theme.onSurfaceVariant());
-        LinearLayout.LayoutParams statusParams = MuiControls.wrap();
-        statusParams.rightMargin = MuiControls.dp(context, 8);
-        bar.addView(this.statusView, statusParams);
-
-        this.revertButton = MuiControls.button(context, theme, "narutoloading.action.revert", true, view -> this.revert(), MuiShimmerable.ALWAYS);
-        this.addButton(context, bar, this.revertButton);
-
-        this.applyButton = MuiControls.button(context, theme, "narutoloading.action.apply", true, view -> this.apply(false), MuiShimmerable.ALWAYS);
-        this.addButton(context, bar, this.applyButton);
-
-        this.doneButton = MuiControls.button(context, theme, "narutoloading.action.done", false, view -> this.finish(), MuiShimmerable.ALWAYS);
-        this.addButton(context, bar, this.doneButton);
-
-        this.refreshActions();
-        return bar;
-    }
-
-    private void addButton(@NotNull Context context, @NotNull LinearLayout bar, @NotNull Button button) {
-        LinearLayout.LayoutParams params = MuiControls.wrap();
-        params.leftMargin = MuiControls.dp(context, 8);
-        params.gravity = Gravity.CENTER_VERTICAL;
-        bar.addView(button, params);
-    }
-
-    private void refreshActions() {
-        boolean dirty = this.draft.dirty();
-
-        if (this.applyButton != null) this.applyButton.setEnabled(!this.applying && dirty);
-        if (this.revertButton != null) this.revertButton.setEnabled(!this.applying && dirty);
-
-        if (this.doneButton != null) {
-            this.doneButton.setEnabled(!this.applying);
-            this.doneButton.setText(I18n.get(dirty ? "narutoloading.action.doneApply" : "narutoloading.action.done"));
-        }
-
-        if (this.statusView != null) {
-            this.statusView.setText(this.applying ? I18n.get("narutoloading.status.applying") : dirty ? I18n.get("narutoloading.status.pending") : "");
+    /**
+     * Returns the resolved media folder using the value currently shown in the screen.
+     *
+     * @return the absolute media folder
+     */
+    @NotNull Path sourcesFolder() {
+        try {
+            return GamePaths.resolve(Path.of(this.state.get(NarutoSettings.SOURCES_DIR)));
+        } catch (RuntimeException exception) {
+            return GamePaths.gameDir();
         }
     }
 
-    private void finish() {
-        if (this.applying) return;
+    /**
+     * The media list is built by a background scan, so the first page can open while it is still
+     * empty. Reload the page once that scan finishes so the count and the entry list appear
+     * without the player having to import something first.
+     */
+    private void ensureMediaScanned() {
+        if (!this.context.media().all().isEmpty()) return;
 
-        if (!this.draft.dirty()) {
-            this.close();
-            return;
-        }
-
-        this.apply(true);
+        this.context.media().refresh(() -> MuiModApi.postToUiThread(() -> {
+            if (this.destroyed) return;
+            this.reloadPage();
+        }));
     }
 
-    private void apply(boolean closeAfter) {
-        if (this.applying) return;
-
-        if (!this.draft.dirty()) {
-            if (closeAfter) this.close();
-            return;
-        }
-
-        boolean playback = this.draft.playbackChanged();
-
-        this.applying = true;
-        this.refreshActions();
-
+    /**
+     * Rescans the media folder after the user confirms a new path.
+     */
+    void reloadSources() {
         Minecraft minecraft = Minecraft.getInstance();
-        Runnable task = () -> this.applyOnRenderThread(playback, closeAfter);
+        Runnable task = () -> this.context.media().refresh(() -> minecraft.execute(() -> {
+            ClientUiControl.restart(0D);
+            MuiModApi.postToUiThread(() -> {
+                if (this.destroyed) return;
+                this.reloadPage();
+            });
+        }));
 
         if (minecraft.isSameThread()) {
             task.run();
@@ -240,141 +267,276 @@ public final class NarutoScreen {
         }
     }
 
-    private void applyOnRenderThread(boolean playback, boolean closeAfter) {
-        Throwable failure = null;
-        double seekTo = playback ? ClientUiControl.positionSec() : 0D;
+    /**
+     * Changes one setting, persists it after a short quiet period and reports the result.
+     *
+     * @param setting the setting
+     * @param value   the new value
+     * @param <T>     the value type
+     * @return {@code true} when the value actually changed
+     */
+    <T> boolean set(@NotNull Setting<T> setting, T value) {
+        return this.set(setting, value, true);
+    }
+
+    private <T> boolean set(@NotNull Setting<T> setting, T value, boolean recordUndo) {
+        T previous = this.state.get(setting);
+        if (Objects.equals(previous, value)) return false;
+
+        if (recordUndo && !this.bulk && this.undoSetting != setting) {
+            this.undoSetting = setting;
+            this.undoAction = () -> this.set(setting, previous, false);
+        }
+
+        this.state.set(setting, value);
+        this.changed(setting);
+        return true;
+    }
+
+    /**
+     * Restores every setting to its default and applies the result in one pass.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void resetDefaults() {
+        this.undoAction = null;
+        this.undoSetting = null;
+        this.bulk = true;
 
         try {
-            this.draft.write();
-            this.applyVolume();
-            ClientUiControl.applyMode();
-
-            if (playback) {
-                this.context.media().refresh();
-                ClientUiControl.restart(seekTo);
-            }
-        } catch (Throwable throwable) {
-            failure = throwable;
-            System.err.println("[NarutoLoading] Exception applying the config: " + throwable.getMessage());
+            for (Setting setting : NarutoSettings.ALL) this.set(setting, setting.defaultValue(), false);
+        } finally {
+            this.bulk = false;
         }
 
-        Throwable error = failure;
-
-        MuiModApi.postToUiThread(() -> {
-            this.applying = false;
-            this.refreshActions();
-
-            MuiScreenHost current = this.host;
-
-            if (error != null) {
-                if (current != null) MuiDialog.notice(current, I18n.get("narutoloading.apply.failed"), failureMessage(error), I18n.get("narutoloading.ok"), () -> {});
-                return;
-            }
-
-            if (closeAfter) {
-                this.close();
-                return;
-            }
-
-            if (current != null) current.reloadAllPages();
-
-            if (this.statusView != null) {
-                this.statusView.setText(I18n.get("narutoloading.status.applied"));
-                this.statusView.postDelayed(this::refreshActions, 1600L);
-            }
-        });
-    }
-
-    private void revert() {
-        if (this.applying) return;
-
-        this.draft = NarutoDraft.load();
+        this.flush();
         this.applyVolume();
+        this.context.reloadFFmpeg();
+        this.context.tools().reloadYtDlp();
         MuiShimmer.refresh();
 
-        MuiScreenHost current = this.host;
-        if (current != null) current.reloadAllPages();
+        Minecraft minecraft = Minecraft.getInstance();
+        Runnable apply = () -> {
+            this.context.media().refresh();
+            ClientUiControl.restart(0D);
+        };
 
-        this.refreshActions();
-    }
-
-    private void close() {
-        MuiScreenHost current = this.host;
-        if (current != null) current.close();
-    }
-
-    private boolean onCloseRequested() {
-        if (this.applying) return false;
-        if (!this.draft.dirty()) return true;
-
-        MuiScreenHost current = this.host;
-        if (current == null) return true;
-
-        if (Core.isOnUiThread()) {
-            this.showCloseDialog(current);
+        if (minecraft.isSameThread()) {
+            apply.run();
         } else {
-            MuiModApi.postToUiThread(() -> this.showCloseDialog(current));
+            minecraft.execute(apply);
         }
 
-        return false;
+        MuiScreenHost current = this.host;
+        if (current != null) current.onThemeChanged();
+
+        this.showStatus(I18n.get("narutoloading.status.reset"), false);
     }
 
-    private void showCloseDialog(@NotNull MuiScreenHost host) {
-        if (this.closeDialogOpen || this.host != host) return;
+    /**
+     * Shows a short status message in the bottom bar.
+     *
+     * @param text the message
+     */
+    void status(@NotNull CharSequence text) {
+        if (this.destroyed) return;
+        this.showStatus(text, false);
+    }
 
-        this.closeDialogOpen = true;
-        MuiDialog.confirm(host, I18n.get("narutoloading.unsaved.title"), I18n.get("narutoloading.unsaved.message"), I18n.get("narutoloading.unsaved.discard"),
-                () -> {
-                    this.closeDialogOpen = false;
-                    host.close();
-                }, I18n.get("narutoloading.unsaved.keep"), () -> this.closeDialogOpen = false);
+    private <T> void changed(@NotNull Setting<T> setting) {
+        this.pendingWrites.add(setting);
+        this.scheduleSave();
+
+        if (setting == NarutoSettings.AUDIO_VOLUME) {
+            this.applyVolume();
+        } else if (isShimmer(setting)) {
+            MuiShimmer.refresh();
+        } else if (setting == NarutoSettings.THEME && !this.bulk) {
+            this.flush();
+            MuiScreenHost current = this.host;
+            if (current != null) current.onThemeChanged();
+        }
+
+        if (PLAYBACK_SETTINGS.contains(setting)) this.schedulePlaybackReload();
+        if (!this.bulk) this.showStatus(I18n.get("narutoloading.status.saved"), true);
+    }
+
+    private static boolean isShimmer(@NotNull Setting<?> setting) {
+        return setting == NarutoSettings.SHIMMER
+                || setting == NarutoSettings.SHIMMER_SPEED
+                || setting == NarutoSettings.SHIMMER_SCALE
+                || setting == NarutoSettings.SHIMMER_STRENGTH
+                || setting == NarutoSettings.SHIMMER_FPS;
+    }
+
+    private void scheduleSave() {
+        int generation = ++this.saveGeneration;
+
+        TextView view = this.statusView;
+        if (view == null) {
+            this.flush();
+            return;
+        }
+
+        view.postDelayed(() -> {
+            if (generation == this.saveGeneration) this.flush();
+        }, SAVE_DELAY_MILLIS);
+    }
+
+    private void flush() {
+        if (this.pendingWrites.isEmpty()) return;
+
+        Map<Setting<?>, Object> changed = new LinkedHashMap<>();
+        for (Setting<?> setting : this.pendingWrites) changed.put(setting, this.state.get(setting));
+        this.pendingWrites.clear();
+
+        try {
+            NarutoConfig.writeAll(changed);
+            NarutoConfig.save();
+        } catch (Throwable throwable) {
+            System.err.println("[NarutoLoading] Exception saving the config: " + throwable.getMessage());
+            if (!this.destroyed) this.showStatus(I18n.get("narutoloading.status.saveFailed"), false);
+        }
+    }
+
+    private void schedulePlaybackReload() {
+        int generation = ++this.playbackGeneration;
+
+        TextView view = this.statusView;
+        if (view == null) return;
+
+        view.postDelayed(() -> {
+            if (generation != this.playbackGeneration) return;
+
+            Minecraft.getInstance().execute(() -> {
+                double seekTo = ClientUiControl.positionSec();
+                this.context.media().refresh();
+                ClientUiControl.restart(seekTo);
+            });
+        }, PLAYBACK_DELAY_MILLIS);
+    }
+
+    private void undo() {
+        Runnable action = this.undoAction;
+        if (action == null) return;
+
+        this.undoAction = null;
+        this.undoSetting = null;
+        action.run();
+
+        MuiScreenHost current = this.host;
+        if (current != null) current.reloadCurrentPage();
+
+        this.showStatus(I18n.get("narutoloading.status.undone"), false);
+    }
+
+    private @NotNull View buildStatusBar(@NotNull Context context) {
+        MuiTheme theme = NarutoTheme.resolve(this.state.get(NarutoSettings.THEME), context);
+        LinearLayout bar = MuiControls.row(context);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        this.statusBar = bar;
+
+        bar.addView(new View(context), new LinearLayout.LayoutParams(0, 1, 1.0F));
+
+        this.statusView = MuiControls.text(context, theme, "", 12, theme.onSurfaceVariant());
+        LinearLayout.LayoutParams statusParams = MuiControls.wrap();
+        statusParams.rightMargin = MuiControls.dp(context, 8);
+        bar.addView(this.statusView, statusParams);
+
+        this.undoButton = MuiControls.button(context, theme, "narutoloading.action.undo", true, view -> this.undo(), MuiShimmerable.ALWAYS);
+        LinearLayout.LayoutParams undoParams = MuiControls.wrap();
+        undoParams.leftMargin = MuiControls.dp(context, 8);
+        undoParams.gravity = Gravity.CENTER_VERTICAL;
+        bar.addView(this.undoButton, undoParams);
+
+        this.restoreStatus();
+        return bar;
+    }
+
+    private void showStatus(@NotNull CharSequence text, boolean undoable) {
+        this.statusText = text.toString();
+        this.statusShownAt = System.currentTimeMillis();
+        this.paintStatus(undoable, STATUS_MILLIS);
+    }
+
+    private void restoreStatus() {
+        String text = this.statusText;
+        if (text == null) {
+            if (this.statusBar != null) this.statusBar.setVisibility(View.GONE);
+            return;
+        }
+
+        long elapsed = System.currentTimeMillis() - this.statusShownAt;
+        if (elapsed >= STATUS_MILLIS) {
+            if (this.statusBar != null) this.statusBar.setVisibility(View.GONE);
+            return;
+        }
+
+        this.paintStatus(true, STATUS_MILLIS - elapsed);
+    }
+
+    private void paintStatus(boolean undoable, long millis) {
+        LinearLayout bar = this.statusBar;
+        TextView view = this.statusView;
+        if (bar == null || view == null) return;
+
+        view.setText(this.statusText);
+        bar.setVisibility(View.VISIBLE);
+        if (this.undoButton != null) {
+            this.undoButton.setVisibility(undoable && this.undoAction != null ? View.VISIBLE : View.GONE);
+        }
+
+        int generation = ++this.statusGeneration;
+        view.postDelayed(() -> {
+            if (generation == this.statusGeneration) bar.setVisibility(View.GONE);
+        }, Math.max(0L, millis));
     }
 
     private void onDestroyed() {
+        this.destroyed = true;
+        this.flush();
+        this.mediaPage.destroy();
+        this.wallsPage.destroy();
+        WallEditorPage editor = this.wallEditorPage;
+        if (editor != null) editor.destroy();
+
         this.host = null;
         if (OPEN == this) OPEN = null;
-        this.downloads.destroy();
         FadeCenter.clearPreview();
 
         AudioProducer audio = ClientUiControl.active().audio.get();
         if (audio != null) audio.volume(NarutoConfig.volume());
     }
 
-    private static @NotNull String failureMessage(@NotNull Throwable error) {
-        String message = error.getMessage();
-        return message == null || message.isBlank() ? I18n.get("narutoloading.apply.failedMessage") : message;
-    }
-
     private final class ScreenShimmerConfig implements MuiShimmerConfig {
         @Override
         public boolean enabled() {
-            return NarutoScreen.this.draft.get(NarutoSettings.SHIMMER);
+            return NarutoScreen.this.state.get(NarutoSettings.SHIMMER);
         }
 
         @Override
         public int fps() {
-            return NarutoScreen.this.draft.get(NarutoSettings.SHIMMER_FPS);
+            return NarutoScreen.this.state.get(NarutoSettings.SHIMMER_FPS);
         }
 
         @Override
         public double speed() {
-            return NarutoScreen.this.draft.get(NarutoSettings.SHIMMER_SPEED);
+            return NarutoScreen.this.state.get(NarutoSettings.SHIMMER_SPEED);
         }
 
         @Override
         public double scale() {
-            return NarutoScreen.this.draft.get(NarutoSettings.SHIMMER_SCALE);
+            return NarutoScreen.this.state.get(NarutoSettings.SHIMMER_SCALE);
         }
 
         @Override
         public double strength() {
-            return NarutoScreen.this.draft.get(NarutoSettings.SHIMMER_STRENGTH);
+            return NarutoScreen.this.state.get(NarutoSettings.SHIMMER_STRENGTH);
         }
 
         @Override
         @Contract(value = " -> new", pure = true)
         public int @NotNull [] ramp() {
-            return MuiColorSchemes.NARUTO.shimmerRamp();
+            return NarutoTheme.ramp(NarutoScreen.this.state.get(NarutoSettings.THEME));
         }
     }
 }

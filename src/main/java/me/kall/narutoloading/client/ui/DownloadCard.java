@@ -1,19 +1,19 @@
 package me.kall.narutoloading.client.ui;
 
 import icyllis.modernui.core.Context;
+import icyllis.modernui.mc.MuiModApi;
 import icyllis.modernui.view.View;
 import icyllis.modernui.widget.Button;
-import icyllis.modernui.widget.LinearLayout;
 import icyllis.modernui.widget.TextView;
-import me.kall.narutoloading.media.download.DownloadService;
-import me.kall.narutoloading.media.download.DownloadState;
-import me.kall.narutoloading.core.util.GamePaths;
-import me.kall.narutoloading.media.MediaNaming;
-import me.kall.narutoloading.media.MediaRepository;
+import me.kall.narutoloading.config.NarutoConfig;
+import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.core.tool.ToolRegistry;
-import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.media.MediaNaming;
+import me.kall.narutoloading.media.MediaRepository;
+import me.kall.narutoloading.media.download.DownloadService;
+import me.kall.narutoloading.media.download.DownloadState;
 import me.kall.narutoui.mui.field.MuiTextField;
 import me.kall.narutoui.mui.layout.MuiControls;
 import me.kall.narutoui.mui.layout.MuiLayout;
@@ -21,6 +21,7 @@ import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import me.kall.narutoui.mui.screen.MuiSettingsSection;
 import me.kall.narutoui.mui.theme.MuiTheme;
 import me.kall.narutoui.mui.util.MuiFilePicker;
+import me.kall.narutoui.mui.widget.MuiCollapsibleCard;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
@@ -37,7 +38,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
-final class YtDlpPage implements SettingsPageBuilder {
+/**
+ * The "add media from a link" card on the media page. It owns the yt-dlp form, its progress log
+ * and the tool status, so downloading is never a separate top-level page.
+ */
+final class DownloadCard {
+    private static final String STATE_KEY = "narutoloading.media.download";
+
+    private final NarutoScreen screen;
     private final ToolRegistry tools;
     private final DownloadService downloads;
     private final MediaRepository media;
@@ -51,7 +59,8 @@ final class YtDlpPage implements SettingsPageBuilder {
 
     private @Nullable MuiTextField linkField;
     private @Nullable MuiTextField nameField;
-    private @Nullable MuiSettingsSection statusSection;
+    private @Nullable MuiSettingsSection section;
+    private @Nullable MuiCollapsibleCard card;
     private @Nullable TextView nameWarning;
     private @Nullable TextView statusView;
     private @Nullable TextView logView;
@@ -60,7 +69,8 @@ final class YtDlpPage implements SettingsPageBuilder {
     private volatile String link;
     private volatile String fileName = "";
 
-    YtDlpPage(@Nullable String link, @NotNull NarutoContext context) {
+    DownloadCard(@NotNull NarutoScreen screen, @NotNull NarutoContext context, @Nullable String link) {
+        this.screen = screen;
         this.tools = context.tools();
         this.downloads = context.downloads();
         this.media = context.media();
@@ -68,63 +78,16 @@ final class YtDlpPage implements SettingsPageBuilder {
         this.link = link == null ? "" : link.trim();
     }
 
-    @Override
-    public void build(@NotNull MuiSettingsPage page) {
+    void build(@NotNull MuiSettingsPage page) {
         this.subscribe();
 
-        page.shimmerAll();
-        this.theme = page.theme();
+        boolean focus = this.screen.consumeDownloadFocus();
+        boolean expanded = focus || this.media.all().isEmpty();
 
-        page
-                .section("narutoloading.ytdlp.section.status", section -> {
-                    this.statusSection = section;
-                    this.fillStatus(section);
-                })
-                .section("narutoloading.ytdlp.section.link", section -> {
-                    Context context = section.page().context();
-                    MuiTheme theme = section.page().theme();
-
-                    section
-                            .textField("narutoloading.ytdlp.link", "narutoloading.ytdlp.link.desc", this.link, value -> this.link = value, field -> {
-                                this.linkField = field;
-                                field.hint("narutoloading.ytdlp.link.hint").onChange(value -> this.link = value).softValidator(YtDlpPage::looksLikeUrl);
-                            })
-                            .textField("narutoloading.ytdlp.name", "narutoloading.ytdlp.name.desc", this.fileName, value -> this.fileName = value, field -> {
-                                this.nameField = field;
-                                field.hint("narutoloading.ytdlp.name.hint").onChange(value -> {
-                                    this.fileName = value;
-                                    this.refreshNameWarning();
-                                }).softValidator(YtDlpPage::isValidName);
-                            });
-
-                    this.nameWarning = MuiControls.text(context, theme, "", 10, theme.primary());
-                    this.nameWarning.setPadding(MuiControls.dp(context, 2), MuiControls.dp(context, 2), MuiControls.dp(context, 2), 0);
-                    this.nameWarning.setVisibility(View.GONE);
-
-                    LinearLayout.LayoutParams warningParams = MuiControls.fill();
-                    warningParams.topMargin = MuiControls.dp(context, 2);
-                    section.card().addView(this.nameWarning, warningParams);
-
-                    section
-                            .value("narutoloading.ytdlp.target", this.outputDirectory().toString())
-                            .button("narutoloading.ytdlp.action.video", false, () -> this.start(true)).enabledWhen(this::canDownload)
-                            .button("narutoloading.ytdlp.action.audio", true, () -> this.start(false)).enabledWhen(this::canDownload)
-                            .note("narutoloading.ytdlp.action.note", "narutoloading.ytdlp.action.note.desc");
-
-                    this.refreshNameWarning();
-                })
-                .section("narutoloading.ytdlp.section.progress", section -> section
-                        .value("narutoloading.ytdlp.progress.percent", value -> value < 0 ? "—" : value + "%", () -> this.downloads.state().percent())
-                        .customLayout(row -> {
-                            this.statusView = MuiControls.text(row.getContext(), row.theme(), this.currentStatus(), 13, this.currentStatusColor(row.theme()));
-                            row.add(this.statusView, MuiControls.fill());
-                        })
-                        .customLayout(row -> {
-                            this.logView = MuiControls.text(row.getContext(), row.theme(), this.currentLog(), 11, row.theme().onSurfaceVariant());
-                            row.add(this.logView, MuiControls.fill());
-                        })
-                        .button("narutoloading.ytdlp.action.openFolder", true, this::openFolder)
-                );
+        this.section = page.collapsibleCard(STATE_KEY, "narutoloading.download.title", this.summary(), expanded, card -> {
+            this.card = card;
+            if (focus) card.setExpanded(true);
+        }, this::fill);
     }
 
     void destroy() {
@@ -134,6 +97,70 @@ final class YtDlpPage implements SettingsPageBuilder {
         this.downloads.state().removeListener(this.stateListener);
     }
 
+    private void fill(@NotNull MuiSettingsSection section) {
+        this.section = section;
+        this.theme = section.page().theme();
+
+        boolean available = this.executable != null;
+
+        if (!available) section.note("narutoloading.download.missing", "narutoloading.download.missing.desc");
+
+        section.customLayout(row -> {
+            Context context = row.getContext();
+            MuiTheme theme = row.theme();
+
+            Button choose = MuiControls.button(context, theme, "narutoloading.download.choose", true, view -> this.chooseExecutable());
+            Button redetect = MuiControls.button(context, theme, "narutoloading.download.redetect", true, view -> this.redetect());
+
+            row.add(MuiLayout.row(context, theme).padding(0).spacing(8).addWeighted(choose, 1.0F).addWeighted(redetect, 1.0F), MuiControls.fill());
+        });
+
+        section.textField("narutoloading.download.link", "narutoloading.download.link.desc", this.link, value -> this.link = value, field -> {
+            this.linkField = field;
+            field.hint("narutoloading.download.link.hint").onChange(value -> this.link = value).softValidator(DownloadCard::looksLikeUrl);
+        });
+
+        section.textField("narutoloading.download.name", "narutoloading.download.name.desc", this.fileName, value -> this.fileName = value, field -> {
+            this.nameField = field;
+            field.hint("narutoloading.download.name.hint").onChange(value -> {
+                this.fileName = value;
+                this.refreshNameWarning();
+            }).softValidator(DownloadCard::isValidName);
+        });
+
+        section.customLayout(row -> {
+            Context context = row.getContext();
+            MuiTheme theme = row.theme();
+
+            this.nameWarning = MuiControls.text(context, theme, "", 10, theme.primary());
+            this.nameWarning.setPadding(MuiControls.dp(context, 2), MuiControls.dp(context, 2), MuiControls.dp(context, 2), 0);
+            this.nameWarning.setVisibility(View.GONE);
+            row.add(this.nameWarning, MuiControls.fill());
+        });
+
+        section.description("narutoloading.download.target", this.outputDirectory().toString());
+
+        section.button("narutoloading.download.video", false, () -> this.start(true)).enabledWhen(this::canDownload);
+        section.button("narutoloading.download.audio", true, () -> this.start(false)).enabledWhen(this::canDownload);
+
+        section.value("narutoloading.download.percent", value -> value < 0 ? "—" : value + "%", () -> this.downloads.state().percent());
+
+        section.customLayout(row -> {
+            this.statusView = MuiControls.text(row.getContext(), row.theme(), this.currentStatus(), 13, this.currentStatusColor(row.theme()));
+            row.add(this.statusView, MuiControls.fill());
+        });
+
+        section.customLayout(row -> {
+            this.logView = MuiControls.text(row.getContext(), row.theme(), this.currentLog(), 11, row.theme().onSurfaceVariant());
+            row.add(this.logView, MuiControls.fill());
+        });
+
+        section.button("narutoloading.download.openFolder", true, this::openFolder);
+        section.note("narutoloading.download.note", "narutoloading.download.note.desc");
+
+        this.refreshNameWarning();
+    }
+
     private void subscribe() {
         if (this.subscribed) return;
 
@@ -141,32 +168,13 @@ final class YtDlpPage implements SettingsPageBuilder {
         this.downloads.state().addListener(this.stateListener);
     }
 
-    private void fillStatus(@NotNull MuiSettingsSection section) {
-        boolean available = this.executable != null;
-
-        section.value("narutoloading.ytdlp.status.state", I18n.get(available ? "narutoloading.ytdlp.status.found" : "narutoloading.ytdlp.status.missing"))
-                .value("narutoloading.ytdlp.status.path", available ? this.executable : I18n.get("narutoloading.ytdlp.status.path.none"));
-
-        if (!available) section.note("narutoloading.ytdlp.status.hint", "narutoloading.ytdlp.status.hint.desc");
-
-        section.customLayout(row -> {
-            Context context = row.getContext();
-            MuiTheme theme = row.theme();
-
-            Button choose = MuiControls.button(context, theme, "narutoloading.ytdlp.action.choose", true, view -> this.chooseExecutable());
-            Button redetect = MuiControls.button(context, theme, "narutoloading.ytdlp.action.redetect", true, view -> this.redetect());
-
-            row.add(MuiLayout.row(context, theme).padding(0).spacing(8).addWeighted(choose, 1.0F).addWeighted(redetect, 1.0F), MuiControls.fill());
-        });
-    }
-
     private void chooseExecutable() {
-        MuiFilePicker.openFile(I18n.get("narutoloading.ytdlp.action.choose"), "yt-dlp", this::installExecutable, ToolRegistry.YTDLP_FILE_FILTER);
+        MuiFilePicker.openFile(I18n.get("narutoloading.download.choose"), "yt-dlp", this::installExecutable, ToolRegistry.YTDLP_FILE_FILTER);
     }
 
     private void installExecutable(@NotNull Path source) {
         if (!Files.isRegularFile(source)) {
-            this.publishStatus(I18n.get("narutoloading.ytdlp.status.install.invalid", source.getFileName().toString()), true);
+            this.publishStatus(I18n.get("narutoloading.download.install.invalid", source.getFileName().toString()), true);
             return;
         }
 
@@ -174,8 +182,8 @@ final class YtDlpPage implements SettingsPageBuilder {
 
         if (installed == null) {
             this.executable = null;
-            this.refreshStatus();
-            this.publishStatus(I18n.get("narutoloading.ytdlp.status.install.failed"), true);
+            this.refreshSection();
+            this.publishStatus(I18n.get("narutoloading.download.install.failed"), true);
             return;
         }
 
@@ -187,21 +195,22 @@ final class YtDlpPage implements SettingsPageBuilder {
         }
 
         this.executable = installed;
-        this.refreshStatus();
-
-        this.publishStatus(I18n.get("narutoloading.ytdlp.status.install.done", source.getFileName().toString()), false);
+        this.refreshSection();
+        this.publishStatus(I18n.get("narutoloading.download.install.done", source.getFileName().toString()), false);
     }
 
     private void redetect() {
         this.executable = this.tools.reloadYtDlp();
-        this.refreshStatus();
-
-        this.publishStatus(I18n.get(this.executable != null ? "narutoloading.ytdlp.status.redetect.found" : "narutoloading.ytdlp.status.redetect.missing"), this.executable == null);
+        this.refreshSection();
+        this.publishStatus(I18n.get(this.executable != null ? "narutoloading.download.redetect.found" : "narutoloading.download.redetect.missing"), this.executable == null);
     }
 
-    private void refreshStatus() {
-        MuiSettingsSection section = this.statusSection;
-        if (section != null) section.rebuild(this::fillStatus);
+    private void refreshSection() {
+        MuiSettingsSection section = this.section;
+        if (section != null) section.rebuild(this::fill);
+
+        MuiCollapsibleCard current = this.card;
+        if (current != null) current.summary(this.summary());
     }
 
     private void start(boolean video) {
@@ -214,7 +223,7 @@ final class YtDlpPage implements SettingsPageBuilder {
         DownloadState state = this.downloads.state();
         if (!state.begin()) return;
 
-        state.status(I18n.get(video ? "narutoloading.ytdlp.status.start.video" : "narutoloading.ytdlp.status.start.audio"), false);
+        state.status(I18n.get(video ? "narutoloading.download.start.video" : "narutoloading.download.start.audio"), false);
 
         Path outputDirectory = this.outputDirectory();
         CompletableFuture<@Nullable String> future = video ? this.downloads.downloadVideo(url, outputDirectory, name, this::onOutputLine) : this.downloads.downloadAudio(url, outputDirectory, name, this::onOutputLine);
@@ -224,16 +233,16 @@ final class YtDlpPage implements SettingsPageBuilder {
 
             if (throwable != null) {
                 System.err.println("[NarutoLoading] Exception downloading " + url + ": " + throwable.getMessage());
-                state.status(I18n.get("narutoloading.ytdlp.status.failed", rootMessage(throwable)), true);
+                state.status(I18n.get("narutoloading.download.failed", rootMessage(throwable)), true);
                 return;
             }
 
             if (result == null) {
-                state.status(I18n.get("narutoloading.ytdlp.status.failed", I18n.get("narutoloading.ytdlp.status.failed.detail")), true);
+                state.status(I18n.get("narutoloading.download.failed", I18n.get("narutoloading.download.failed.detail")), true);
                 return;
             }
 
-            state.done(I18n.get("narutoloading.ytdlp.status.done", Path.of(result).getFileName().toString()));
+            state.done(I18n.get("narutoloading.download.done", Path.of(result).getFileName().toString()));
 
             String mediaName = MediaNaming.mediaName(result);
             this.media.refresh(() -> this.play(mediaName));
@@ -245,10 +254,11 @@ final class YtDlpPage implements SettingsPageBuilder {
         Minecraft.getInstance().execute(() -> {
             if (this.media.select(name)) {
                 ClientUiControl.restart(0D);
+                MuiModApi.postToUiThread(this.screen::reloadPage);
                 return;
             }
 
-            this.publishStatus(I18n.get("narutoloading.ytdlp.status.unplayable", name), true);
+            this.publishStatus(I18n.get("narutoloading.download.unplayable", name), true);
         });
     }
 
@@ -286,6 +296,9 @@ final class YtDlpPage implements SettingsPageBuilder {
 
         TextView logView = this.logView;
         if (logView != null) logView.setText(this.currentLog());
+
+        MuiCollapsibleCard current = this.card;
+        if (current != null) current.summary(this.summary());
     }
 
     private void publishStatus(@NotNull String text, boolean failed) {
@@ -295,7 +308,7 @@ final class YtDlpPage implements SettingsPageBuilder {
     private @NotNull String currentStatus() {
         DownloadState state = this.downloads.state();
         if (!state.status().isEmpty()) return state.status();
-        return I18n.get(state.downloading() ? "narutoloading.ytdlp.status.working" : "narutoloading.ytdlp.status.idle");
+        return I18n.get(state.downloading() ? "narutoloading.download.working" : "narutoloading.download.idle");
     }
 
     private int currentStatusColor(@NotNull MuiTheme theme) {
@@ -304,7 +317,7 @@ final class YtDlpPage implements SettingsPageBuilder {
 
     private @NotNull String currentLog() {
         String log = this.downloads.state().logText();
-        return log.isEmpty() ? I18n.get("narutoloading.ytdlp.progress.log.empty") : log;
+        return log.isEmpty() ? I18n.get("narutoloading.download.log.empty") : log;
     }
 
     private boolean canDownload() {
@@ -354,7 +367,7 @@ final class YtDlpPage implements SettingsPageBuilder {
             return null;
         }
 
-        return matches.isEmpty() ? null : I18n.get("narutoloading.ytdlp.name.conflict", String.join(", ", matches));
+        return matches.isEmpty() ? null : I18n.get("narutoloading.download.conflict", String.join(", ", matches));
     }
 
     private void openFolder() {
@@ -373,7 +386,13 @@ final class YtDlpPage implements SettingsPageBuilder {
     }
 
     private @NotNull Path outputDirectory() {
-        return GamePaths.resolve(NarutoConfig.sourcesDir());
+        return this.screen.sourcesFolder();
+    }
+
+    private @NotNull String summary() {
+        if (this.executable == null) return I18n.get("narutoloading.download.summary.missing");
+        if (this.downloads.state().downloading()) return I18n.get("narutoloading.download.summary.working");
+        return I18n.get("narutoloading.download.summary.ready");
     }
 
     private static boolean looksLikeUrl(@NotNull String value) {

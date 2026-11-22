@@ -50,10 +50,7 @@ public class NarutoMixinPlugin implements IMixinConfigPlugin {
     public void postApply(String targetClassName, ClassNode classNode, @NotNull String mixinClassName, IMixinInfo iMixinInfo) {
         if (!mixinClassName.endsWith("MixinBlockState")) return;
 
-        MethodNode merged = classNode.methods.stream()
-                .filter(method -> LIGHT_EMISSION.equals(method.name) && LIGHT_EMISSION_DESC.equals(method.desc))
-                .findFirst()
-                .orElse(null);
+        MethodNode merged = classNode.methods.stream().filter(method -> LIGHT_EMISSION.equals(method.name) && LIGHT_EMISSION_DESC.equals(method.desc)).findFirst().orElse(null);
 
         boolean applied = merged != null && callsWallLights(merged);
 
@@ -63,9 +60,6 @@ public class NarutoMixinPlugin implements IMixinConfigPlugin {
         if (!applied) LOGGER.warn("[NarutoLoading] BlockState#getLightEmission is already provided by another mod, wall light is disabled.");
     }
 
-    /**
-     * 读出 Mixin 给合并方法打的 {@code @MixinMerged.mixin}，用来确认最终留下的是谁的方法。
-     */
     private static String mergedOwner(@Nullable MethodNode method) {
         if (method == null) return "<missing>";
 

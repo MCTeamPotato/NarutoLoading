@@ -5,10 +5,8 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.client.input.NarutoKeys;
 import me.kall.narutoloading.client.overlay.Substitution;
-import me.kall.narutoloading.client.context.LevelStatus;
 import me.kall.narutoloading.client.fade.FadeCenter;
 import me.kall.narutoloading.client.ui.NarutoScreen;
 import me.kall.narutoloading.client.input.PasteListener;
@@ -103,14 +101,6 @@ public class NarutoLoadingClient {
         long now = System.nanoTime();
 
         if (KEY_LAST_PRESS.containsKey(key) && now - KEY_LAST_PRESS.getLong(key) < KEY_THROTTLE_NANOS) return;
-
-        if (NarutoKeys.TOGGLE_COMPAT_MODE.isActiveAndMatches(key) && LevelStatus.notFound()) {
-            ClientUiControl.toggleCompatMode();
-
-            KEY_LAST_PRESS.put(key, now);
-            MAP_LAST_CHANGED.set(now);
-            return;
-        }
 
         if (NarutoKeys.OPEN_SCREEN.isActiveAndMatches(key) && Integration.NARUTO_UI) {
             Minecraft minecraft = Minecraft.getInstance();

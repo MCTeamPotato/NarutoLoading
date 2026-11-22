@@ -1,6 +1,5 @@
 package me.kall.narutoloading.playback;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import me.kall.narutoloading.agent.bootstrap.EarlyBridge;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.media.ffmpeg.FFmpeg;
@@ -13,7 +12,6 @@ import me.kall.narutoloading.playback.produce.AbstractProducer;
 import me.kall.narutoloading.playback.produce.NarutoProducers;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
 import me.kall.narutoloading.playback.produce.video.AbstractFrameProducer;
-import me.kall.narutoloading.playback.render.ClientUiRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -82,17 +80,6 @@ public abstract class ClientUiTV<T> extends AbstractTV<T> {
         @Override
         public @NotNull AbstractFrameProducer<ByteBuffer> createVideo(@Nullable VideoArgs videoArgs) {
             return NarutoProducers.buildBuffer(this.ffmpeg.ffmpeg.get(), videoArgs);
-        }
-    }
-
-    public static final class Image extends ClientUiTV<NativeImage> {
-        public Image(@NotNull MediaRepository media, @NotNull FFmpeg ffmpeg) {
-            super(new ClientUiRenderer(), media, ffmpeg);
-        }
-
-        @Override
-        public @NotNull AbstractFrameProducer<NativeImage> createVideo(@Nullable VideoArgs videoArgs) {
-            return NarutoProducers.buildImage(this.ffmpeg.ffmpeg.get(), videoArgs);
         }
     }
 }

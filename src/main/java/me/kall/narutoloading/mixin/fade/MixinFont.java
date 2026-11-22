@@ -19,7 +19,8 @@ public abstract class MixinFont {
 
     @WrapMethod(method = "drawInBatch8xOutline")
     private void fade$drawInBatch8xOutline(FormattedCharSequence text, float x, float y, int color, int backgroundColor, Matrix4f matrix, MultiBufferSource bufferSource, int packedLightCoords, @NotNull Operation<Void> original) {
-        original.call(FadeCenter.isHidden() ? FormattedCharSequence.EMPTY : text, x, y, FadeCenter.modifyTextAlpha(color), FadeCenter.modifyAlpha(backgroundColor), matrix, bufferSource, packedLightCoords);
+        if (FadeCenter.isHidden()) return;
+        original.call(text, x, y, FadeCenter.modifyTextAlpha(color), FadeCenter.modifyAlpha(backgroundColor), matrix, bufferSource, packedLightCoords);
     }
 
     @WrapMethod(method = "drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I")
