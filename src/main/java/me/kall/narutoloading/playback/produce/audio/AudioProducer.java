@@ -13,12 +13,11 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
-import java.util.function.DoubleConsumer;
 
 public final class AudioProducer extends AbstractProducer {
     private static final double CHUNK_SECOND = 0.1D;
+    private static final AtomicBoolean DEVICE_FAILURE_REPORTED = new AtomicBoolean();
 
     private final AtomicInteger volume;
     private final AtomicBoolean volumeChanged = new AtomicBoolean(true);
@@ -78,7 +77,17 @@ public final class AudioProducer extends AbstractProducer {
 
         try {
             device = ALC11.alcOpenDevice((ByteBuffer) null);
+            if (device == 0L) {
+                reportDeviceFailure();
+                return;
+            }
+
             context = ALC11.alcCreateContext(device, (IntBuffer) null);
+            if (context == 0L) {
+                reportDeviceFailure();
+                return;
+            }
+
             EXTThreadLocalContext.alcSetThreadContext(context);
             AL.createCapabilities(ALC.createCapabilities(device));
 
@@ -150,6 +159,10 @@ public final class AudioProducer extends AbstractProducer {
 
             if (direct != null) MemoryUtil.memFree(direct);
         }
+    }
+
+    private static void reportDeviceFailure() {
+        if (DEVICE_FAILURE_REPORTED.compareAndSet(false, true)) System.err.println("[NarutoLoading] Could not open an OpenAL device or context; audio is disabled. Further OpenAL failures are not logged.");
     }
 
     private void queue(int source, @NotNull ByteBuffer direct, byte[] chunk, int read) {

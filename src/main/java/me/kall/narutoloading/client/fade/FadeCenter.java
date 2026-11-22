@@ -1,23 +1,16 @@
 package me.kall.narutoloading.client.fade;
 
-import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.client.context.LevelStatus;
+import me.kall.narutoloading.config.NarutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID)
 public final class FadeCenter {
     private static final MousePos LAST_MOUSE = new MousePos();
 
@@ -90,10 +83,7 @@ public final class FadeCenter {
         return (color & 0x00FFFFFF) | (alpha << 24);
     }
 
-    @SubscribeEvent
-    public static void tick(TickEvent.@NotNull ClientTickEvent event) {
-        if (!event.phase.equals(TickEvent.Phase.START)) return;
-
+    public static void tick() {
         if (!LevelStatus.notFound() || !ClientUiControl.videoPresent() || !enabled()) {
             fadeAlpha = 100;
             stopTicks = 0;
@@ -119,17 +109,7 @@ public final class FadeCenter {
         if (fadeAlpha > 100) fadeAlpha = 100;
     }
 
-    @SubscribeEvent
-    public static void anyInput(InputEvent event) {
-        reset();
-    }
-
-    @SubscribeEvent
-    public static void mouseInput(InputEvent.MouseButton.Pre event) {
-        reset();
-    }
-
-    private static void reset() {
+    public static void reset() {
         Minecraft.getInstance().execute(() -> {
             fadeAlpha = 100;
             stopTicks = 0;

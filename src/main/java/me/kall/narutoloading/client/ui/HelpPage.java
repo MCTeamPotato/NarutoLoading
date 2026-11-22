@@ -38,6 +38,11 @@ final class HelpPage {
                         .note("narutoloading.help.ffmpeg.where", "narutoloading.help.ffmpeg.where.desc")
                         .note("narutoloading.help.ffmpeg.restart", "narutoloading.help.ffmpeg.restart.desc")
                         .note("narutoloading.help.ffmpeg.trouble", "narutoloading.help.ffmpeg.trouble.desc"))
+                .section("narutoloading.help.section.walls", section -> section
+                        .note("narutoloading.help.walls.build", "narutoloading.help.walls.build.desc")
+                        .note("narutoloading.help.walls.config", "narutoloading.help.walls.config.desc")
+                        .note("narutoloading.help.walls.media", "narutoloading.help.walls.media.desc")
+                        .note("narutoloading.help.walls.server", "narutoloading.help.walls.server.desc"))
                 .section("narutoloading.help.section.paths", section -> section
                         .value("narutoloading.help.configFile", FMLPaths.CONFIGDIR.get().resolve("narutoloading.properties").toString())
                         .value("narutoloading.help.sources", sourcesDirectory().toString())

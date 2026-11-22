@@ -117,6 +117,14 @@ public final class MediaRepository {
         return false;
     }
 
+    public @Nullable Media find(@NotNull String name) {
+        for (Media media : this.ready) {
+            if (media.name().equalsIgnoreCase(name)) return media;
+        }
+
+        return null;
+    }
+
     public void adopt(@Nullable String absPath) {
         if (absPath == null || absPath.isBlank()) return;
 

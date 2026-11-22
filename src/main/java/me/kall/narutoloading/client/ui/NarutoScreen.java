@@ -27,6 +27,7 @@ import me.kall.narutoui.mui.shimmer.MuiShimmerable;
 import me.kall.narutoui.mui.theme.MuiTheme;
 import me.kall.narutoui.mui.widget.MuiHintBadge;
 import me.kall.narutoui.mui.widget.MuiLogo;
+import me.kall.narutoloading.world.Wall;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -37,13 +38,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class NarutoScreen {
+    private static @Nullable NarutoScreen OPEN;
+
     private final NarutoContext context;
     private final YtDlpPage downloads;
     private final PlaybackPage playback;
     private final ConfigPage config;
+    private final WallsPage walls;
     private final MuiShimmerProfile shimmerProfile = MuiShimmerProfile.create(new ScreenShimmerConfig());
 
     private NarutoDraft draft = NarutoDraft.load();
+
+    private @Nullable Wall focusWall;
 
     private @Nullable MuiScreenHost host;
     private @Nullable Button applyButton;
@@ -59,6 +65,7 @@ public final class NarutoScreen {
         this.downloads = new YtDlpPage(link, context);
         this.playback = new PlaybackPage(this, context);
         this.config = new ConfigPage(this);
+        this.walls = new WallsPage(this);
         context.media().refresh();
     }
 
@@ -72,6 +79,12 @@ public final class NarutoScreen {
 
     public static @NotNull Screen create(@Nullable Screen parent, @Nullable String link) {
         return new NarutoScreen(link, NarutoContext.get()).build(parent);
+    }
+
+    public static @NotNull Screen createForWall(@Nullable Screen parent, @Nullable Wall wall) {
+        NarutoScreen screen = new NarutoScreen(null, NarutoContext.get());
+        screen.focusWall = wall;
+        return screen.build(parent);
     }
 
     private @NotNull Screen build(@Nullable Screen parent) {
@@ -88,15 +101,35 @@ public final class NarutoScreen {
                 .actionBar(this::buildActionBar)
                 .onCreated(fragment -> {
                     this.host = fragment;
+                    OPEN = this;
                     this.refreshActions();
                 })
                 .onDestroyed(fragment -> this.onDestroyed())
                 .onCloseRequested(this::onCloseRequested)
+                .initialPage(this.focusWall == null ? "narutoloading.nav.download" : "narutoloading.nav.walls")
                 .page("narutoloading.nav.download", "narutoloading.ytdlp.download.title", "narutoloading.ytdlp.download.subtitle", this.downloads::build)
                 .page("narutoloading.nav.playback", "narutoloading.playback.title", "narutoloading.playback.subtitle", this.playback::build)
                 .page("narutoloading.nav.config", "narutoloading.config.title", "narutoloading.config.subtitle", this.config::build)
                 .page("narutoloading.nav.help", "narutoloading.help.title", "narutoloading.help.subtitle", HelpPage::build)
+                .page("narutoloading.nav.walls", "narutoloading.walls.title", "narutoloading.walls.subtitle", this.walls::build)
                 .create(parent);
+    }
+
+    Wall focusWall() {
+        Wall wall = this.focusWall;
+        this.focusWall = null;
+        return wall;
+    }
+
+    @Nullable MuiScreenHost host() {
+        return this.host;
+    }
+
+    public static void remoteChanged() {
+        NarutoScreen screen = OPEN;
+        if (screen == null) return;
+
+        MuiModApi.postToUiThread(screen::reloadPage);
     }
 
     @NotNull NarutoDraft draft() {
@@ -298,6 +331,7 @@ public final class NarutoScreen {
 
     private void onDestroyed() {
         this.host = null;
+        if (OPEN == this) OPEN = null;
         this.downloads.destroy();
         FadeCenter.clearPreview();
 

@@ -2,6 +2,7 @@ package me.kall.narutoloading.config;
 
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.config.api.Config;
+import me.kall.narutoloading.world.WorldRenderMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,19 @@ public class NarutoConfig {
     public static final String TICKS_BEFORE_FADE = "ticksBeforeFade";
     public static final String FADE_OUT_STEP = "fadeOutStep";
     public static final String FADE_IN_STEP = "fadeInStep";
+    public static final String WORLD_RENDER_MODE = "worldRenderMode";
+    public static final String WORLD_MAX_WIDTH = "worldMaxWidth";
+    public static final String WORLD_MAX_HEIGHT = "worldMaxHeight";
+    public static final String WORLD_BUFFER_SECONDS = "worldBufferSeconds";
+    public static final String WORLD_ACTIVE_DISTANCE = "worldActiveDistance";
+    public static final String WORLD_MAX_ACTIVE = "worldMaxActive";
+    public static final String WORLD_CULL_INVISIBLE = "worldCullInvisible";
+    public static final String WORLD_CULL_FACES = "worldCullFaces";
+    public static final String WORLD_LIGHT_ENABLED = "worldLightEnabled";
+    public static final String WORLD_AUDIO_ENABLED = "worldAudioEnabled";
+    public static final String WORLD_VOLUME = "worldVolume";
+    public static final String WORLD_AUDIO_MAX_DISTANCE = "worldAudioMaxDistance";
+    public static final String WORLD_MAX_AUDIO = "worldMaxAudio";
 
     private static final Config CONFIG = create();
 
@@ -138,6 +152,58 @@ public class NarutoConfig {
 
     public static int fadeInStep() {
         return NarutoSettings.FADE_IN_STEP.read(CONFIG);
+    }
+
+    public static @NotNull WorldRenderMode worldRenderMode() {
+        return NarutoSettings.WORLD_RENDER_MODE.read(CONFIG);
+    }
+
+    public static int worldLimitWidth() {
+        return NarutoSettings.WORLD_MAX_WIDTH.read(CONFIG);
+    }
+
+    public static int worldLimitHeight() {
+        return NarutoSettings.WORLD_MAX_HEIGHT.read(CONFIG);
+    }
+
+    public static double worldBufferSeconds() {
+        return NarutoSettings.WORLD_BUFFER_SECONDS.read(CONFIG);
+    }
+
+    public static int worldActiveDistance() {
+        return NarutoSettings.WORLD_ACTIVE_DISTANCE.read(CONFIG);
+    }
+
+    public static int worldMaxActive() {
+        return NarutoSettings.WORLD_MAX_ACTIVE.read(CONFIG);
+    }
+
+    public static boolean worldCullInvisible() {
+        return NarutoSettings.WORLD_CULL_INVISIBLE.read(CONFIG);
+    }
+
+    public static boolean cullFaces() {
+        return NarutoSettings.WORLD_CULL_FACES.read(CONFIG);
+    }
+
+    public static boolean worldLightEnabled() {
+        return NarutoSettings.WORLD_LIGHT_ENABLED.read(CONFIG);
+    }
+
+    public static boolean worldAudioEnabled() {
+        return NarutoSettings.WORLD_AUDIO_ENABLED.read(CONFIG);
+    }
+
+    public static float worldVolume() {
+        return NarutoSettings.WORLD_VOLUME.read(CONFIG);
+    }
+
+    public static int worldAudioMaxDistance() {
+        return NarutoSettings.WORLD_AUDIO_MAX_DISTANCE.read(CONFIG);
+    }
+
+    public static int worldMaxAudio() {
+        return NarutoSettings.WORLD_MAX_AUDIO.read(CONFIG);
     }
 
     public static @NotNull Map<Setting<?>, Object> snapshot() {

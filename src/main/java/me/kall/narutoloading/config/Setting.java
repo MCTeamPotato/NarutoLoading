@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
 import java.util.function.Function;
 
 public final class Setting<T> {
@@ -106,11 +105,6 @@ public final class Setting<T> {
     }
 
     private static @Nullable Boolean parseBoolean(@NotNull String value) {
-        String trimmed = value.trim().toLowerCase(Locale.ROOT);
-
-        if (trimmed.equals("true") || trimmed.equals("yes") || trimmed.equals("on") || trimmed.equals("1")) return Boolean.TRUE;
-        if (trimmed.equals("false") || trimmed.equals("no") || trimmed.equals("off") || trimmed.equals("0")) return Boolean.FALSE;
-
-        return null;
+        return Config.parseBoolean(value);
     }
 }

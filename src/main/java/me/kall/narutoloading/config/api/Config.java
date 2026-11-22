@@ -464,11 +464,16 @@ public final class Config {
         return v == null ? null : v.trim();
     }
 
-    private static Boolean parseBoolean(String v) {
+    /**
+     * 解析布尔字面量，接受 true/false、yes/no、on/off、1/0，忽略大小写与首尾空白。
+     *
+     * @return 无法识别时返回 {@code null}
+     */
+    public static @Nullable Boolean parseBoolean(@Nullable String v) {
         if (v == null) {
             return null;
         }
-        String s = v.toLowerCase(java.util.Locale.ROOT);
+        String s = v.trim().toLowerCase(java.util.Locale.ROOT);
         if (s.equals("true") || s.equals("yes") || s.equals("on") || s.equals("1")) {
             return Boolean.TRUE;
         }

@@ -64,9 +64,9 @@ dependencies {
         modImplementation("icyllis.modernui:ModernUI-NeoForge:${minecraft_version}-${versionKeys.mui}.+")
     }
 
-    if (versionKeys.narutoui != null) {
-        modImplementation files("libs/narutoui/narutoui-${minecraft_version}-${versionKeys.narutoui}.jar")
-    }
+    if (versionKeys.narutoui != null) modImplementation files("libs/narutoui/narutoui-${minecraft_version}-${versionKeys.narutoui}.jar")
+
+    if (!isNeo) modImplementation("curse.maven:duplicationless-1380105:8646420")
 
     if (!isNeo && hasMixin) {
         shadow(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.5"))
@@ -117,6 +117,10 @@ processResources {
         }
         exclude("META-INF/neoforge.mods.toml")
     }
+}
+
+tasks.matching { it.name in ["jar", "sourcesJar", "shadowJar", "remapJar"] }.configureEach {
+    it.exclude("org/embeddedt/**")
 }
 
 java {

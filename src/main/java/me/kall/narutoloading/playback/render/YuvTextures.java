@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL32C.*;
 
-final class YuvTextures implements AutoCloseable {
+public final class YuvTextures implements AutoCloseable {
     private final int width;
     private final int height;
     private final int[] textures = new int[3];
@@ -14,7 +14,7 @@ final class YuvTextures implements AutoCloseable {
 
     private long frameCount;
 
-    YuvTextures(int width, int height) {
+    public YuvTextures(int width, int height) {
         this.width = width;
         this.height = height;
 
@@ -48,15 +48,15 @@ final class YuvTextures implements AutoCloseable {
         return this.height;
     }
 
-    boolean isEmpty() {
+    public boolean isEmpty() {
         return this.frameCount <= 0L;
     }
 
-    int texture(int plane) {
+    public int texture(int plane) {
         return this.textures[plane];
     }
 
-    void upload(ByteBuffer frame) {
+    public void upload(ByteBuffer frame) {
         int ySize = this.width * this.height;
         int uvSize = (this.width / 2) * (this.height / 2);
 
@@ -65,8 +65,14 @@ final class YuvTextures implements AutoCloseable {
         int previousTexture = glGetInteger(GL_TEXTURE_BINDING_2D);
         int previousBuffer = glGetInteger(GL_PIXEL_UNPACK_BUFFER_BINDING);
         int previousAlignment = glGetInteger(GL_UNPACK_ALIGNMENT);
+        int previousRowLength = glGetInteger(GL_UNPACK_ROW_LENGTH);
+        int previousSkipPixels = glGetInteger(GL_UNPACK_SKIP_PIXELS);
+        int previousSkipRows = glGetInteger(GL_UNPACK_SKIP_ROWS);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+        glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 
         stage(this.buffers[slot], frame, 0, ySize);
         stage(this.buffers[2 + slot], frame, ySize, uvSize);
@@ -77,6 +83,9 @@ final class YuvTextures implements AutoCloseable {
         uploadTexture(this.textures[2], this.width / 2, this.height / 2, this.buffers[4 + slot]);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, previousRowLength);
+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, previousSkipPixels);
+        glPixelStorei(GL_UNPACK_SKIP_ROWS, previousSkipRows);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, previousBuffer);
         glBindTexture(GL_TEXTURE_2D, previousTexture);
 

@@ -1,6 +1,7 @@
 package me.kall.narutoloading.config;
 
 import me.kall.narutoloading.media.MediaRepository;
+import me.kall.narutoloading.world.WorldRenderMode;
 
 import java.util.List;
 import java.util.Locale;
@@ -28,6 +29,19 @@ public final class NarutoSettings {
     public static final Setting<Integer> TICKS_BEFORE_FADE = Setting.integer(NarutoConfig.TICKS_BEFORE_FADE, 100, false);
     public static final Setting<Integer> FADE_OUT_STEP = Setting.integer(NarutoConfig.FADE_OUT_STEP, 1, false);
     public static final Setting<Integer> FADE_IN_STEP = Setting.integer(NarutoConfig.FADE_IN_STEP, 5, false);
+    public static final Setting<WorldRenderMode> WORLD_RENDER_MODE = Setting.mapped(NarutoConfig.WORLD_RENDER_MODE, WorldRenderMode.AUTO, WorldRenderMode::parse, mode -> mode.name().toLowerCase(Locale.ROOT), true);
+    public static final Setting<Integer> WORLD_MAX_WIDTH = Setting.integer(NarutoConfig.WORLD_MAX_WIDTH, 1280, true);
+    public static final Setting<Integer> WORLD_MAX_HEIGHT = Setting.integer(NarutoConfig.WORLD_MAX_HEIGHT, 720, true);
+    public static final Setting<Double> WORLD_BUFFER_SECONDS = Setting.decimal(NarutoConfig.WORLD_BUFFER_SECONDS, 1.0D, true);
+    public static final Setting<Integer> WORLD_ACTIVE_DISTANCE = Setting.integer(NarutoConfig.WORLD_ACTIVE_DISTANCE, 48, false);
+    public static final Setting<Integer> WORLD_MAX_ACTIVE = Setting.integer(NarutoConfig.WORLD_MAX_ACTIVE, 4, false);
+    public static final Setting<Boolean> WORLD_CULL_INVISIBLE = Setting.bool(NarutoConfig.WORLD_CULL_INVISIBLE, true, false);
+    public static final Setting<Boolean> WORLD_CULL_FACES = Setting.bool(NarutoConfig.WORLD_CULL_FACES, true, false);
+    public static final Setting<Boolean> WORLD_LIGHT_ENABLED = Setting.bool(NarutoConfig.WORLD_LIGHT_ENABLED, true, false);
+    public static final Setting<Boolean> WORLD_AUDIO_ENABLED = Setting.bool(NarutoConfig.WORLD_AUDIO_ENABLED, true, false);
+    public static final Setting<Float> WORLD_VOLUME = Setting.single(NarutoConfig.WORLD_VOLUME, 1.0F, false);
+    public static final Setting<Integer> WORLD_AUDIO_MAX_DISTANCE = Setting.integer(NarutoConfig.WORLD_AUDIO_MAX_DISTANCE, 32, false);
+    public static final Setting<Integer> WORLD_MAX_AUDIO = Setting.integer(NarutoConfig.WORLD_MAX_AUDIO, 2, false);
 
     public static final List<Setting<?>> ALL = List.of(
             MAX_VIDEO_WIDTH,
@@ -51,7 +65,20 @@ public final class NarutoSettings {
             COMPAT_MODE,
             TICKS_BEFORE_FADE,
             FADE_OUT_STEP,
-            FADE_IN_STEP
+            FADE_IN_STEP,
+            WORLD_RENDER_MODE,
+            WORLD_MAX_WIDTH,
+            WORLD_MAX_HEIGHT,
+            WORLD_BUFFER_SECONDS,
+            WORLD_ACTIVE_DISTANCE,
+            WORLD_MAX_ACTIVE,
+            WORLD_CULL_INVISIBLE,
+            WORLD_CULL_FACES,
+            WORLD_LIGHT_ENABLED,
+            WORLD_AUDIO_ENABLED,
+            WORLD_VOLUME,
+            WORLD_AUDIO_MAX_DISTANCE,
+            WORLD_MAX_AUDIO
     );
 
     private NarutoSettings() {}

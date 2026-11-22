@@ -28,4 +28,14 @@ public final class NarutoProducers {
     public static @NotNull ImageFrameProducer buildImage(@Nullable String ffmpeg, VideoArgs videoArgs) {
         return new ImageFrameProducer(ffmpeg, videoArgs, LevelStatus.notFound(), NarutoConfig.bufferSeconds());
     }
+
+    @Contract("_, _ -> new")
+    public static @NotNull ImageFrameProducer buildWorldImage(@Nullable String ffmpeg, VideoArgs videoArgs) {
+        return new ImageFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldBufferSeconds(), NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight());
+    }
+
+    @Contract("_, _ -> new")
+    public static @NotNull BufferFrameProducer buildWorldBuffer(@Nullable String ffmpeg, VideoArgs videoArgs) {
+        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldBufferSeconds(), NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight());
+    }
 }

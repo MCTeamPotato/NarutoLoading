@@ -16,28 +16,9 @@ public final class EarlySessionHandoff {
     }
 
     public static @Nullable PlaybackSession current() {
-        PlaybackSession session = adopted;
+        PlaybackSession session = adopt();
 
-        if (session == null) {
-            Object raw = System.getProperties().remove(EarlyBridge.SESSION_PROPERTY);
-            if (raw == null) return null;
-
-            String earlyMedia = System.getProperty(EarlyBridge.MEDIA_PROPERTY);
-            if (earlyMedia != null) {
-                System.clearProperty(EarlyBridge.MEDIA_PROPERTY);
-                NarutoContext.get().media().adopt(earlyMedia);
-            }
-
-            try {
-                Class<?> type = raw.getClass();
-                session = new Borrowed(raw, type.getMethod("present", boolean.class), type.getMethod("finished"), type.getMethod("close"));
-            } catch (Throwable throwable) {
-                System.err.println("[NarutoLoading] Unusable early video session: " + throwable.getMessage());
-                return null;
-            }
-
-            adopted = session;
-        }
+        if (session == null) return null;
 
         if (session.finished()) {
             adopted = null;
@@ -49,10 +30,36 @@ public final class EarlySessionHandoff {
     }
 
     public static void stop() {
-        PlaybackSession session = adopted;
+        PlaybackSession session = adopt();
         adopted = null;
 
         if (session != null) session.close();
+    }
+
+    private static @Nullable PlaybackSession adopt() {
+        PlaybackSession session = adopted;
+
+        if (session != null) return session;
+
+        Object raw = System.getProperties().remove(EarlyBridge.SESSION_PROPERTY);
+        if (raw == null) return null;
+
+        String earlyMedia = System.getProperty(EarlyBridge.MEDIA_PROPERTY);
+        if (earlyMedia != null) {
+            System.clearProperty(EarlyBridge.MEDIA_PROPERTY);
+            NarutoContext.get().media().adopt(earlyMedia);
+        }
+
+        try {
+            Class<?> type = raw.getClass();
+            session = new Borrowed(raw, type.getMethod("present", boolean.class), type.getMethod("finished"), type.getMethod("close"));
+        } catch (Throwable throwable) {
+            System.err.println("[NarutoLoading] Unusable early video session: " + throwable.getMessage());
+            return null;
+        }
+
+        adopted = session;
+        return session;
     }
 
     public static void detach() {

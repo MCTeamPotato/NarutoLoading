@@ -8,40 +8,73 @@ import java.security.ProtectionDomain;
 
 public final class DisplayWindowTransformer implements ClassFileTransformer {
     private static final String DISPLAY_WINDOW = "net/minecraftforge/fml/earlydisplay/DisplayWindow";
+    private static final String EARLY_FRAMEBUFFER = "net/minecraftforge/fml/earlydisplay/EarlyFramebuffer";
 
-    private static volatile Method patcher;
+    private static volatile Method windowPatcher;
+    private static volatile Method framebufferPatcher;
 
     @Override
     public byte @Nullable [] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-        if (!DISPLAY_WINDOW.equals(className)) return null;
+        if (DISPLAY_WINDOW.equals(className)) {
+            return apply(DISPLAY_WINDOW, windowPatcher(), classfileBuffer);
+        }
+
+        if (EARLY_FRAMEBUFFER.equals(className)) {
+            return apply(EARLY_FRAMEBUFFER, framebufferPatcher(), classfileBuffer);
+        }
+
+        return null;
+    }
+
+    private static byte @Nullable [] apply(String target, @Nullable Method patcher, byte[] classfileBuffer) {
+        if (patcher == null) return null;
 
         try {
-            Method patch = patcher();
-            return patch == null ? null : (byte[]) patch.invoke(null, classfileBuffer);
+            return (byte[]) patcher.invoke(null, (Object) classfileBuffer);
         } catch (Throwable throwable) {
-            System.err.println("[NarutoLoading Agent] Failed to patch DisplayWindow: " + throwable.getMessage());
+            System.err.println("[NarutoLoading Agent] Failed to patch " + target + ": " + throwable.getMessage());
             return null;
         }
     }
 
-    private static @Nullable Method patcher() {
-        Method patch = patcher;
-        if (patch != null) return patch;
+    private static @Nullable Method windowPatcher() {
+        Method patcher = windowPatcher;
+        if (patcher != null) return patcher;
 
         synchronized (DisplayWindowTransformer.class) {
-            patch = patcher;
+            patcher = windowPatcher;
 
-            if (patch == null) {
-                try {
-                    patch = Class.forName("me.kall.narutoloading.agent.DisplayWindowPatcher", true, DisplayWindowTransformer.class.getClassLoader()).getMethod("patch", byte[].class);
-                    patcher = patch;
-                } catch (ClassNotFoundException | NoSuchMethodException exception) {
-                    System.err.println("[NarutoLoading Agent] Patch entry point missing: " + exception.getMessage());
-                    return null;
-                }
+            if (patcher == null) {
+                patcher = load("me.kall.narutoloading.agent.DisplayWindowPatcher");
+                windowPatcher = patcher;
             }
         }
 
-        return patch;
+        return patcher;
+    }
+
+    private static @Nullable Method framebufferPatcher() {
+        Method patcher = framebufferPatcher;
+        if (patcher != null) return patcher;
+
+        synchronized (DisplayWindowTransformer.class) {
+            patcher = framebufferPatcher;
+
+            if (patcher == null) {
+                patcher = load("me.kall.narutoloading.agent.EarlyFramebufferPatcher");
+                framebufferPatcher = patcher;
+            }
+        }
+
+        return patcher;
+    }
+
+    private static @Nullable Method load(String name) {
+        try {
+            return Class.forName(name, true, DisplayWindowTransformer.class.getClassLoader()).getMethod("patch", byte[].class);
+        } catch (ClassNotFoundException | NoSuchMethodException exception) {
+            System.err.println("[NarutoLoading Agent] Patch entry point missing: " + exception.getMessage());
+            return null;
+        }
     }
 }

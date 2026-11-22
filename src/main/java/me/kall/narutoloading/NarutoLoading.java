@@ -1,17 +1,16 @@
 package me.kall.narutoloading;
 
-import me.kall.narutoloading.client.ui.NarutoScreen;
+import me.kall.narutoloading.client.ClientSetup;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLLoader;
 
 @Mod(NarutoLoading.MOD_ID)
 public final class NarutoLoading {
     public static final String MOD_ID = "narutoloading";
 
     public NarutoLoading(FMLJavaModLoadingContext context) {
-        if (FMLLoader.getDist().isClient() && Integration.NARUTO_UI) {
-            NarutoScreen.register(context);
-        }
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> ClientSetup.register(context));
     }
 }

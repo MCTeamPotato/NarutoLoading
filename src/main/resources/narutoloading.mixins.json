@@ -7,17 +7,22 @@
   "injectors": {
     "defaultRequire": 1
   },
+  "mixins": [
+    "structure.MixinStructureTemplate"
+  ],
   "client": [
     "context.MixinGameRenderer",
     "context.MixinOptions",
+    "cull.MixinBlock",
+    "cull.MixinBlockOcclusionCache",
     "fade.MixinFont",
     "fade.MixinGuiGraphics",
     "fade.MixinStringRenderOutput",
     "fade.MixinUIManager",
+    "light.MixinBlockLight",
     "substitution.MixinAbstractSelectionList",
     "substitution.mui.MixinBlurHandler",
     "substitution.MixinCreateWorldScreen",
-
     "substitution.MixinForgeLoadingOverlay",
     "substitution.MixinLoadingOverlay",
     "substitution.nui.MixinMuiConfigFragment",

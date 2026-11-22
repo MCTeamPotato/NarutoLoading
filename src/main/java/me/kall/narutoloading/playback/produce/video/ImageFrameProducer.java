@@ -14,7 +14,11 @@ public final class ImageFrameProducer extends AbstractFrameProducer<NativeImage>
     private @Nullable ByteBuffer frame;
 
     public ImageFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, double bufferSeconds) {
-        super(ffmpeg, videoArgs, gpuAccel, videoArgs.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()) * videoArgs.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()) * 4, bufferSeconds);
+        this(ffmpeg, videoArgs, gpuAccel, bufferSeconds, NarutoConfig.limitWidth(), NarutoConfig.limitHeight());
+    }
+
+    public ImageFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, double bufferSeconds, int maxWidth, int maxHeight) {
+        super(ffmpeg, videoArgs, gpuAccel, videoArgs.scaledWidth(maxWidth, maxHeight) * videoArgs.scaledHeight(maxWidth, maxHeight) * 4, bufferSeconds, maxWidth, maxHeight);
     }
 
     @Override
@@ -44,8 +48,8 @@ public final class ImageFrameProducer extends AbstractFrameProducer<NativeImage>
 
     @Override
     protected void onBuilt(ByteBuffer frame, long frameIndex) throws InterruptedException {
-        int width = this.args.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight());
-        int height = this.args.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight());
+        int width = this.scaledWidth();
+        int height = this.scaledHeight();
 
         NativeImage image = new NativeImage(width, height, false);
         MemoryUtil.memCopy(MemoryUtil.memAddress(frame), image.pixels, (long) width * (long) height * 4L);

@@ -28,6 +28,8 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     private final boolean gpuAccel;
 
+    private final int maxWidth, maxHeight;
+
     private final TimeCosts onBuiltCosts;
     private final TimeCosts loopCosts;
 
@@ -46,10 +48,17 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     private final AtomicBoolean starved = new AtomicBoolean();
 
     public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, double bufferSeconds) {
+        this(ffmpeg, args, gpuAccel, frameSize, bufferSeconds, NarutoConfig.limitWidth(), NarutoConfig.limitHeight());
+    }
+
+    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, double bufferSeconds, int maxWidth, int maxHeight) {
         this.ffmpeg = ffmpeg;
 
         this.args = args;
         this.gpuAccel = gpuAccel;
+
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
 
         this.frameSize = frameSize;
         this.bufferCapacity = (int) (this.args.fps() * bufferSeconds);
@@ -58,6 +67,18 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
         this.onBuiltCosts = new TimeCosts("onBuilt", this.bufferCapacity / 2);
         this.loopCosts = new TimeCosts("frameLoop", this.bufferCapacity / 2);
+    }
+
+    public int scaledWidth() {
+        return this.args.scaledWidth(this.maxWidth, this.maxHeight);
+    }
+
+    public int scaledHeight() {
+        return this.args.scaledHeight(this.maxWidth, this.maxHeight);
+    }
+
+    public int bufferedFrames() {
+        return this.frames.size();
     }
 
     @Override
@@ -132,7 +153,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         command.add("-sn"); command.add("-dn");
 
         command.add("-vf");
-        command.add("scale=" + this.args.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()) + ":" + this.args.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()) + ":flags=fast_bilinear,format=" + this.frameType());
+        command.add("scale=" + this.scaledWidth() + ":" + this.scaledHeight() + ":flags=fast_bilinear,format=" + this.frameType());
 
         command.add("-f");
         command.add("rawvideo");

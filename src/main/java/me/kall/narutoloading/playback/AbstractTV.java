@@ -3,7 +3,6 @@ package me.kall.narutoloading.playback;
 import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
 import me.kall.narutoloading.playback.render.FrameRenderer;
-import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
 import me.kall.narutoloading.playback.produce.util.TimeLine;
 import me.kall.narutoloading.playback.produce.video.AbstractFrameProducer;
@@ -73,10 +72,37 @@ public abstract class AbstractTV<T> {
         return video == null ? null : video.withWarmListener(() -> this.startClock(video, null));
     }
 
-    private @Nullable AudioProducer buildAudio(@Nullable AudioArgs audioArgs) {
+    protected @Nullable AudioProducer buildAudio(@Nullable AudioArgs audioArgs) {
         if (audioArgs == null) return null;
         AudioProducer audio = this.createAudio(audioArgs);
         return audio == null ? null : audio.withWarmListener(() -> this.startClock(null, audio));
+    }
+
+    public synchronized void setAudioEnabled(boolean enabled) {
+        if (!enabled) {
+            AudioProducer audio = this.audio.getAndSet(null);
+            if (audio != null) audio.shutdown();
+            return;
+        }
+
+        if (this.audio.get() != null || !this.isRunning()) return;
+
+        TimeLine timeLine = this.timeLine.get();
+        if (timeLine == null || timeLine.paused()) return;
+
+        AudioArgs audioArgs = this.newAudioArgs();
+        if (audioArgs == null) return;
+
+        AudioProducer audio = this.buildAudio(audioArgs);
+        if (audio == null) return;
+
+        this.audio.set(audio);
+        audio.setup(timeLine.positionSec());
+
+        if (audio.off.get()) {
+            this.audio.compareAndSet(audio, null);
+            audio.shutdown();
+        }
     }
 
     private void startClock(@Nullable AbstractFrameProducer<T> video, @Nullable AudioProducer audio) {
@@ -141,8 +167,8 @@ public abstract class AbstractTV<T> {
         this.audio.set(newAudio);
 
         if (newVideo != null) {
-            int width = newVideo.args.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight());
-            int height = newVideo.args.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight());
+            int width = newVideo.scaledWidth();
+            int height = newVideo.scaledHeight();
 
             this.renderer.setup(width, height, seekTo, warmVideo);
 
@@ -194,7 +220,7 @@ public abstract class AbstractTV<T> {
 
                 if (video.consumeStarvation()) timeLine.detectLagSpike();
 
-                this.renderer.update(video.args.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), video.args.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), frame == null ? null : frame.data());
+                this.renderer.update(video.scaledWidth(), video.scaledHeight(), frame == null ? null : frame.data());
             }
 
             this.renderer.render();
