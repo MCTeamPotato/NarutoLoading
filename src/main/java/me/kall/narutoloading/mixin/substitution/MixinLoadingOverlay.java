@@ -1,7 +1,5 @@
 package me.kall.narutoloading.mixin.substitution;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import me.kall.narutoloading.client.overlay.OverlayFinish;
 import me.kall.narutoloading.client.overlay.Substitution;
 import net.minecraft.Util;
@@ -15,6 +13,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -31,30 +32,30 @@ public abstract class MixinLoadingOverlay {
 
     @Shadow protected abstract void drawProgressBar(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick);
 
-    @WrapMethod(method = "render")
-    private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, Operation<Void> original) {
-        if (Substitution.checkAndRun()) {
-            Minecraft minecraft = this.minecraft;
-            Consumer<Optional<Throwable>> onFinish = this.onFinish;
-            ReloadInstance reload = this.reload;
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+    private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+        ci.cancel();
 
-            boolean fadeIn = this.fadeIn;
+        if (!Substitution.checkAndRun()) return;
 
-            long millis = Util.getMillis();
-            if (fadeIn && this.fadeInStart == -1L) this.fadeInStart = millis;
+        Minecraft minecraft = this.minecraft;
+        Consumer<Optional<Throwable>> onFinish = this.onFinish;
+        ReloadInstance reload = this.reload;
 
-            long fadeOutStart = this.fadeOutStart;
-            long fadeInStart = this.fadeInStart;
+        boolean fadeIn = this.fadeIn;
 
-            float fadeOutTimer = fadeOutStart > -1L ? (float)(millis - fadeOutStart) / 1000.0F : -1.0F;
-            float fadeInTimer = fadeInStart > -1L ? (float)(millis - fadeInStart) / 500.0F : -1.0F;
+        long millis = Util.getMillis();
+        if (fadeIn && this.fadeInStart == -1L) this.fadeInStart = millis;
 
-            this.override$processOverlay(fadeOutTimer, fadeInTimer, guiGraphics, mouseX, mouseY, partialTick, minecraft, fadeIn, reload);
+        long fadeOutStart = this.fadeOutStart;
+        long fadeInStart = this.fadeInStart;
 
-            if (fadeOutStart == -1L && reload.isDone() && (!fadeIn || fadeInTimer >= 2.0F)) this.override$finalize(guiGraphics, reload, onFinish, minecraft);
-        } else {
-            original.call(guiGraphics, mouseX, mouseY, partialTick);
-        }
+        float fadeOutTimer = fadeOutStart > -1L ? (float)(millis - fadeOutStart) / 1000.0F : -1.0F;
+        float fadeInTimer = fadeInStart > -1L ? (float)(millis - fadeInStart) / 500.0F : -1.0F;
+
+        this.override$processOverlay(fadeOutTimer, fadeInTimer, guiGraphics, mouseX, mouseY, partialTick, minecraft, fadeIn, reload);
+
+        if (fadeOutStart == -1L && reload.isDone() && (!fadeIn || fadeInTimer >= 2.0F)) this.override$finalize(guiGraphics, reload, onFinish, minecraft);
     }
 
     @Unique

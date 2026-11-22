@@ -67,10 +67,6 @@ dependencies {
     if (versionKeys.narutoui != null) modImplementation files("libs/narutoui/narutoui-${minecraft_version}-${versionKeys.narutoui}.jar")
 
     if (!isNeo) modImplementation("curse.maven:duplicationless-1380105:8646420")
-
-    if (!isNeo && hasMixin) {
-        shadow(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.5"))
-    }
 }
 
 configurations {
@@ -80,9 +76,6 @@ configurations {
 
 shadowJar {
     configurations = [project.configurations.shadow]
-    if (!isNeo && hasMixin) {
-        relocate "com.llamalad7.mixinextras", "me.kall.${archives_name}.mixinextras"
-    }
     mergeServiceFiles()
     archiveClassifier = "dev-shadow"
     exclude "LICENSE_MixinExtras"

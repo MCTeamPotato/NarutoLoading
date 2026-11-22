@@ -54,7 +54,7 @@ public abstract class MixinStructureTemplate {
     }
 
     @Inject(method = "load", at = @At("RETURN"))
-    private void loadWalls(HolderGetter<Block> blocks, CompoundTag tag, @NotNull CallbackInfo ci) {
+    private void loadWalls(HolderGetter<Block> blocks, @NotNull CompoundTag tag, @NotNull CallbackInfo ci) {
         this.narutoLoading$walls.clear();
 
         ListTag list = tag.getList(WallTemplates.WALLS_KEY, Tag.TAG_COMPOUND);
