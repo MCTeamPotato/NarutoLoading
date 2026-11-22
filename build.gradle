@@ -121,6 +121,7 @@ processResources {
 
 tasks.matching { it.name in ["jar", "sourcesJar", "shadowJar", "remapJar"] }.configureEach {
     it.exclude("org/embeddedt/**")
+    it.exclude("net/irisshaders/**")
 }
 
 java {

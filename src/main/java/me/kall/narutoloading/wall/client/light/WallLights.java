@@ -48,7 +48,7 @@ public final class WallLights {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
 
-        if (level == null || !NarutoConfig.worldLightEnabled() || !wall.light || !wall.dimension.equals(level.dimension().location())) {
+        if (level == null || !WallLightHook.active() || !NarutoConfig.worldLightEnabled() || !wall.light || !wall.dimension.equals(level.dimension().location())) {
             release(wall);
             return;
         }
@@ -95,7 +95,7 @@ public final class WallLights {
     }
 
     public static void tick() {
-        if (!NarutoConfig.worldLightEnabled()) {
+        if (!WallLightHook.active() || !NarutoConfig.worldLightEnabled()) {
             releaseAll();
             return;
         }

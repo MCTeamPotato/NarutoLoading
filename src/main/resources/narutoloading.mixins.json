@@ -21,16 +21,16 @@
     "fade.MixinUIManager",
     "light.MixinBlockState",
     "substitution.MixinAbstractSelectionList",
-    "substitution.mui.MixinBlurHandler",
     "substitution.MixinCreateWorldScreen",
     "substitution.MixinForgeLoadingOverlay",
     "substitution.MixinLoadingOverlay",
-    "substitution.nui.MixinMuiConfigFragment",
     "substitution.MixinPanoramaRenderer",
     "substitution.MixinScreen",
     "substitution.MixinScrollPanel",
     "substitution.MixinTitleScreen",
     "substitution.MixinWinScreen",
+    "substitution.mui.MixinBlurHandler",
+    "substitution.nui.MixinMuiConfigFragment",
     "unlock.MixinMinecraft",
     "unlock.MixinWindow"
   ]

@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class MixinBlockState implements IForgeBlockState {
     @Override
     public int getLightEmission(BlockGetter level, BlockPos pos) {
-        return Math.max(WallLights.emissionAt(level, pos), IForgeBlockState.super.getLightEmission(level, pos));
+        BlockState state = (BlockState) (Object) this;
+        return Math.max(WallLights.emissionAt(level, pos), state.getBlock().getLightEmission(state, level, pos));
     }
 }

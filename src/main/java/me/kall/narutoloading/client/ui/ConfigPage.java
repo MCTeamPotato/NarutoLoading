@@ -3,6 +3,7 @@ package me.kall.narutoloading.client.ui;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoloading.wall.WallRenderMode;
+import me.kall.narutoloading.wall.client.light.WallLightHook;
 import me.kall.narutoui.mui.choice.MuiOption;
 import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import me.kall.narutoui.mui.shimmer.MuiShimmer;
@@ -40,6 +41,7 @@ final class ConfigPage implements SettingsPageBuilder {
                         .toggle("narutoloading.config.worldCull", "narutoloading.config.worldCull.desc", () -> this.screen.draft().get(NarutoSettings.WORLD_CULL_INVISIBLE), value -> this.screen.edit(() -> this.screen.draft().set(NarutoSettings.WORLD_CULL_INVISIBLE, value)))
                         .toggle("narutoloading.config.worldCullFaces", "narutoloading.config.worldCullFaces.desc", () -> this.screen.draft().get(NarutoSettings.WORLD_CULL_FACES), value -> this.screen.edit(() -> this.screen.draft().set(NarutoSettings.WORLD_CULL_FACES, value)))
                         .toggle("narutoloading.config.worldLight", "narutoloading.config.worldLight.desc", () -> this.screen.draft().get(NarutoSettings.WORLD_LIGHT_ENABLED), value -> this.screen.edit(() -> this.screen.draft().set(NarutoSettings.WORLD_LIGHT_ENABLED, value)))
+                        .enabledWhen(WallLightHook::active)
                         .toggle("narutoloading.config.worldAudio", "narutoloading.config.worldAudio.desc", () -> this.screen.draft().get(NarutoSettings.WORLD_AUDIO_ENABLED), value -> this.screen.edit(() -> this.screen.draft().set(NarutoSettings.WORLD_AUDIO_ENABLED, value)))
                         .slider("narutoloading.config.worldVolume", "narutoloading.config.worldVolume.desc", 0.0D, 2.0D, 0.05D, () -> (double) this.screen.draft().get(NarutoSettings.WORLD_VOLUME), value -> this.screen.edit(() -> this.screen.draft().set(NarutoSettings.WORLD_VOLUME, (float) value)), value -> String.format(Locale.ROOT, "%.2f", value))
                         .number("narutoloading.config.worldAudioDistance", "narutoloading.config.worldAudioDistance.desc", 4, 128, () -> this.screen.draft().get(NarutoSettings.WORLD_AUDIO_MAX_DISTANCE), value -> this.screen.edit(() -> this.screen.draft().set(NarutoSettings.WORLD_AUDIO_MAX_DISTANCE, value)))

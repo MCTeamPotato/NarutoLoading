@@ -11,6 +11,7 @@ import me.kall.narutoloading.wall.geometry.WallGeometry;
 import me.kall.narutoloading.wall.Wall;
 import me.kall.narutoloading.wall.client.WallManager;
 import me.kall.narutoloading.wall.client.WallTV;
+import me.kall.narutoloading.wall.client.light.WallLightHook;
 import me.kall.narutoui.mui.choice.MuiOption;
 import me.kall.narutoui.mui.screen.MuiDialog;
 import me.kall.narutoui.mui.screen.MuiScreenHost;
@@ -79,7 +80,8 @@ final class WallsPage implements SettingsPageBuilder {
 
             section.dropdown("narutoloading.walls.media", "narutoloading.walls.media.desc", options, this.pendingMedia, value -> this.pendingMedia = value)
                     .slider("narutoloading.walls.volume", "narutoloading.walls.volume.desc", 0, 200, () -> Math.round(this.pendingVolume * 100.0F), value -> this.pendingVolume = value / 100.0F, value -> value + "%")
-                    .toggle("narutoloading.walls.light", "narutoloading.walls.light.desc", () -> this.pendingLight, value -> this.pendingLight = value);
+                    .toggle("narutoloading.walls.light", "narutoloading.walls.light.desc", () -> this.pendingLight, value -> this.pendingLight = value)
+                    .enabledWhen(WallLightHook::active);
         });
 
         page.section("narutoloading.walls.section.actions", section -> section
