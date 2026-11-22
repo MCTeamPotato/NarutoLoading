@@ -166,10 +166,13 @@ public final class WallBufferRenderer implements FrameRenderer<ByteBuffer> {
 
         BufferBuilder builder = new BufferBuilder(256);
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        builder.vertex(pose, 0F, this.height, 0F).uv(0F, 1F).endVertex();
-        builder.vertex(pose, this.width, this.height, 0F).uv(1F, 1F).endVertex();
-        builder.vertex(pose, this.width, 0F, 0F).uv(1F, 0F).endVertex();
-        builder.vertex(pose, 0F, 0F, 0F).uv(0F, 0F).endVertex();
+        // The Y planes hold the frame with its first row at v=0, but framebuffer row 0 is the bottom
+        // of the viewport. Sampling this texture again uses v=0 for the top of the wall, so the
+        // frame is flipped here to make the two conventions meet.
+        builder.vertex(pose, 0F, this.height, 0F).uv(0F, 0F).endVertex();
+        builder.vertex(pose, this.width, this.height, 0F).uv(1F, 0F).endVertex();
+        builder.vertex(pose, this.width, 0F, 0F).uv(1F, 1F).endVertex();
+        builder.vertex(pose, 0F, 0F, 0F).uv(0F, 1F).endVertex();
         CustomShaderDraw.draw(shader, builder.end(), false);
 
         modelView.popPose();

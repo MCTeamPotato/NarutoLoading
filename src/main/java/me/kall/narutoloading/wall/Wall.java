@@ -37,7 +37,7 @@ public final class Wall {
     private final int hash;
 
     public String media;
-    public float volume = 1.0F;
+    public float volume;
     public boolean light;
 
     public Wall(@NotNull BlockPos bottomCorner1, @NotNull BlockPos bottomCorner2, @NotNull BlockPos topCorner1, @NotNull BlockPos topCorner2, @NotNull ResourceLocation dimension, @NotNull String media) {
@@ -161,7 +161,6 @@ public final class Wall {
         return axisThickness;
     }
 
-    /** 墙面横向的格数（忽略厚度方向）。 */
     public int faceWidth() {
         return switch (this.axisThickness) {
             case X -> this.widthZ;
@@ -170,7 +169,6 @@ public final class Wall {
         };
     }
 
-    /** 墙面纵向的格数（忽略厚度方向）。 */
     public int faceHeight() {
         return switch (this.axisThickness) {
             case X -> this.widthY;

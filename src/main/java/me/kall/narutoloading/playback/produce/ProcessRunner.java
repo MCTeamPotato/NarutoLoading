@@ -16,7 +16,7 @@ public final class ProcessRunner {
     private final AtomicReference<Process> process = new AtomicReference<>();
     private final AtomicReference<InputStream> input = new AtomicReference<>();
 
-    public void start(String @NotNull [] command, @Nullable File errorLog, @NotNull InputHandler handler, @NotNull Consumer<Throwable> onFailure) {
+    public void start(String @NotNull [] command, @Nullable File errorLog, @NotNull InputSource source, @NotNull InputHandler handler, @NotNull Consumer<Throwable> onFailure) {
         ExecutorService executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoProducer_" + System.nanoTime());
             thread.setDaemon(true);
@@ -33,7 +33,7 @@ public final class ProcessRunner {
                 Process process = builder.start();
                 this.process.set(process);
 
-                InputStream input = process.getInputStream();
+                InputStream input = source.open(process);
                 this.input.set(input);
 
                 handler.handle(input);
@@ -62,5 +62,13 @@ public final class ProcessRunner {
 
     public interface InputHandler {
         void handle(@NotNull InputStream input) throws IOException, InterruptedException;
+    }
+
+    /**
+     * Opens the byte stream that carries the process' stdout. Defaults to the process pipe, but a
+     * producer can hand out another transport instead (see {@link #openInput(Process)}).
+     */
+    public interface InputSource {
+        @NotNull InputStream open(@NotNull Process process) throws IOException;
     }
 }

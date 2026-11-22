@@ -4,10 +4,16 @@ import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.playback.produce.AbstractProducer;
 import me.kall.narutoloading.playback.produce.util.TimeCosts;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +30,17 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     protected static final long DEFAULT_MAX_BUFFER_BYTES = 512L * 1024L * 1024L;
     private static final int WARM_FRAMES = 8;
 
+    /**
+     * Frames travel over a loopback socket instead of the process pipe. A 4K 60fps stream is 746
+     * MB/s, and the Windows anonymous pipe hands out only a few KB per read, which turns one frame
+     * into thousands of blocking read calls. A socket with a multi-megabyte receive buffer fills a
+     * quarter-megabyte read in one call, so the same frame costs a dozen calls.
+     */
+    private static final int FRAME_SOCKET_BUFFER_BYTES = 4 * 1024 * 1024;
+    private static final int FRAME_SOCKET_ACCEPT_TIMEOUT_MILLIS = 500;
+    private static final long FRAME_SOCKET_ACCEPT_DEADLINE_NANOS = 10_000_000_000L;
+    private static final int READ_BUFFER_BYTES = 256 * 1024;
+
     private final String ffmpeg;
 
     public final VideoArgs args;
@@ -36,6 +53,10 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     private final TimeCosts loopCosts;
 
     private long nextReportNanos;
+
+    private @Nullable ServerSocket frameListener;
+    private @Nullable Socket frameSocket;
+    private int framePort;
 
     protected final int frameSize, bufferCapacity;
     protected final int warmFrames;
@@ -164,16 +185,93 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         command.add("-loglevel");
         command.add("error");
 
-        command.add("-");
+        command.add("tcp://127.0.0.1:" + this.framePort);
 
         return command.toArray(String[]::new);
     }
 
     protected abstract String frameType();
 
+    /**
+     * Binds the frame socket before the command is built, because ffmpeg is handed the port as its
+     * output URL. Skipping this leaves {@code framePort} at zero and the producer does nothing.
+     */
+    @Override
+    public void setup(double seekTo) {
+        if (this.ffmpeg == null) return;
+        if (!this.openFrameListener()) return;
+
+        super.setup(seekTo);
+    }
+
+    @Override
+    protected @NotNull InputStream openInput(@NotNull Process process) throws IOException {
+        ServerSocket listener = this.frameListener;
+        if (listener == null) throw new IOException("Frame listener is not open");
+
+        long deadline = System.nanoTime() + FRAME_SOCKET_ACCEPT_DEADLINE_NANOS;
+
+        while (true) {
+            try {
+                Socket socket = listener.accept();
+                this.frameSocket = socket;
+
+                return socket.getInputStream();
+            } catch (SocketTimeoutException timeout) {
+                // Report a dead decoder or a wrong port instead of parking this thread forever.
+                if (!process.isAlive()) throw new IOException("ffmpeg exited before connecting to the frame socket", timeout);
+                if (System.nanoTime() - deadline >= 0L) throw new IOException("Timed out waiting for ffmpeg to connect to the frame socket", timeout);
+            }
+        }
+    }
+
+    private boolean openFrameListener() {
+        this.closeFrameTransport();
+
+        try {
+            ServerSocket listener = new ServerSocket();
+
+            // Set before binding so the accepted socket inherits it: this is the buffer the decoder
+            // writes into, and a few megabytes keeps it from blocking between frames.
+            listener.setReceiveBufferSize(FRAME_SOCKET_BUFFER_BYTES);
+            listener.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 1);
+            listener.setSoTimeout(FRAME_SOCKET_ACCEPT_TIMEOUT_MILLIS);
+
+            this.frameListener = listener;
+            this.framePort = listener.getLocalPort();
+
+            return true;
+        } catch (IOException exception) {
+            System.err.println("[NarutoLoading] Could not open the frame socket: " + exception.getMessage());
+            return false;
+        }
+    }
+
+    private void closeFrameTransport() {
+        Socket socket = this.frameSocket;
+        this.frameSocket = null;
+
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException ignored) {
+            }
+        }
+
+        ServerSocket listener = this.frameListener;
+        this.frameListener = null;
+
+        if (listener != null) {
+            try {
+                listener.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     @Override
     protected void forInput(InputStream input) throws IOException, InterruptedException {
-        byte[] bufferArray = new byte[Math.min(this.frameSize, 64 * 1024)];
+        byte[] bufferArray = new byte[Math.min(this.frameSize, READ_BUFFER_BYTES)];
 
         while (!this.off.get()) {
             long loopStart = System.nanoTime();
@@ -275,6 +373,8 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     @Override
     public void shutdown() {
         super.shutdown();
+
+        this.closeFrameTransport();
 
         ExecutorService waitExecutor = this.waitExecutor.getAndSet(null);
         if (waitExecutor != null) waitExecutor.shutdown();

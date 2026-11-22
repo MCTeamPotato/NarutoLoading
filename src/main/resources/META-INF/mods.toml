@@ -16,8 +16,6 @@ description = '''
 '''
 #logoFile = ""
 
-# The yt-dlp download screen is built with NarutoUI, which in turn needs Modern UI. Both are
-# optional: without them the mod keeps working, it just has no config screen.
 [[dependencies.narutoloading]]
 modId = "modernui"
 mandatory = false
