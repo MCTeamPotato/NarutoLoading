@@ -4,8 +4,8 @@ import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.playback.ClientUiTV;
-import me.kall.narutoloading.playback.EarlySessionHandoff;
-import me.kall.narutoloading.playback.PlaybackSession;
+import me.kall.narutoloading.playback.early.EarlySessionHandoff;
+import me.kall.narutoloading.playback.early.PlaybackSession;
 import me.kall.narutoloading.playback.produce.util.TimeLine;
 
 import java.util.Map;

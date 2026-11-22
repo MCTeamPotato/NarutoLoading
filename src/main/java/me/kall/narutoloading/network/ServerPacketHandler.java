@@ -3,10 +3,10 @@ package me.kall.narutoloading.network;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import me.kall.narutoloading.network.message.WallPutMessage;
 import me.kall.narutoloading.network.message.WallRemoveMessage;
-import me.kall.narutoloading.server.ServerConfig;
-import me.kall.narutoloading.server.WallRules;
-import me.kall.narutoloading.world.Wall;
-import me.kall.narutoloading.world.data.WallStorage;
+import me.kall.narutoloading.wall.server.ServerConfig;
+import me.kall.narutoloading.wall.server.WallRules;
+import me.kall.narutoloading.wall.Wall;
+import me.kall.narutoloading.wall.data.WallStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,12 +34,12 @@ public final class ServerPacketHandler {
             return;
         }
 
-        if (!WallRules.canEdit(player, wall)) {
+        if (WallRules.tooFar(player, wall)) {
             reject(player, "update out of range");
             return;
         }
 
-        if (!WallRules.validMedia(media)) {
+        if (WallRules.isIllegal(media)) {
             reject(player, "update with an invalid media name");
             return;
         }
@@ -64,7 +64,7 @@ public final class ServerPacketHandler {
             return;
         }
 
-        if (!WallRules.canEdit(player, wall)) {
+        if (WallRules.tooFar(player, wall)) {
             reject(player, "removal out of range");
             return;
         }
@@ -85,7 +85,7 @@ public final class ServerPacketHandler {
             return;
         }
 
-        if (!WallRules.canEdit(player, wall)) {
+        if (WallRules.tooFar(player, wall)) {
             reject(player, "cleaning out of range");
             return;
         }

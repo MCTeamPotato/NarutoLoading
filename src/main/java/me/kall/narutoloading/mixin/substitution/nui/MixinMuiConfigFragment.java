@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import icyllis.modernui.graphics.drawable.ColorDrawable;
 import icyllis.modernui.widget.FrameLayout;
-import me.kall.narutoloading.client.Substitution;
+import me.kall.narutoloading.client.overlay.Substitution;
 import me.kall.narutoui.mui.background.MuiBackground;
 import me.kall.narutoui.mui.screen.MuiConfigFragment;
 import me.kall.narutoui.mui.screen.MuiScreenHost;

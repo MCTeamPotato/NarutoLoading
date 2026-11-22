@@ -2,7 +2,7 @@ package me.kall.narutoloading.media;
 
 import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
-import me.kall.narutoloading.core.GamePaths;
+import me.kall.narutoloading.core.util.GamePaths;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

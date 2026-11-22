@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
-import me.kall.narutoloading.Integration;
+import me.kall.narutoloading.bootstrap.Integration;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;

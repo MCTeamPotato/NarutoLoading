@@ -1,8 +1,8 @@
 package me.kall.narutoloading.network;
 
 import me.kall.narutoloading.client.ui.NarutoScreen;
-import me.kall.narutoloading.world.Wall;
-import me.kall.narutoloading.world.WallManager;
+import me.kall.narutoloading.wall.Wall;
+import me.kall.narutoloading.wall.client.WallManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.nbt.CompoundTag;

@@ -2,8 +2,8 @@ package me.kall.narutoloading.mixin.substitution;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import me.kall.narutoloading.client.util.OverlayFinish;
-import me.kall.narutoloading.client.Substitution;
+import me.kall.narutoloading.client.overlay.OverlayFinish;
+import me.kall.narutoloading.client.overlay.Substitution;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

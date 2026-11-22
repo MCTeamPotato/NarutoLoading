@@ -27,7 +27,7 @@ import me.kall.narutoui.mui.shimmer.MuiShimmerable;
 import me.kall.narutoui.mui.theme.MuiTheme;
 import me.kall.narutoui.mui.widget.MuiHintBadge;
 import me.kall.narutoui.mui.widget.MuiLogo;
-import me.kall.narutoloading.world.Wall;
+import me.kall.narutoloading.wall.Wall;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -96,6 +96,7 @@ public final class NarutoScreen {
                 .shimmerProfile(this.shimmerProfile)
                 .shimmerNavigation()
                 .shimmerTitles()
+                .pauseGame(false)
                 .railHeader((context, theme) -> MuiLogo.create(context, theme, "N"))
                 .railFooter((context, theme) -> MuiHintBadge.create(context, theme, "narutoloading.ytdlp.footer"))
                 .actionBar(this::buildActionBar)

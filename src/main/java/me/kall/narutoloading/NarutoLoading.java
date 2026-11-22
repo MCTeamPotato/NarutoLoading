@@ -1,6 +1,6 @@
 package me.kall.narutoloading;
 
-import me.kall.narutoloading.client.ClientSetup;
+import me.kall.narutoloading.bootstrap.ClientSetup;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;

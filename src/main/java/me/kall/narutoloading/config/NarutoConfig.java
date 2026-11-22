@@ -2,7 +2,7 @@ package me.kall.narutoloading.config;
 
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.config.api.Config;
-import me.kall.narutoloading.world.WorldRenderMode;
+import me.kall.narutoloading.wall.WallRenderMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,7 +154,7 @@ public class NarutoConfig {
         return NarutoSettings.FADE_IN_STEP.read(CONFIG);
     }
 
-    public static @NotNull WorldRenderMode worldRenderMode() {
+    public static @NotNull WallRenderMode worldRenderMode() {
         return NarutoSettings.WORLD_RENDER_MODE.read(CONFIG);
     }
 

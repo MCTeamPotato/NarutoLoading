@@ -2,7 +2,7 @@ package me.kall.narutoloading.client.ui;
 
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.config.NarutoSettings;
-import me.kall.narutoloading.world.WorldRenderMode;
+import me.kall.narutoloading.wall.WallRenderMode;
 import me.kall.narutoui.mui.choice.MuiOption;
 import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import me.kall.narutoui.mui.shimmer.MuiShimmer;
@@ -80,7 +80,7 @@ final class ConfigPage implements SettingsPageBuilder {
     }
 
     @Contract(" -> new")
-    private static @NotNull @Unmodifiable List<MuiOption<WorldRenderMode>> worldModes() {
-        return List.of(MuiOption.of(WorldRenderMode.AUTO, I18n.get("narutoloading.config.worldMode.auto")), MuiOption.of(WorldRenderMode.BUFFER, I18n.get("narutoloading.config.worldMode.buffer")), MuiOption.of(WorldRenderMode.IMAGE, I18n.get("narutoloading.config.worldMode.image")));
+    private static @NotNull @Unmodifiable List<MuiOption<WallRenderMode>> worldModes() {
+        return List.of(MuiOption.of(WallRenderMode.AUTO, I18n.get("narutoloading.config.worldMode.auto")), MuiOption.of(WallRenderMode.BUFFER, I18n.get("narutoloading.config.worldMode.buffer")), MuiOption.of(WallRenderMode.IMAGE, I18n.get("narutoloading.config.worldMode.image")));
     }
 }

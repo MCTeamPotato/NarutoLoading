@@ -1,9 +1,11 @@
 package me.kall.narutoloading.core;
 
 import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.media.DownloadService;
+import me.kall.narutoloading.core.tool.ToolRegistry;
+import me.kall.narutoloading.core.util.Workers;
+import me.kall.narutoloading.media.download.DownloadService;
 import me.kall.narutoloading.media.MediaRepository;
-import me.kall.narutoloading.media.ProbeService;
+import me.kall.narutoloading.media.probe.ProbeService;
 import me.kall.narutoloading.playback.PlaybackModes;
 import org.jetbrains.annotations.NotNull;
 

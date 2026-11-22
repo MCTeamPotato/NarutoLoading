@@ -1,7 +1,7 @@
 package me.kall.narutoloading.agent;
 
-import me.kall.narutoloading.core.GamePaths;
-import me.kall.narutoloading.core.Locator;
+import me.kall.narutoloading.core.util.GamePaths;
+import me.kall.narutoloading.core.tool.Locator;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.media.ffmpeg.FFmpeg;
 import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;

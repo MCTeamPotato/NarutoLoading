@@ -1,7 +1,7 @@
 package me.kall.narutoloading.config;
 
 import me.kall.narutoloading.media.MediaRepository;
-import me.kall.narutoloading.world.WorldRenderMode;
+import me.kall.narutoloading.wall.WallRenderMode;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +29,7 @@ public final class NarutoSettings {
     public static final Setting<Integer> TICKS_BEFORE_FADE = Setting.integer(NarutoConfig.TICKS_BEFORE_FADE, 100, false);
     public static final Setting<Integer> FADE_OUT_STEP = Setting.integer(NarutoConfig.FADE_OUT_STEP, 1, false);
     public static final Setting<Integer> FADE_IN_STEP = Setting.integer(NarutoConfig.FADE_IN_STEP, 5, false);
-    public static final Setting<WorldRenderMode> WORLD_RENDER_MODE = Setting.mapped(NarutoConfig.WORLD_RENDER_MODE, WorldRenderMode.AUTO, WorldRenderMode::parse, mode -> mode.name().toLowerCase(Locale.ROOT), true);
+    public static final Setting<WallRenderMode> WORLD_RENDER_MODE = Setting.mapped(NarutoConfig.WORLD_RENDER_MODE, WallRenderMode.AUTO, WallRenderMode::parse, mode -> mode.name().toLowerCase(Locale.ROOT), true);
     public static final Setting<Integer> WORLD_MAX_WIDTH = Setting.integer(NarutoConfig.WORLD_MAX_WIDTH, 1280, true);
     public static final Setting<Integer> WORLD_MAX_HEIGHT = Setting.integer(NarutoConfig.WORLD_MAX_HEIGHT, 720, true);
     public static final Setting<Double> WORLD_BUFFER_SECONDS = Setting.decimal(NarutoConfig.WORLD_BUFFER_SECONDS, 1.0D, true);

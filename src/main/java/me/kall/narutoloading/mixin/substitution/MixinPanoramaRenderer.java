@@ -2,7 +2,7 @@ package me.kall.narutoloading.mixin.substitution;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import me.kall.narutoloading.client.Substitution;
+import me.kall.narutoloading.client.overlay.Substitution;
 import net.minecraft.client.renderer.PanoramaRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 

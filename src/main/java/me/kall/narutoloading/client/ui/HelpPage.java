@@ -1,7 +1,7 @@
 package me.kall.narutoloading.client.ui;
 
 import me.kall.narutoloading.NarutoLoading;
-import me.kall.narutoloading.core.GamePaths;
+import me.kall.narutoloading.core.util.GamePaths;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import net.minecraft.SharedConstants;

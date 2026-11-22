@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.substitution;
 
-import me.kall.narutoloading.client.Substitution;
+import me.kall.narutoloading.client.overlay.Substitution;
 import net.minecraftforge.client.gui.widget.ScrollPanel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

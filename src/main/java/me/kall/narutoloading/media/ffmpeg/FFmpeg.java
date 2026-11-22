@@ -1,6 +1,6 @@
 package me.kall.narutoloading.media.ffmpeg;
 
-import me.kall.narutoloading.core.Executable;
+import me.kall.narutoloading.core.util.Executable;
 import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
 import org.apache.commons.io.FilenameUtils;

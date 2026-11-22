@@ -1,6 +1,6 @@
 package me.kall.narutoloading.playback.produce;
 
-import me.kall.narutoloading.core.GamePaths;
+import me.kall.narutoloading.core.util.GamePaths;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

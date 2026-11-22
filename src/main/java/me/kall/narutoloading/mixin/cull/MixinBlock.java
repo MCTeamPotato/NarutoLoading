@@ -1,6 +1,6 @@
 package me.kall.narutoloading.mixin.cull;
 
-import me.kall.narutoloading.world.SurfaceTracker;
+import me.kall.narutoloading.wall.client.cull.SurfaceTracker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;

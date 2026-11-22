@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.structure;
 
-import me.kall.narutoloading.server.WallTemplates;
-import me.kall.narutoloading.world.Wall;
+import me.kall.narutoloading.wall.server.WallTemplates;
+import me.kall.narutoloading.wall.Wall;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.Vec3i;

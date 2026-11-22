@@ -7,10 +7,10 @@ import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallCleanRequestMessage;
 import me.kall.narutoloading.network.message.WallRemoveRequestMessage;
 import me.kall.narutoloading.network.message.WallUpdateMessage;
-import me.kall.narutoloading.world.NarutoMath;
-import me.kall.narutoloading.world.Wall;
-import me.kall.narutoloading.world.WallManager;
-import me.kall.narutoloading.world.WallTV;
+import me.kall.narutoloading.wall.geometry.WallGeometry;
+import me.kall.narutoloading.wall.Wall;
+import me.kall.narutoloading.wall.client.WallManager;
+import me.kall.narutoloading.wall.client.WallTV;
 import me.kall.narutoui.mui.choice.MuiOption;
 import me.kall.narutoui.mui.screen.MuiDialog;
 import me.kall.narutoui.mui.screen.MuiScreenHost;
@@ -182,7 +182,7 @@ final class WallsPage implements SettingsPageBuilder {
         double best = Double.MAX_VALUE;
 
         for (Wall wall : walls) {
-            Vec3 intersection = NarutoMath.getIntersection(eye, view, wall);
+            Vec3 intersection = WallGeometry.getIntersection(eye, view, wall);
             if (intersection == null) continue;
 
             double distance = eye.distanceToSqr(intersection);

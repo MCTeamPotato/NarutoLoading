@@ -1,6 +1,6 @@
 package me.kall.narutoloading.media.ytdlp;
 
-import me.kall.narutoloading.core.Executable;
+import me.kall.narutoloading.core.util.Executable;
 import me.kall.narutoloading.media.MediaNaming;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

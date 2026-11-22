@@ -19,7 +19,7 @@
     "fade.MixinGuiGraphics",
     "fade.MixinStringRenderOutput",
     "fade.MixinUIManager",
-    "light.MixinBlockLight",
+    "light.MixinBlockState",
     "substitution.MixinAbstractSelectionList",
     "substitution.mui.MixinBlurHandler",
     "substitution.MixinCreateWorldScreen",
