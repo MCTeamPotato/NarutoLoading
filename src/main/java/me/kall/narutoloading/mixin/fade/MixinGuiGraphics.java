@@ -14,15 +14,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.List;
 
-@Mixin(value = GuiGraphics.class, priority = 500)
+@Mixin(value = GuiGraphics.class, priority = 1500)
 public abstract class MixinGuiGraphics {
-    @WrapMethod(method = "setColor")
-    private void fade$setColor(float red, float green, float blue, float alpha, @NotNull Operation<Void> original) {
-        original.call(red, green, blue, alpha * FadeCenter.fadeAlpha());
-    }
+    @Shadow
+    public abstract void innerBlit(ResourceLocation atlasLocation, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV, float red, float green, float blue, float alpha);
 
     @WrapMethod(method = "fill(Lnet/minecraft/client/renderer/RenderType;IIIIII)V")
     private void fade$fill(RenderType renderType, int minX, int minY, int maxX, int maxY, int z, int color, @NotNull Operation<Void> original) {
@@ -38,8 +37,14 @@ public abstract class MixinGuiGraphics {
 
     @WrapMethod(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFF)V")
     private void fade$innerBlit(ResourceLocation atlasLocation, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV, @NotNull Operation<Void> original) {
-        if (!Fadable.isUnfadable(atlasLocation) && FadeCenter.isHidden()) return;
-        original.call(atlasLocation, x1, x2, y1, y2, blitOffset, minU, maxU, minV, maxV);
+        if (Fadable.isUnfadable(atlasLocation) || FadeCenter.isFull()) {
+            original.call(atlasLocation, x1, x2, y1, y2, blitOffset, minU, maxU, minV, maxV);
+            return;
+        }
+
+        if (FadeCenter.isHidden()) return;
+
+        this.innerBlit(atlasLocation, x1, x2, y1, y2, blitOffset, minU, maxU, minV, maxV, 1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @WrapMethod(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFFFFFF)V")

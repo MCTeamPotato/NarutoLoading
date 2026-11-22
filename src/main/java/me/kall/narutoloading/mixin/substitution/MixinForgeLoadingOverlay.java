@@ -3,8 +3,9 @@ package me.kall.narutoloading.mixin.substitution;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.platform.Window;
-import me.kall.narutoloading.impl.ClientUiControl;
-import me.kall.narutoloading.impl.Substitution;
+import me.kall.narutoloading.client.util.OverlayFinish;
+import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.client.Substitution;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -34,8 +35,6 @@ public abstract class MixinForgeLoadingOverlay {
 
     @WrapMethod(method = "render")
     private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, Operation<Void> original) {
-        // The fade-out starts on the frame where reload finishes; hand the early session over now
-        // so the title screen can present it under the fading overlay.
         if (this.fadeOutStart == -1L && this.reload.isDone()) ClientUiControl.detachEarly();
 
         if (Substitution.checkAndRun()) {
@@ -73,18 +72,13 @@ public abstract class MixinForgeLoadingOverlay {
     }
 
     @Unique
-    private void override$finalize(Minecraft minecraft, ReloadInstance reload, @NotNull ProgressMeter progress) {
+    private void override$finalize(@NotNull Minecraft minecraft, ReloadInstance reload, @NotNull ProgressMeter progress) {
         progress.complete();
         this.fadeOutStart = Util.getMillis();
 
         Consumer<Optional<Throwable>> onFinish = this.onFinish;
 
-        try {
-            reload.checkExceptions();
-            onFinish.accept(Optional.empty());
-        } catch (Throwable throwable) {
-            onFinish.accept(Optional.of(throwable));
-        }
+        OverlayFinish.finish(reload, onFinish);
 
         Screen screen = minecraft.screen;
         if (screen != null) {

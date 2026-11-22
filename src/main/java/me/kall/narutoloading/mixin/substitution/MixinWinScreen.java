@@ -2,7 +2,7 @@ package me.kall.narutoloading.mixin.substitution;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import me.kall.narutoloading.impl.Substitution;
+import me.kall.narutoloading.client.Substitution;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.WinScreen;
 import org.spongepowered.asm.mixin.Mixin;

@@ -3,7 +3,7 @@ package me.kall.narutoloading.mixin.context;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.impl.ClientUiControl;
+import me.kall.narutoloading.client.ClientUiControl;
 import net.minecraft.client.Options;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;

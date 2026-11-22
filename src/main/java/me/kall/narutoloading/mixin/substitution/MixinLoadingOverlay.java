@@ -2,13 +2,15 @@ package me.kall.narutoloading.mixin.substitution;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import me.kall.narutoloading.impl.Substitution;
+import me.kall.narutoloading.client.util.OverlayFinish;
+import me.kall.narutoloading.client.Substitution;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.LoadingOverlay;
 import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -89,15 +91,10 @@ public abstract class MixinLoadingOverlay {
     }
 
     @Unique
-    private void override$finalize(GuiGraphics guiGraphics, ReloadInstance reload, Consumer<Optional<Throwable>> onFinish, Minecraft minecraft) {
+    private void override$finalize(GuiGraphics guiGraphics, ReloadInstance reload, Consumer<Optional<Throwable>> onFinish, @NotNull Minecraft minecraft) {
         this.fadeOutStart = Util.getMillis();
 
-        try {
-            reload.checkExceptions();
-            onFinish.accept(Optional.empty());
-        } catch (Throwable throwable) {
-            onFinish.accept(Optional.of(throwable));
-        }
+        OverlayFinish.finish(reload, onFinish);
 
         if (minecraft.screen != null) {
             int guiWidth = guiGraphics.guiWidth();

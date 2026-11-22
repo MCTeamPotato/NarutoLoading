@@ -194,5 +194,9 @@
   "narutoloading.unsaved.keep": "Keep editing",
   "narutoloading.apply.failed": "Could not save",
   "narutoloading.apply.failedMessage": "See the log for details",
-  "narutoloading.ok": "OK"
+  "narutoloading.ok": "OK",
+
+  "key.categories.narutoloading": "NarutoLoading",
+  "key.narutoloading.open_screen": "Open NarutoLoading settings",
+  "key.narutoloading.toggle_compat_mode": "Toggle performance / compatibility mode"
 }

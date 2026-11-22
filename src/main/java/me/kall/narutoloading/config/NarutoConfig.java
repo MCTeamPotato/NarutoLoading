@@ -1,11 +1,13 @@
 package me.kall.narutoloading.config;
 
-import me.kall.narutoloading.app.MediaRepository;
+import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.config.api.Config;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class NarutoConfig {
     public static final String MAX_VIDEO_WIDTH = "maxVideoWidth";
@@ -37,125 +39,117 @@ public class NarutoConfig {
         try {
             return defaults(Config.builder().file("config/narutoloading.properties")).autoCreate(true).build();
         } catch (Throwable throwable) {
-            // A broken or read-only config file must not take the game down with it: the static
-            // initialiser runs on the render thread, so an exception here is a hard crash.
             System.err.println("[NarutoLoading] Exception loading the config file, falling back to in-memory defaults: " + throwable.getMessage());
             return defaults(Config.builder()).build();
         }
     }
 
     private static @NotNull Config.Builder defaults(@NotNull Config.Builder builder) {
-        return builder.prefix("narutoloading.")
-                .defaultValue(MAX_VIDEO_WIDTH, 1920)
-                .defaultValue(MAX_VIDEO_HEIGHT, 1080)
-                .defaultValue(AUDIO_VOLUME, 1.0F)
-                .defaultValue(FFMPEG_DIR, "")
-                .defaultValue(YTDLP_DIR, "")
-                .defaultValue(SOURCES_DIR, "narutoloading")
-                .defaultValue(BUFFER_SECONDS, 1D)
-                .defaultValue(SELECT_MODE, "random")
-                .defaultValue(FIXED_NAME, "")
-                .defaultValue(MUTE_MUSIC, true)
-                .defaultValue(DEBUG_TIME_COSTS, false)
-                .defaultValue(DEBUG_TIME_COSTS_INTERVAL, 3)
-                .defaultValue(SHIMMER, true)
-                .defaultValue(SHIMMER_SPEED, 1.0D)
-                .defaultValue(SHIMMER_SCALE, 1.0D)
-                .defaultValue(SHIMMER_STRENGTH, 1.0D)
-                .defaultValue(SHIMMER_FPS, 30)
-                .defaultValue(FADABLE, true)
-                .defaultValue(COMPAT_MODE, false)
-                .defaultValue(TICKS_BEFORE_FADE, 100)
-                .defaultValue(FADE_OUT_STEP, 1)
-                .defaultValue(FADE_IN_STEP, 5);
+        builder.prefix("narutoloading.");
+
+        for (Setting<?> setting : NarutoSettings.ALL) builder.defaultValue(setting.key(), setting.encodedDefault());
+
+        return builder;
     }
 
     public static int limitWidth() {
-        return CONFIG.getInt(MAX_VIDEO_WIDTH, Integer.MAX_VALUE);
+        return NarutoSettings.MAX_VIDEO_WIDTH.read(CONFIG);
     }
 
     public static int limitHeight() {
-        return CONFIG.getInt(MAX_VIDEO_HEIGHT, Integer.MAX_VALUE);
+        return NarutoSettings.MAX_VIDEO_HEIGHT.read(CONFIG);
     }
 
     public static float volume() {
-        return (float) CONFIG.getDouble(AUDIO_VOLUME, 1.0D);
+        return NarutoSettings.AUDIO_VOLUME.read(CONFIG);
     }
 
     public static @NotNull Path ffmpegDir() {
-        return Path.of(CONFIG.getString(FFMPEG_DIR, ""));
+        return Path.of(NarutoSettings.FFMPEG_DIR.read(CONFIG));
     }
 
     public static @NotNull Path ytDlpDir() {
-        return Path.of(CONFIG.getString(YTDLP_DIR, ""));
+        return Path.of(NarutoSettings.YTDLP_DIR.read(CONFIG));
     }
 
     public static @NotNull Path sourcesDir() {
-        return Path.of(CONFIG.getString(SOURCES_DIR, "narutoloading"));
+        return Path.of(NarutoSettings.SOURCES_DIR.read(CONFIG));
     }
 
     public static double bufferSeconds() {
-        return CONFIG.getDouble(BUFFER_SECONDS, 1D);
+        return NarutoSettings.BUFFER_SECONDS.read(CONFIG);
     }
 
     public static MediaRepository.@NotNull Mode selectMode() {
-        return MediaRepository.Mode.parse(CONFIG.getString(SELECT_MODE, "random"));
+        return NarutoSettings.SELECT_MODE.read(CONFIG);
     }
 
-    public static String fixedName() {
-        return CONFIG.getString(FIXED_NAME, "");
+    public static @NotNull String fixedName() {
+        return NarutoSettings.FIXED_NAME.read(CONFIG);
     }
 
     public static boolean muteMusic() {
-        return CONFIG.getBoolean(MUTE_MUSIC, false);
+        return NarutoSettings.MUTE_MUSIC.read(CONFIG);
     }
 
     public static boolean debugTimeCosts() {
-        return CONFIG.getBoolean(DEBUG_TIME_COSTS, false);
+        return NarutoSettings.DEBUG_TIME_COSTS.read(CONFIG);
     }
 
     public static int debugTimeCostsInterval() {
-        return CONFIG.getInt(DEBUG_TIME_COSTS_INTERVAL, 10);
+        return NarutoSettings.DEBUG_TIME_COSTS_INTERVAL.read(CONFIG);
     }
 
     public static boolean shimmer() {
-        return CONFIG.getBoolean(SHIMMER, true);
+        return NarutoSettings.SHIMMER.read(CONFIG);
     }
 
     public static double shimmerSpeed() {
-        return CONFIG.getDouble(SHIMMER_SPEED, 1.0D);
+        return NarutoSettings.SHIMMER_SPEED.read(CONFIG);
     }
 
     public static double shimmerScale() {
-        return CONFIG.getDouble(SHIMMER_SCALE, 1.0D);
+        return NarutoSettings.SHIMMER_SCALE.read(CONFIG);
     }
 
     public static double shimmerStrength() {
-        return CONFIG.getDouble(SHIMMER_STRENGTH, 1.0D);
+        return NarutoSettings.SHIMMER_STRENGTH.read(CONFIG);
     }
 
     public static int shimmerFps() {
-        return CONFIG.getInt(SHIMMER_FPS, 30);
+        return NarutoSettings.SHIMMER_FPS.read(CONFIG);
     }
 
     public static boolean fadable() {
-        return CONFIG.getBoolean(FADABLE, true);
+        return NarutoSettings.FADABLE.read(CONFIG);
     }
 
     public static boolean compatMode() {
-        return CONFIG.getBoolean(COMPAT_MODE, false);
+        return NarutoSettings.COMPAT_MODE.read(CONFIG);
     }
 
     public static int ticksBeforeFade() {
-        return CONFIG.getInt(TICKS_BEFORE_FADE, 100);
+        return NarutoSettings.TICKS_BEFORE_FADE.read(CONFIG);
     }
 
     public static int fadeOutStep() {
-        return CONFIG.getInt(FADE_OUT_STEP, 1);
+        return NarutoSettings.FADE_OUT_STEP.read(CONFIG);
     }
 
     public static int fadeInStep() {
-        return CONFIG.getInt(FADE_IN_STEP, 5);
+        return NarutoSettings.FADE_IN_STEP.read(CONFIG);
+    }
+
+    public static @NotNull Map<Setting<?>, Object> snapshot() {
+        Map<Setting<?>, Object> values = new LinkedHashMap<>();
+
+        for (Setting<?> setting : NarutoSettings.ALL) values.put(setting, read(setting));
+
+        return values;
+    }
+
+    public static void writeAll(@NotNull Map<Setting<?>, Object> values) {
+        for (Map.Entry<Setting<?>, Object> entry : values.entrySet()) write(entry.getKey(), entry.getValue());
     }
 
     public static void set(@NotNull String key, @Nullable Object value) {
@@ -164,5 +158,14 @@ public class NarutoConfig {
 
     public static void save() {
         CONFIG.save();
+    }
+
+    private static <T> @NotNull T read(@NotNull Setting<T> setting) {
+        return setting.read(CONFIG);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void write(@NotNull Setting<T> setting, @Nullable Object value) {
+        setting.write(CONFIG, (T) value);
     }
 }

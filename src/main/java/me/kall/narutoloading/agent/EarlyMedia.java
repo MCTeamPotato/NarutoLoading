@@ -1,12 +1,13 @@
 package me.kall.narutoloading.agent;
 
-import me.kall.narutoloading.app.Locator;
-import me.kall.narutoloading.app.MediaRepository;
-import me.kall.narutoloading.app.ffmpeg.FFmpeg;
-import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
-import me.kall.narutoloading.app.ffmpeg.data.VideoArgs;
-import me.kall.narutoloading.config.NarutoConfig;
+import me.kall.narutoloading.core.GamePaths;
+import me.kall.narutoloading.core.Locator;
+import me.kall.narutoloading.media.MediaRepository;
+import me.kall.narutoloading.media.ffmpeg.FFmpeg;
+import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;
+import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
 import me.kall.narutoloading.media.MediaSource;
+import me.kall.narutoloading.config.NarutoConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -27,7 +28,7 @@ final class EarlyMedia {
     }
 
     static @Nullable EarlyMedia resolve() {
-        Path gameDir = Path.of(System.getProperty("user.dir", "."));
+        Path gameDir = GamePaths.gameDir();
         String configuredDir = NarutoConfig.ffmpegDir().toString();
 
         String ffmpeg = Locator.locate("ffmpeg", gameDir, configuredDir);

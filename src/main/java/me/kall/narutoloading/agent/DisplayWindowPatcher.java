@@ -13,6 +13,9 @@ public final class DisplayWindowPatcher {
     private static final String DISPLAY_WINDOW = "net/minecraftforge/fml/earlydisplay/DisplayWindow";
     private static final String BRIDGE = "me/kall/narutoloading/agent/bootstrap/EarlyBridge";
 
+    private static final Long FRAME_PERIOD_MILLIS = 5L;
+    private static final long VANILLA_PERIOD_MILLIS = 50L;
+
     private static final String LIST = "Ljava/util/List;";
     private static final String FONT = "Lnet/minecraftforge/fml/earlydisplay/SimpleFont;";
     private static final String RENDER_ELEMENT = "Lnet/minecraftforge/fml/earlydisplay/RenderElement;";
@@ -53,6 +56,18 @@ public final class DisplayWindowPatcher {
                 if ("initRender".equals(name)) {
                     return new MethodVisitor(Opcodes.ASM9, delegate) {
                         private boolean width854;
+                        private int retargetedPeriods;
+
+                        @Override
+                        public void visitLdcInsn(Object value) {
+                            if (value instanceof Long constant && constant == VANILLA_PERIOD_MILLIS && this.retargetedPeriods < 2) {
+                                this.retargetedPeriods++;
+                                super.visitLdcInsn(FRAME_PERIOD_MILLIS);
+                                return;
+                            }
+
+                            super.visitLdcInsn(value);
+                        }
 
                         @Override
                         public void visitIntInsn(int opcode, int operand) {

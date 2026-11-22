@@ -1,6 +1,7 @@
 package me.kall.narutoloading.client.ui;
 
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.core.GamePaths;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import net.minecraft.SharedConstants;
@@ -45,8 +46,7 @@ final class HelpPage {
     }
 
     private static @NotNull Path sourcesDirectory() {
-        Path sources = NarutoConfig.sourcesDir();
-        return sources.isAbsolute() ? sources : Path.of(System.getProperty("user.dir", ".")).resolve(sources);
+        return GamePaths.resolve(NarutoConfig.sourcesDir());
     }
 
     private static @NotNull String modVersion() {

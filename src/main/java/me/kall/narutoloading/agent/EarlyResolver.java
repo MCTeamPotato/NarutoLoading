@@ -1,7 +1,9 @@
 package me.kall.narutoloading.agent;
 
+import me.kall.narutoloading.agent.bootstrap.EarlyBridge;
 import me.kall.narutoloading.agent.bootstrap.EarlyVideo;
-import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
+import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;
+import me.kall.narutoloading.config.NarutoConfig;
 
 import java.net.URL;
 
@@ -30,8 +32,8 @@ public final class EarlyResolver {
             }
 
             media = resolved;
-            System.setProperty("narutoloading.early.media", resolved.video.absPath());
-            System.out.println("[NarutoLoading Agent] Early media: " + resolved.video.absPath() + " (" + resolved.video.width() + "x" + resolved.video.height() + ")");
+            System.setProperty(EarlyBridge.MEDIA_PROPERTY, resolved.video.absPath());
+            System.out.println("[NarutoLoading Agent] Early media: " + resolved.video.absPath() + " (" + resolved.video.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()) + "x" + resolved.video.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()) + ")");
         }
 
         try {
@@ -39,18 +41,17 @@ public final class EarlyResolver {
 
             AudioArgs audio = resolved.audio;
 
-            return (EarlyVideo) Class.forName("me.kall.narutoloading.agent.EarlyVideoImpl", true, loader).getMethod("create", String.class, String.class, int.class, int.class, double.class, double.class, double.class, String.class, int.class, int.class, int.class, double.class, double.class, float.class, double.class).invoke(null,
+            return (EarlyVideo) Class.forName("me.kall.narutoloading.agent.EarlyVideoImpl", true, loader).getMethod("create", String.class, String.class, int.class, int.class, double.class, double.class, double.class, String.class, int.class, int.class, double.class, double.class, float.class, double.class).invoke(null,
                     resolved.ffmpeg,
                     resolved.video.absPath(),
-                    resolved.video.width(),
-                    resolved.video.height(),
+                    resolved.video.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()),
+                    resolved.video.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()),
                     resolved.video.fps(),
                     resolved.video.duration(),
                     resolved.video.startSec(),
                     audio == null ? null : audio.absPath(),
                     audio == null ? 0 : audio.channels(),
                     audio == null ? 0 : audio.sampleRate(),
-                    audio == null ? 0 : audio.openALFormat(),
                     audio == null ? 0D : audio.startSec(),
                     audio == null ? 0D : audio.duration(),
                     resolved.volume,

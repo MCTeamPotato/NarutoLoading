@@ -5,6 +5,7 @@ import java.util.function.Function;
 public final class EarlyBridge {
     public static final String ACTIVE_PROPERTY = "narutoloading.early";
     public static final String SESSION_PROPERTY = "narutoloading.early.session";
+    public static final String MEDIA_PROPERTY = "narutoloading.early.media";
 
     private static volatile Function<ClassLoader, EarlyVideo> factory;
     private static volatile EarlyVideo video;

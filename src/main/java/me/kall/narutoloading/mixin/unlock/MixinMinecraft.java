@@ -1,7 +1,7 @@
 package me.kall.narutoloading.mixin.unlock;
 
-import me.kall.narutoloading.impl.ClientUiControl;
-import me.kall.narutoloading.produce.video.AbstractFrameProducer;
+import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.playback.produce.video.AbstractFrameProducer;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;

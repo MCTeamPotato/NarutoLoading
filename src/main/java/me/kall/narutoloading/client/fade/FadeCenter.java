@@ -2,7 +2,8 @@ package me.kall.narutoloading.client.fade;
 
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.impl.ClientUiControl;
+import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.client.context.LevelStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraftforge.api.distmarker.Dist;
@@ -63,14 +64,15 @@ public final class FadeCenter {
     }
 
     public static boolean isHidden() {
-        return fadeAlpha < 3;
+        return LevelStatus.notFound() && fadeAlpha < 3;
     }
 
     public static boolean isFull() {
-        return fadeAlpha == 100;
+        return !LevelStatus.notFound() || fadeAlpha == 100;
     }
 
     public static float fadeAlpha() {
+        if (!LevelStatus.notFound()) return 1.0F;
         return (float) fadeAlpha / 100.0F;
     }
 
@@ -90,10 +92,12 @@ public final class FadeCenter {
 
     @SubscribeEvent
     public static void tick(TickEvent.@NotNull ClientTickEvent event) {
-        if (!event.phase.equals(TickEvent.Phase.START) || !ClientUiControl.videoPresent()) return;
+        if (!event.phase.equals(TickEvent.Phase.START)) return;
 
-        if (!enabled()) {
-            reset();
+        if (!LevelStatus.notFound() || !ClientUiControl.videoPresent() || !enabled()) {
+            fadeAlpha = 100;
+            stopTicks = 0;
+            LAST_MOUSE.set(Double.NaN, Double.NaN);
             return;
         }
 
@@ -103,7 +107,7 @@ public final class FadeCenter {
         double x = mouseHandler.xpos();
         double y = mouseHandler.ypos();
 
-        if (minecraft.level == null && minecraft.player == null && minecraft.screen != null && minecraft.getOverlay() == null && !LAST_MOUSE.init(x, y)) {
+        if (minecraft.screen != null && minecraft.getOverlay() == null && !LAST_MOUSE.init(x, y)) {
             stopTicks = LAST_MOUSE.same(x, y) ? stopTicks + 1 : 0;
             LAST_MOUSE.set(x, y);
         } else {

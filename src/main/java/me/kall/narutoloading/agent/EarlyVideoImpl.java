@@ -1,12 +1,13 @@
 package me.kall.narutoloading.agent;
 
 import me.kall.narutoloading.agent.bootstrap.EarlyVideo;
-import me.kall.narutoloading.app.ffmpeg.data.AudioArgs;
-import me.kall.narutoloading.app.ffmpeg.data.VideoArgs;
-import me.kall.narutoloading.client.renderer.BufferFrameRenderer;
-import me.kall.narutoloading.produce.audio.AudioProducer;
-import me.kall.narutoloading.produce.video.AbstractFrameProducer;
-import me.kall.narutoloading.produce.video.BufferFrameProducer;
+import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;
+import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
+import me.kall.narutoloading.playback.render.BufferFrameRenderer;
+import me.kall.narutoloading.config.NarutoConfig;
+import me.kall.narutoloading.playback.produce.audio.AudioProducer;
+import me.kall.narutoloading.playback.produce.video.AbstractFrameProducer;
+import me.kall.narutoloading.playback.produce.video.BufferFrameProducer;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -46,12 +47,12 @@ public final class EarlyVideoImpl implements EarlyVideo {
         this.producer.setup(0D);
         this.producer.eager();
 
-        this.renderer.setup(video.width(), video.height(), 0D, false);
+        this.renderer.setup(video.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), video.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), 0D, false);
     }
 
-    public static @NotNull EarlyVideo create(String ffmpeg, String videoPath, int width, int height, double fps, double duration, double startSec, String audioPath, int channels, int sampleRate, int openALFormat, double audioStartSec, double audioDuration, float volume, double bufferSeconds) {
+    public static @NotNull EarlyVideo create(String ffmpeg, String videoPath, int width, int height, double fps, double duration, double startSec, String audioPath, int channels, int sampleRate, double audioStartSec, double audioDuration, float volume, double bufferSeconds) {
         VideoArgs video = new VideoArgs(videoPath, fps, width, height, duration, startSec);
-        AudioArgs audio = audioPath != null && channels > 0 && sampleRate > 0 && openALFormat > 0 ? new AudioArgs(audioPath, channels, sampleRate, openALFormat, audioStartSec, audioDuration) : null;
+        AudioArgs audio = audioPath != null && channels > 0 && sampleRate > 0 ? new AudioArgs(audioPath, channels, sampleRate, audioStartSec, audioDuration) : null;
 
         return new EarlyVideoImpl(ffmpeg, video, audio, volume, bufferSeconds);
     }
@@ -75,7 +76,7 @@ public final class EarlyVideoImpl implements EarlyVideo {
                 this.lastFrameIndex = frameIndex;
 
                 AbstractFrameProducer.Frame<ByteBuffer> frame = this.producer.fetch(position);
-                if (frame != null) this.renderer.update(this.video.width(), this.video.height(), frame.data());
+                if (frame != null) this.renderer.update(this.video.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), this.video.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), frame.data());
             }
 
             this.renderer.render(flipY);

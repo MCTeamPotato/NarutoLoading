@@ -194,5 +194,9 @@
   "narutoloading.unsaved.keep": "继续编辑",
   "narutoloading.apply.failed": "保存失败",
   "narutoloading.apply.failedMessage": "请查看日志",
-  "narutoloading.ok": "好"
+  "narutoloading.ok": "好",
+
+  "key.categories.narutoloading": "NarutoLoading",
+  "key.narutoloading.open_screen": "打开 NarutoLoading 设置界面",
+  "key.narutoloading.toggle_compat_mode": "切换性能/兼容模式"
 }

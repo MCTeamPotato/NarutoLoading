@@ -1,8 +1,8 @@
 package me.kall.narutoloading.mixin.unlock;
 
 import com.mojang.blaze3d.platform.Window;
-import me.kall.narutoloading.impl.ClientUiControl;
-import me.kall.narutoloading.produce.video.AbstractFrameProducer;
+import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.playback.produce.video.AbstractFrameProducer;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

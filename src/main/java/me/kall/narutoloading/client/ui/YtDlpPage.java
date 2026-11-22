@@ -5,10 +5,15 @@ import icyllis.modernui.view.View;
 import icyllis.modernui.widget.Button;
 import icyllis.modernui.widget.LinearLayout;
 import icyllis.modernui.widget.TextView;
-import me.kall.narutoloading.app.Instance;
-import me.kall.narutoloading.app.MediaRepository;
+import me.kall.narutoloading.media.DownloadService;
+import me.kall.narutoloading.media.DownloadState;
+import me.kall.narutoloading.core.GamePaths;
+import me.kall.narutoloading.media.MediaNaming;
+import me.kall.narutoloading.media.MediaRepository;
+import me.kall.narutoloading.core.NarutoContext;
+import me.kall.narutoloading.core.ToolRegistry;
 import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.impl.ClientUiControl;
+import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoui.mui.field.MuiTextField;
 import me.kall.narutoui.mui.layout.MuiControls;
 import me.kall.narutoui.mui.layout.MuiLayout;
@@ -26,27 +31,21 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
-final class YtDlpPage {
-    private static final int LOG_LINES = 5;
+final class YtDlpPage implements SettingsPageBuilder {
+    private final ToolRegistry tools;
+    private final DownloadService downloads;
+    private final MediaRepository media;
 
-    private static final AtomicBoolean DOWNLOADING = new AtomicBoolean();
+    private final Runnable stateListener = this::onStateChanged;
+    private final AtomicBoolean renderPending = new AtomicBoolean();
 
-    private static volatile int percent = -1;
-    private static volatile String status = "";
-    private static volatile boolean statusFailed;
-
-    private static final Deque<String> LOG = new ArrayDeque<>(LOG_LINES);
-    private static final Object LOG_LOCK = new Object();
-
-    private static volatile String logText = "";
+    private boolean subscribed;
 
     private @Nullable String executable;
 
@@ -58,17 +57,21 @@ final class YtDlpPage {
     private @Nullable TextView logView;
     private @Nullable MuiTheme theme;
 
-    private final AtomicBoolean logPostPending = new AtomicBoolean();
-
     private volatile String link;
     private volatile String fileName = "";
 
-    YtDlpPage(@Nullable String link) {
-        this.executable = Instance.get().ytDlp.ytdlp.get();
+    YtDlpPage(@Nullable String link, @NotNull NarutoContext context) {
+        this.tools = context.tools();
+        this.downloads = context.downloads();
+        this.media = context.media();
+        this.executable = this.tools.ytDlp.ytdlp.get();
         this.link = link == null ? "" : link.trim();
     }
 
-    void build(@NotNull MuiSettingsPage page) {
+    @Override
+    public void build(@NotNull MuiSettingsPage page) {
+        this.subscribe();
+
         page.shimmerAll();
         this.theme = page.theme();
 
@@ -111,9 +114,9 @@ final class YtDlpPage {
                     this.refreshNameWarning();
                 })
                 .section("narutoloading.ytdlp.section.progress", section -> section
-                        .value("narutoloading.ytdlp.progress.percent", value -> value < 0 ? "—" : value + "%", () -> percent)
+                        .value("narutoloading.ytdlp.progress.percent", value -> value < 0 ? "—" : value + "%", () -> this.downloads.state().percent())
                         .customLayout(row -> {
-                            this.statusView = MuiControls.text(row.getContext(), row.theme(), this.currentStatus(), 13, statusFailed ? row.theme().error() : row.theme().onSurface());
+                            this.statusView = MuiControls.text(row.getContext(), row.theme(), this.currentStatus(), 13, this.currentStatusColor(row.theme()));
                             row.add(this.statusView, MuiControls.fill());
                         })
                         .customLayout(row -> {
@@ -122,6 +125,20 @@ final class YtDlpPage {
                         })
                         .button("narutoloading.ytdlp.action.openFolder", true, this::openFolder)
                 );
+    }
+
+    void destroy() {
+        if (!this.subscribed) return;
+
+        this.subscribed = false;
+        this.downloads.state().removeListener(this.stateListener);
+    }
+
+    private void subscribe() {
+        if (this.subscribed) return;
+
+        this.subscribed = true;
+        this.downloads.state().addListener(this.stateListener);
     }
 
     private void fillStatus(@NotNull MuiSettingsSection section) {
@@ -144,7 +161,7 @@ final class YtDlpPage {
     }
 
     private void chooseExecutable() {
-        MuiFilePicker.openFile(I18n.get("narutoloading.ytdlp.action.choose"), "yt-dlp", this::installExecutable, Instance.YTDLP_FILE_FILTER);
+        MuiFilePicker.openFile(I18n.get("narutoloading.ytdlp.action.choose"), "yt-dlp", this::installExecutable, ToolRegistry.YTDLP_FILE_FILTER);
     }
 
     private void installExecutable(@NotNull Path source) {
@@ -153,7 +170,7 @@ final class YtDlpPage {
             return;
         }
 
-        String installed = Instance.get().installYtDlp(source);
+        String installed = this.tools.installYtDlp(source);
 
         if (installed == null) {
             this.executable = null;
@@ -166,7 +183,7 @@ final class YtDlpPage {
         if (parent != null) {
             NarutoConfig.set(NarutoConfig.YTDLP_DIR, parent.toString());
             NarutoConfig.save();
-            installed = Instance.get().reloadYtDlp();
+            installed = this.tools.reloadYtDlp();
         }
 
         this.executable = installed;
@@ -176,7 +193,7 @@ final class YtDlpPage {
     }
 
     private void redetect() {
-        this.executable = Instance.get().reloadYtDlp();
+        this.executable = this.tools.reloadYtDlp();
         this.refreshStatus();
 
         this.publishStatus(I18n.get(this.executable != null ? "narutoloading.ytdlp.status.redetect.found" : "narutoloading.ytdlp.status.redetect.missing"), this.executable == null);
@@ -193,44 +210,40 @@ final class YtDlpPage {
         String url = this.currentLink();
         String name = this.currentName();
         if (url.isEmpty() || !isValidName(name)) return;
-        if (!DOWNLOADING.compareAndSet(false, true)) return;
 
-        percent = -1;
-        this.publishLog();
-        this.publishStatus(I18n.get(video ? "narutoloading.ytdlp.status.start.video" : "narutoloading.ytdlp.status.start.audio"), false);
+        DownloadState state = this.downloads.state();
+        if (!state.begin()) return;
 
-        Instance instance = Instance.get();
+        state.status(I18n.get(video ? "narutoloading.ytdlp.status.start.video" : "narutoloading.ytdlp.status.start.audio"), false);
+
         Path outputDirectory = this.outputDirectory();
-        CompletableFuture<@Nullable String> future = video
-                ? instance.downloadVideo(url, outputDirectory, name, this::onOutputLine)
-                : instance.downloadAudio(url, outputDirectory, name, this::onOutputLine);
+        CompletableFuture<@Nullable String> future = video ? this.downloads.downloadVideo(url, outputDirectory, name, this::onOutputLine) : this.downloads.downloadAudio(url, outputDirectory, name, this::onOutputLine);
 
         future.whenComplete((result, throwable) -> {
-            DOWNLOADING.set(false);
+            state.end();
 
             if (throwable != null) {
                 System.err.println("[NarutoLoading] Exception downloading " + url + ": " + throwable.getMessage());
-                this.publishStatus(I18n.get("narutoloading.ytdlp.status.failed", rootMessage(throwable)), true);
+                state.status(I18n.get("narutoloading.ytdlp.status.failed", rootMessage(throwable)), true);
                 return;
             }
 
             if (result == null) {
-                this.publishStatus(I18n.get("narutoloading.ytdlp.status.failed", I18n.get("narutoloading.ytdlp.status.failed.detail")), true);
+                state.status(I18n.get("narutoloading.ytdlp.status.failed", I18n.get("narutoloading.ytdlp.status.failed.detail")), true);
                 return;
             }
 
-            percent = 100;
-            this.publishStatus(I18n.get("narutoloading.ytdlp.status.done", Path.of(result).getFileName().toString()), false);
+            state.done(I18n.get("narutoloading.ytdlp.status.done", Path.of(result).getFileName().toString()));
 
-            String mediaName = MediaRepository.mediaName(result);
-            instance.media.refresh(() -> this.play(instance, mediaName));
+            String mediaName = MediaNaming.mediaName(result);
+            this.media.refresh(() -> this.play(mediaName));
             this.postNameWarning();
         });
     }
 
-    private void play(@NotNull Instance instance, @NotNull String name) {
+    private void play(@NotNull String name) {
         Minecraft.getInstance().execute(() -> {
-            if (instance.media.select(name)) {
+            if (this.media.select(name)) {
                 ClientUiControl.restart(0D);
                 return;
             }
@@ -243,65 +256,59 @@ final class YtDlpPage {
         String trimmed = line.trim();
         if (trimmed.isEmpty()) return;
 
-        int parsed = parsePercent(trimmed);
-        if (parsed >= 0) percent = parsed;
+        this.downloads.state().line(trimmed);
+    }
 
-        appendLog(trimmed);
-        this.postLog();
+    private void onStateChanged() {
+        if (!this.renderPending.compareAndSet(false, true)) return;
+
+        TextView view = this.statusView != null ? this.statusView : this.logView;
+
+        if (view == null) {
+            this.renderPending.set(false);
+            return;
+        }
+
+        view.post(() -> {
+            this.renderPending.set(false);
+            this.renderState();
+        });
+    }
+
+    private void renderState() {
+        TextView statusView = this.statusView;
+
+        if (statusView != null) {
+            MuiTheme theme = this.theme;
+            statusView.setText(this.currentStatus());
+            if (theme != null) statusView.setTextColor(this.currentStatusColor(theme));
+        }
+
+        TextView logView = this.logView;
+        if (logView != null) logView.setText(this.currentLog());
     }
 
     private void publishStatus(@NotNull String text, boolean failed) {
-        status = text;
-        statusFailed = failed;
-
-        TextView view = this.statusView;
-        if (view == null) return;
-
-        MuiTheme theme = this.theme;
-        view.post(() -> {
-            view.setText(text);
-            if (theme != null) view.setTextColor(failed ? theme.error() : theme.onSurface());
-        });
-    }
-
-    private void publishLog() {
-        synchronized (LOG_LOCK) {
-            LOG.clear();
-            logText = "";
-        }
-        this.postLog();
-    }
-
-    private static void appendLog(@NotNull String line) {
-        synchronized (LOG_LOCK) {
-            LOG.addLast(line);
-            while (LOG.size() > LOG_LINES) LOG.removeFirst();
-            logText = String.join("\n", LOG);
-        }
-    }
-
-    private void postLog() {
-        TextView view = this.logView;
-        if (view == null) return;
-        if (!this.logPostPending.compareAndSet(false, true)) return;
-
-        view.post(() -> {
-            this.logPostPending.set(false);
-            view.setText(this.currentLog());
-        });
+        this.downloads.state().status(text, failed);
     }
 
     private @NotNull String currentStatus() {
-        if (!status.isEmpty()) return status;
-        return I18n.get(DOWNLOADING.get() ? "narutoloading.ytdlp.status.working" : "narutoloading.ytdlp.status.idle");
+        DownloadState state = this.downloads.state();
+        if (!state.status().isEmpty()) return state.status();
+        return I18n.get(state.downloading() ? "narutoloading.ytdlp.status.working" : "narutoloading.ytdlp.status.idle");
+    }
+
+    private int currentStatusColor(@NotNull MuiTheme theme) {
+        return this.downloads.state().statusFailed() ? theme.error() : theme.onSurface();
     }
 
     private @NotNull String currentLog() {
-        return logText.isEmpty() ? I18n.get("narutoloading.ytdlp.progress.log.empty") : logText;
+        String log = this.downloads.state().logText();
+        return log.isEmpty() ? I18n.get("narutoloading.ytdlp.progress.log.empty") : log;
     }
 
     private boolean canDownload() {
-        return this.executable != null && !DOWNLOADING.get() && !this.currentLink().isEmpty() && isValidName(this.currentName());
+        return this.executable != null && !this.downloads.state().downloading() && !this.currentLink().isEmpty() && isValidName(this.currentName());
     }
 
     private @NotNull String currentLink() {
@@ -340,8 +347,8 @@ final class YtDlpPage {
         try (Stream<Path> stream = Files.list(outputDirectory)) {
             stream.filter(Files::isRegularFile)
                     .map(path -> path.getFileName().toString())
-                    .filter(MediaRepository::isMediaFile)
-                    .filter(fileName -> MediaRepository.wouldOverwrite(name, fileName))
+                    .filter(MediaNaming::isMediaFile)
+                    .filter(fileName -> MediaNaming.wouldOverwrite(name, fileName))
                     .sorted().forEach(matches::add);
         } catch (IOException | UncheckedIOException exception) {
             return null;
@@ -366,8 +373,7 @@ final class YtDlpPage {
     }
 
     private @NotNull Path outputDirectory() {
-        Path sources = NarutoConfig.sourcesDir();
-        return sources.isAbsolute() ? sources : Path.of(System.getProperty("user.dir", ".")).resolve(sources);
+        return GamePaths.resolve(NarutoConfig.sourcesDir());
     }
 
     private static boolean looksLikeUrl(@NotNull String value) {
@@ -385,22 +391,6 @@ final class YtDlpPage {
         }
 
         return true;
-    }
-
-    private static int parsePercent(@NotNull String line) {
-        if (!line.startsWith("[download]")) return -1;
-
-        int percentIndex = line.indexOf('%');
-        if (percentIndex <= 0) return -1;
-
-        int start = percentIndex - 1;
-        while (start >= 0 && (Character.isDigit(line.charAt(start)) || line.charAt(start) == '.')) start--;
-
-        try {
-            return (int) Math.round(Double.parseDouble(line.substring(start + 1, percentIndex)));
-        } catch (NumberFormatException exception) {
-            return -1;
-        }
     }
 
     private static @NotNull String rootMessage(@NotNull Throwable throwable) {
