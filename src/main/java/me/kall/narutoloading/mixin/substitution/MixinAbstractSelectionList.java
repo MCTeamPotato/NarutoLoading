@@ -1,34 +1,29 @@
 package me.kall.narutoloading.mixin.substitution;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.kall.narutoloading.client.overlay.Substitution;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(AbstractSelectionList.class)
 public abstract class MixinAbstractSelectionList {
-    @Shadow private boolean renderBackground;
-    @Shadow private boolean renderTopAndBottom;
-
-    @Shadow protected abstract void renderBackground(GuiGraphics guiGraphics);
-
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderBackground(Lnet/minecraft/client/gui/GuiGraphics;)V"))
-    private void substitute(AbstractSelectionList<?> instance, GuiGraphics guiGraphics) {
+    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderBackground(Lnet/minecraft/client/gui/GuiGraphics;)V"))
+    private void substitute(AbstractSelectionList<?> instance, GuiGraphics guiGraphics, Operation<Void> original) {
         if (Substitution.checkAndRun()) return;
-        this.renderBackground(guiGraphics);
+        original.call(instance, guiGraphics);
     }
 
-    @Redirect(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderTopAndBottom:Z", opcode = Opcodes.GETFIELD))
-    private boolean skipTopAndBottom(AbstractSelectionList<?> instance) {
-        return !Substitution.check() && this.renderTopAndBottom;
+    @WrapOperation(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderTopAndBottom:Z", opcode = Opcodes.GETFIELD))
+    private boolean skipTopAndBottom(AbstractSelectionList<?> instance, Operation<Boolean> original) {
+        return !Substitution.check() && original.call(instance);
     }
 
-    @Redirect(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderBackground:Z", opcode = Opcodes.GETFIELD))
-    private boolean skipBackground(AbstractSelectionList<?> instance) {
-        return !Substitution.check() && this.renderBackground;
+    @WrapOperation(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderBackground:Z", opcode = Opcodes.GETFIELD))
+    private boolean skipBackground(AbstractSelectionList<?> instance, Operation<Boolean> original) {
+        return !Substitution.check() && original.call(instance);
     }
 }

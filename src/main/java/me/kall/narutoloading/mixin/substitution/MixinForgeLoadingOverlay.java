@@ -1,8 +1,10 @@
 package me.kall.narutoloading.mixin.substitution;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.platform.Window;
-import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.client.overlay.OverlayFinish;
+import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.client.overlay.Substitution;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -18,9 +20,6 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -34,26 +33,26 @@ public abstract class MixinForgeLoadingOverlay {
     @Shadow(remap = false) @Final private ProgressMeter progress;
     @Shadow(remap = false) private long fadeOutStart;
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        ci.cancel();
-
+    @WrapMethod(method = "render")
+    private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, Operation<Void> original) {
         if (this.fadeOutStart == -1L && this.reload.isDone()) ClientUiControl.detachEarly();
 
-        if (!Substitution.checkAndRun()) return;
+        if (Substitution.checkAndRun()) {
+            Minecraft minecraft = this.minecraft;
+            ReloadInstance reload = this.reload;
+            ProgressMeter progress = this.progress;
+            long fadeOutStart = this.fadeOutStart;
 
-        Minecraft minecraft = this.minecraft;
-        ReloadInstance reload = this.reload;
-        ProgressMeter progress = this.progress;
-        long fadeOutStart = this.fadeOutStart;
+            progress.setAbsolute(Mth.clamp((int) (reload.getActualProgress() * 100F), 0, 100));
 
-        progress.setAbsolute(Mth.clamp((int) (reload.getActualProgress() * 100F), 0, 100));
+            float fadeOutTimer = fadeOutStart > -1L ? (float) (Util.getMillis() - fadeOutStart) / 1000.0F : -1.0F;
 
-        float fadeOutTimer = fadeOutStart > -1L ? (float) (Util.getMillis() - fadeOutStart) / 1000.0F : -1.0F;
+            this.override$processOverlay(guiGraphics, mouseX, mouseY, partialTick, minecraft, fadeOutTimer);
 
-        this.override$processOverlay(guiGraphics, mouseX, mouseY, partialTick, minecraft, fadeOutTimer);
-
-        if (fadeOutStart == -1L && reload.isDone()) this.override$finalize(minecraft, reload, progress);
+            if (fadeOutStart == -1L && reload.isDone()) this.override$finalize(minecraft, reload, progress);
+        } else {
+            original.call(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
 
     @Unique

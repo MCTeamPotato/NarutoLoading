@@ -1,5 +1,6 @@
 package me.kall.narutoloading.mixin;
 
+import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import me.kall.narutoloading.bootstrap.Integration;
 import me.kall.narutoloading.wall.client.light.WallLightHook;
 import org.apache.logging.log4j.LogManager;
@@ -28,6 +29,7 @@ public class NarutoMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String s) {
+        MixinExtrasBootstrap.init();
     }
 
     @Override
@@ -61,6 +63,9 @@ public class NarutoMixinPlugin implements IMixinConfigPlugin {
         if (!applied) LOGGER.warn("[NarutoLoading] BlockState#getLightEmission is already provided by another mod, wall light is disabled.");
     }
 
+    /**
+     * 读出 Mixin 给合并方法打的 {@code @MixinMerged.mixin}，用来确认最终留下的是谁的方法。
+     */
     private static String mergedOwner(@Nullable MethodNode method) {
         if (method == null) return "<missing>";
 

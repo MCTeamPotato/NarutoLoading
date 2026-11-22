@@ -1,17 +1,17 @@
 package me.kall.narutoloading.mixin.substitution;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import me.kall.narutoloading.client.overlay.Substitution;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.WinScreen;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(WinScreen.class)
 public abstract class MixinWinScreen {
-    @Inject(method = "renderBg", at = @At("HEAD"), cancellable = true)
-    private void substitute(GuiGraphics guiGraphics, CallbackInfo ci) {
-        if (Substitution.checkAndRun()) ci.cancel();
+    @WrapMethod(method = "renderBg")
+    private void substitute(GuiGraphics guiGraphics, Operation<Void> original) {
+        if (Substitution.checkAndRun()) return;
+        original.call(guiGraphics);
     }
 }
