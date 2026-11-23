@@ -12,15 +12,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class BufferFrameProducer extends AbstractFrameProducer<ByteBuffer> {
+    private static final double LOADING_BUFFER_SECONDS = 1D;
+
     private final Queue<ByteBuffer> free = new ConcurrentLinkedQueue<>();
     private final Set<ByteBuffer> all = ConcurrentHashMap.newKeySet();
 
-    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, double bufferSeconds) {
-        this(ffmpeg, videoArgs, gpuAccel, bufferSeconds, NarutoConfig.limitWidth(), NarutoConfig.limitHeight(), DEFAULT_MAX_BUFFER_BYTES);
+    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel) {
+        this(ffmpeg, videoArgs, gpuAccel, NarutoConfig.limitWidth(), NarutoConfig.limitHeight(), DEFAULT_MAX_BUFFER_BYTES, loadingFrames(videoArgs));
     }
 
-    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, double bufferSeconds, int maxWidth, int maxHeight, long maxBufferBytes) {
-        super(ffmpeg, videoArgs, gpuAccel, frameSize(videoArgs, maxWidth, maxHeight), bufferSeconds, maxWidth, maxHeight, maxBufferBytes);
+    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, int maxWidth, int maxHeight, long maxBufferBytes, int targetFrames) {
+        super(ffmpeg, videoArgs, gpuAccel, frameSize(videoArgs, maxWidth, maxHeight), maxWidth, maxHeight, maxBufferBytes, targetFrames);
+    }
+
+    private static int loadingFrames(@NotNull VideoArgs args) {
+        return Math.max(1, (int) (args.fps() * LOADING_BUFFER_SECONDS));
     }
 
     private static int frameSize(@NotNull VideoArgs args, int maxWidth, int maxHeight) {
@@ -33,9 +39,6 @@ public final class BufferFrameProducer extends AbstractFrameProducer<ByteBuffer>
     protected void onSetup(double seekTo) {
         super.onSetup(seekTo);
 
-        // Only the frames needed to start playback are allocated on the render thread. The rest are
-        // allocated lazily on the producer thread as the queue fills, so a 4K setup does not block
-        // the game for hundreds of milliseconds while touching half a gigabyte of native memory.
         int preallocate = Math.min(this.bufferCapacity, this.warmFrames);
 
         for (int index = 0; index < preallocate; index++) {

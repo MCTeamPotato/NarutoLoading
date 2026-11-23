@@ -30,12 +30,6 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     protected static final long DEFAULT_MAX_BUFFER_BYTES = 512L * 1024L * 1024L;
     private static final int WARM_FRAMES = 8;
 
-    /**
-     * Frames travel over a loopback socket instead of the process pipe. A 4K 60fps stream is 746
-     * MB/s, and the Windows anonymous pipe hands out only a few KB per read, which turns one frame
-     * into thousands of blocking read calls. A socket with a multi-megabyte receive buffer fills a
-     * quarter-megabyte read in one call, so the same frame costs a dozen calls.
-     */
     private static final int FRAME_SOCKET_BUFFER_BYTES = 4 * 1024 * 1024;
     private static final int FRAME_SOCKET_ACCEPT_TIMEOUT_MILLIS = 500;
     private static final long FRAME_SOCKET_ACCEPT_DEADLINE_NANOS = 10_000_000_000L;
@@ -71,7 +65,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     private final AtomicBoolean starved = new AtomicBoolean();
 
-    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, double bufferSeconds, int maxWidth, int maxHeight, long maxBufferBytes) {
+    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, int maxWidth, int maxHeight, long maxBufferBytes, int targetFrames) {
         this.ffmpeg = ffmpeg;
 
         this.args = args;
@@ -81,7 +75,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         this.maxHeight = maxHeight;
 
         this.frameSize = frameSize;
-        this.bufferCapacity = bufferCapacity(this.args.fps(), bufferSeconds, frameSize, maxBufferBytes);
+        this.bufferCapacity = bufferCapacity(targetFrames, frameSize, maxBufferBytes);
         this.warmFrames = Math.min(this.bufferCapacity, WARM_FRAMES);
         this.frames = new LinkedBlockingQueue<>(this.bufferCapacity);
         this.nextReportNanos = System.nanoTime() + reportIntervalNanos();
@@ -192,10 +186,6 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     protected abstract String frameType();
 
-    /**
-     * Binds the frame socket before the command is built, because ffmpeg is handed the port as its
-     * output URL. Skipping this leaves {@code framePort} at zero and the producer does nothing.
-     */
     @Override
     public void setup(double seekTo) {
         if (this.ffmpeg == null) return;
@@ -218,7 +208,6 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
                 return socket.getInputStream();
             } catch (SocketTimeoutException timeout) {
-                // Report a dead decoder or a wrong port instead of parking this thread forever.
                 if (!process.isAlive()) throw new IOException("ffmpeg exited before connecting to the frame socket", timeout);
                 if (System.nanoTime() - deadline >= 0L) throw new IOException("Timed out waiting for ffmpeg to connect to the frame socket", timeout);
             }
@@ -231,8 +220,6 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         try {
             ServerSocket listener = new ServerSocket();
 
-            // Set before binding so the accepted socket inherits it: this is the buffer the decoder
-            // writes into, and a few megabytes keeps it from blocking between frames.
             listener.setReceiveBufferSize(FRAME_SOCKET_BUFFER_BYTES);
             listener.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 1);
             listener.setSoTimeout(FRAME_SOCKET_ACCEPT_TIMEOUT_MILLIS);
@@ -317,20 +304,8 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         return Math.max(1, NarutoConfig.debugTimeCostsInterval()) * NANOS_PER_SECOND;
     }
 
-    /**
-     * Bounds the queue by both the configured seconds and a native-memory budget. A 4K RGBA frame
-     * is about 25MB, so a two-second buffer would otherwise mean 3GB of live buffers per producer.
-     *
-     * @param fps            video frame rate
-     * @param seconds        configured buffer duration
-     * @param frameSize      bytes per frame
-     * @param maxBufferBytes native-memory budget for this producer
-     * @return the number of frames to keep
-     */
-    private static int bufferCapacity(double fps, double seconds, int frameSize, long maxBufferBytes) {
-        int bySeconds = Math.max(1, (int) (fps * seconds));
-        int byBytes = Math.max(1, (int) (maxBufferBytes / Math.max(1, frameSize)));
-        return Math.min(bySeconds, byBytes);
+    private static int bufferCapacity(int targetFrames, int frameSize, long maxBufferBytes) {
+        return Math.min(Math.max(1, targetFrames), Math.max(1, (int) (maxBufferBytes / Math.max(1, frameSize))));
     }
 
     private void warm() {

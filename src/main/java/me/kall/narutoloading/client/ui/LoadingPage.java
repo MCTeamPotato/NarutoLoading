@@ -20,9 +20,8 @@ final class LoadingPage implements SettingsPageBuilder {
 
         page.shimmerAll()
                 .section("narutoloading.loading.section.video", section -> section
-                        .number("narutoloading.loading.width", "narutoloading.loading.width.desc", 16, 7680, () -> state.get(NarutoSettings.MAX_VIDEO_WIDTH), value -> this.screen.set(NarutoSettings.MAX_VIDEO_WIDTH, value))
-                        .number("narutoloading.loading.height", "narutoloading.loading.height.desc", 16, 4320, () -> state.get(NarutoSettings.MAX_VIDEO_HEIGHT), value -> this.screen.set(NarutoSettings.MAX_VIDEO_HEIGHT, value))
-                        .decimal("narutoloading.loading.buffer", "narutoloading.loading.buffer.desc", 0.0D, 5.0D, () -> state.get(NarutoSettings.BUFFER_SECONDS), value -> this.screen.set(NarutoSettings.BUFFER_SECONDS, value)))
+                        .number("narutoloading.loading.width", "narutoloading.loading.width.desc", 16, 3840, () -> state.get(NarutoSettings.MAX_VIDEO_WIDTH), value -> this.screen.set(NarutoSettings.MAX_VIDEO_WIDTH, value))
+                        .number("narutoloading.loading.height", "narutoloading.loading.height.desc", 16, 2160, () -> state.get(NarutoSettings.MAX_VIDEO_HEIGHT), value -> this.screen.set(NarutoSettings.MAX_VIDEO_HEIGHT, value)))
                 .section("narutoloading.loading.section.sound", section -> section
                         .slider("narutoloading.loading.volume", "narutoloading.loading.volume.desc", 0, 100, () -> Math.round(state.get(NarutoSettings.AUDIO_VOLUME) * 100.0F), value -> this.screen.set(NarutoSettings.AUDIO_VOLUME, value / 100.0F), value -> value + "%")
                         .toggle("narutoloading.loading.mute", "narutoloading.loading.mute.desc", () -> state.get(NarutoSettings.MUTE_MUSIC), value -> this.screen.set(NarutoSettings.MUTE_MUSIC, value)))

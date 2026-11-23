@@ -120,7 +120,6 @@ final class WallsPage implements SettingsPageBuilder {
         page.collapsibleCard("narutoloading.walls.render", "narutoloading.walls.section.render", "narutoloading.walls.render.summary", true, null, section -> section
                         .number("narutoloading.walls.width", "narutoloading.walls.width.desc", 16, 3840, () -> this.screen.settings().get(NarutoSettings.WORLD_MAX_WIDTH), value -> this.screen.set(NarutoSettings.WORLD_MAX_WIDTH, value))
                         .number("narutoloading.walls.height", "narutoloading.walls.height.desc", 16, 2160, () -> this.screen.settings().get(NarutoSettings.WORLD_MAX_HEIGHT), value -> this.screen.set(NarutoSettings.WORLD_MAX_HEIGHT, value))
-                        .decimal("narutoloading.walls.buffer", "narutoloading.walls.buffer.desc", 0.0D, 5.0D, () -> this.screen.settings().get(NarutoSettings.WORLD_BUFFER_SECONDS), value -> this.screen.set(NarutoSettings.WORLD_BUFFER_SECONDS, value))
                         .toggle("narutoloading.walls.cullFaces", "narutoloading.walls.cullFaces.desc", () -> this.screen.settings().get(NarutoSettings.WORLD_CULL_FACES), value -> this.screen.set(NarutoSettings.WORLD_CULL_FACES, value))
                         .toggle("narutoloading.walls.lightEnabled", "narutoloading.walls.lightEnabled.desc", () -> this.screen.settings().get(NarutoSettings.WORLD_LIGHT_ENABLED), value -> this.screen.set(NarutoSettings.WORLD_LIGHT_ENABLED, value))
                         .enabledWhen(WallLightHook::active));

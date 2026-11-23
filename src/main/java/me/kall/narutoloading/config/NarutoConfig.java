@@ -16,7 +16,6 @@ public class NarutoConfig {
     public static final String FFMPEG_DIR = "ffmpegDir";
     public static final String YTDLP_DIR = "ytDlpDir";
     public static final String SOURCES_DIR = "sourcesDir";
-    public static final String BUFFER_SECONDS = "bufferSeconds";
     public static final String SELECT_MODE = "selectMode";
     public static final String FIXED_NAME = "fixedName";
     public static final String MUTE_MUSIC = "muteMusic";
@@ -34,7 +33,6 @@ public class NarutoConfig {
     public static final String FADE_IN_STEP = "fadeInStep";
     public static final String WORLD_MAX_WIDTH = "worldMaxWidth";
     public static final String WORLD_MAX_HEIGHT = "worldMaxHeight";
-    public static final String WORLD_BUFFER_SECONDS = "worldBufferSeconds";
     public static final String WORLD_ACTIVE_DISTANCE = "worldActiveDistance";
     public static final String WORLD_MAX_ACTIVE = "worldMaxActive";
     public static final String WORLD_CULL_INVISIBLE = "worldCullInvisible";
@@ -49,11 +47,24 @@ public class NarutoConfig {
 
     private static @NotNull Config create() {
         try {
-            return defaults(Config.builder().file("config/narutoloading.properties")).autoCreate(true).build();
+            Config config = defaults(Config.builder().file("config/narutoloading.properties")).autoCreate(true).build();
+            return retire(config, "bufferSeconds", "worldBufferSeconds");
         } catch (Throwable throwable) {
             System.err.println("[NarutoLoading] Exception loading the config file, falling back to in-memory defaults: " + throwable.getMessage());
-            return defaults(Config.builder()).build();
+            return retire(defaults(Config.builder()).build(), "bufferSeconds", "worldBufferSeconds");
         }
+    }
+
+    private static @NotNull Config retire(@NotNull Config config, String @NotNull ... keys) {
+        boolean removed = false;
+
+        for (String key : keys) {
+            if (!config.has(key)) continue;
+            config.remove(key);
+            removed = true;
+        }
+
+        return removed ? config.save() : config;
     }
 
     private static @NotNull Config.Builder defaults(@NotNull Config.Builder builder) {
@@ -86,10 +97,6 @@ public class NarutoConfig {
 
     public static @NotNull Path sourcesDir() {
         return Path.of(NarutoSettings.SOURCES_DIR.read(CONFIG));
-    }
-
-    public static double bufferSeconds() {
-        return NarutoSettings.BUFFER_SECONDS.read(CONFIG);
     }
 
     public static MediaRepository.@NotNull Mode selectMode() {
@@ -154,10 +161,6 @@ public class NarutoConfig {
 
     public static int worldLimitHeight() {
         return NarutoSettings.WORLD_MAX_HEIGHT.read(CONFIG);
-    }
-
-    public static double worldBufferSeconds() {
-        return NarutoSettings.WORLD_BUFFER_SECONDS.read(CONFIG);
     }
 
     public static int worldActiveDistance() {

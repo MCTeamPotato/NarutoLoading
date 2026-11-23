@@ -41,7 +41,7 @@ public final class EarlyResolver {
 
             AudioArgs audio = resolved.audio;
 
-            return (EarlyVideo) Class.forName("me.kall.narutoloading.agent.EarlyVideoImpl", true, loader).getMethod("create", String.class, String.class, int.class, int.class, double.class, double.class, double.class, String.class, int.class, int.class, double.class, double.class, float.class, double.class).invoke(null,
+            return (EarlyVideo) Class.forName("me.kall.narutoloading.agent.EarlyVideoImpl", true, loader).getMethod("create", String.class, String.class, int.class, int.class, double.class, double.class, double.class, String.class, int.class, int.class, double.class, double.class, float.class).invoke(null,
                     resolved.ffmpeg,
                     resolved.video.absPath(),
                     resolved.video.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()),
@@ -54,8 +54,7 @@ public final class EarlyResolver {
                     audio == null ? 0 : audio.sampleRate(),
                     audio == null ? 0D : audio.startSec(),
                     audio == null ? 0D : audio.duration(),
-                    resolved.volume,
-                    resolved.bufferSeconds);
+                    resolved.volume);
         } catch (Throwable throwable) {
             System.err.println("[NarutoLoading Agent] Failed to create the early video: " + throwable.getMessage());
             return null;

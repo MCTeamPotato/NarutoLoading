@@ -12,7 +12,6 @@ public final class NarutoSettings {
     public static final Setting<String> FFMPEG_DIR = Setting.text(NarutoConfig.FFMPEG_DIR, "", false);
     public static final Setting<String> YTDLP_DIR = Setting.text(NarutoConfig.YTDLP_DIR, "", false);
     public static final Setting<String> SOURCES_DIR = Setting.text(NarutoConfig.SOURCES_DIR, "narutoloading", true);
-    public static final Setting<Double> BUFFER_SECONDS = Setting.decimal(NarutoConfig.BUFFER_SECONDS, 1D, true);
     public static final Setting<MediaRepository.Mode> SELECT_MODE = Setting.mapped(NarutoConfig.SELECT_MODE, MediaRepository.Mode.RANDOM, MediaRepository.Mode::parse, mode -> mode.name().toLowerCase(Locale.ROOT), true);
     public static final Setting<String> FIXED_NAME = Setting.text(NarutoConfig.FIXED_NAME, "", true);
     public static final Setting<Boolean> MUTE_MUSIC = Setting.bool(NarutoConfig.MUTE_MUSIC, true, false);
@@ -30,7 +29,6 @@ public final class NarutoSettings {
     public static final Setting<Integer> FADE_IN_STEP = Setting.integer(NarutoConfig.FADE_IN_STEP, 5, false);
     public static final Setting<Integer> WORLD_MAX_WIDTH = Setting.integer(NarutoConfig.WORLD_MAX_WIDTH, 1280, true);
     public static final Setting<Integer> WORLD_MAX_HEIGHT = Setting.integer(NarutoConfig.WORLD_MAX_HEIGHT, 720, true);
-    public static final Setting<Double> WORLD_BUFFER_SECONDS = Setting.decimal(NarutoConfig.WORLD_BUFFER_SECONDS, 1.0D, true);
     public static final Setting<Integer> WORLD_ACTIVE_DISTANCE = Setting.integer(NarutoConfig.WORLD_ACTIVE_DISTANCE, 48, false);
     public static final Setting<Integer> WORLD_MAX_ACTIVE = Setting.integer(NarutoConfig.WORLD_MAX_ACTIVE, 4, false);
     public static final Setting<Boolean> WORLD_CULL_INVISIBLE = Setting.bool(NarutoConfig.WORLD_CULL_INVISIBLE, true, false);
@@ -48,7 +46,6 @@ public final class NarutoSettings {
             FFMPEG_DIR,
             YTDLP_DIR,
             SOURCES_DIR,
-            BUFFER_SECONDS,
             SELECT_MODE,
             FIXED_NAME,
             MUTE_MUSIC,
@@ -66,7 +63,6 @@ public final class NarutoSettings {
             FADE_IN_STEP,
             WORLD_MAX_WIDTH,
             WORLD_MAX_HEIGHT,
-            WORLD_BUFFER_SECONDS,
             WORLD_ACTIVE_DISTANCE,
             WORLD_MAX_ACTIVE,
             WORLD_CULL_INVISIBLE,

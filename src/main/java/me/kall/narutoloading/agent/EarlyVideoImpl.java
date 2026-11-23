@@ -25,14 +25,14 @@ public final class EarlyVideoImpl implements EarlyVideo {
     private volatile boolean closed;
     private long lastFrameIndex = -1L;
 
-    private EarlyVideoImpl(String ffmpeg, VideoArgs video, AudioArgs audioArgs, float volume, double bufferSeconds) {
+    private EarlyVideoImpl(String ffmpeg, VideoArgs video, AudioArgs audioArgs, float volume) {
         this.video = video;
 
         AudioProducer created = null;
 
         if (audioArgs != null && volume > 0F) {
             try {
-                created = new AudioProducer(ffmpeg, volume, audioArgs, bufferSeconds);
+                created = new AudioProducer(ffmpeg, volume, audioArgs);
                 created.setup(0D);
             } catch (Throwable throwable) {
                 System.err.println("[NarutoLoading Agent] Early audio disabled: " + throwable.getMessage());
@@ -42,7 +42,7 @@ public final class EarlyVideoImpl implements EarlyVideo {
 
         this.audio = created;
 
-        this.producer = new BufferFrameProducer(ffmpeg, video, false, bufferSeconds);
+        this.producer = new BufferFrameProducer(ffmpeg, video, false);
         this.producer.withWarmListener(this::onWarm);
         this.producer.setup(0D);
         this.producer.eager();
@@ -50,11 +50,11 @@ public final class EarlyVideoImpl implements EarlyVideo {
         this.renderer.setup(video.scaledWidth(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), video.scaledHeight(NarutoConfig.limitWidth(), NarutoConfig.limitHeight()), 0D, false);
     }
 
-    public static @NotNull EarlyVideo create(String ffmpeg, String videoPath, int width, int height, double fps, double duration, double startSec, String audioPath, int channels, int sampleRate, double audioStartSec, double audioDuration, float volume, double bufferSeconds) {
+    public static @NotNull EarlyVideo create(String ffmpeg, String videoPath, int width, int height, double fps, double duration, double startSec, String audioPath, int channels, int sampleRate, double audioStartSec, double audioDuration, float volume) {
         VideoArgs video = new VideoArgs(videoPath, fps, width, height, duration, startSec);
         AudioArgs audio = audioPath != null && channels > 0 && sampleRate > 0 ? new AudioArgs(audioPath, channels, sampleRate, audioStartSec, audioDuration) : null;
 
-        return new EarlyVideoImpl(ffmpeg, video, audio, volume, bufferSeconds);
+        return new EarlyVideoImpl(ffmpeg, video, audio, volume);
     }
 
     private void onWarm() {

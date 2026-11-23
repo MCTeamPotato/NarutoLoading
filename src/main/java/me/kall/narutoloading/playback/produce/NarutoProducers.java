@@ -11,26 +11,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class NarutoProducers {
-    /**
-     * Per-wall budget. Four active 4K walls at the client-UI budget would reserve 2GB of native
-     * frame buffers, so walls get a smaller budget each.
-     */
     private static final long WORLD_MAX_BUFFER_BYTES = 256L * 1024L * 1024L;
+
+    private static final int WORLD_BUFFER_FRAMES = 8;
 
     private NarutoProducers() {}
 
     @Contract("_, _ -> new")
     public static @NotNull AudioProducer buildAudio(@Nullable String ffmpeg, AudioArgs audioArgs) {
-        return new AudioProducer(ffmpeg, NarutoConfig.volume(), audioArgs, NarutoConfig.bufferSeconds());
+        return new AudioProducer(ffmpeg, NarutoConfig.volume(), audioArgs);
     }
 
     @Contract("_, _ -> new")
     public static @NotNull BufferFrameProducer buildBuffer(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new BufferFrameProducer(ffmpeg, videoArgs, LevelStatus.notFound(), NarutoConfig.bufferSeconds());
+        return new BufferFrameProducer(ffmpeg, videoArgs, LevelStatus.notFound());
     }
 
     @Contract("_, _ -> new")
     public static @NotNull BufferFrameProducer buildWorldBuffer(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldBufferSeconds(), NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight(), WORLD_MAX_BUFFER_BYTES);
+        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight(), WORLD_MAX_BUFFER_BYTES, WORLD_BUFFER_FRAMES);
     }
 }

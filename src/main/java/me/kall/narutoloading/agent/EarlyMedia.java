@@ -17,14 +17,12 @@ final class EarlyMedia {
     final VideoArgs video;
     final AudioArgs audio;
     final float volume;
-    final double bufferSeconds;
 
-    private EarlyMedia(String ffmpeg, VideoArgs video, AudioArgs audio, float volume, double bufferSeconds) {
+    private EarlyMedia(String ffmpeg, VideoArgs video, AudioArgs audio, float volume) {
         this.ffmpeg = ffmpeg;
         this.video = video;
         this.audio = audio;
         this.volume = volume;
-        this.bufferSeconds = bufferSeconds;
     }
 
     static @Nullable EarlyMedia resolve() {
@@ -47,6 +45,6 @@ final class EarlyMedia {
 
         AudioArgs audio = tools.deriveAudio(source.audio() != null ? source.audio() : source.video());
 
-        return new EarlyMedia(ffmpeg, video, audio, NarutoConfig.volume(), Math.max(1D, NarutoConfig.bufferSeconds()));
+        return new EarlyMedia(ffmpeg, video, audio, NarutoConfig.volume());
     }
 }

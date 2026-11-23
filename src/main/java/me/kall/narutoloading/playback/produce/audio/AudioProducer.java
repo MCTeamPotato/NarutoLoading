@@ -17,6 +17,7 @@ import java.util.concurrent.locks.LockSupport;
 
 public final class AudioProducer extends AbstractProducer {
     private static final double CHUNK_SECOND = 0.1D;
+    private static final double PRE_ROLL_SECONDS = 1D;
     private static final AtomicBoolean DEVICE_FAILURE_REPORTED = new AtomicBoolean();
 
     private final AtomicInteger volume;
@@ -32,7 +33,7 @@ public final class AudioProducer extends AbstractProducer {
 
     private final long chunkNanos;
 
-    public AudioProducer(String ffmpeg, float volume, @NotNull AudioArgs args, double bufferSeconds) {
+    public AudioProducer(String ffmpeg, float volume, @NotNull AudioArgs args) {
         this.ffmpeg = ffmpeg;
 
         this.volume = new AtomicInteger(Float.floatToIntBits(volume));
@@ -41,7 +42,7 @@ public final class AudioProducer extends AbstractProducer {
         this.openALFormat = args.channels() == 1 ? AL11.AL_FORMAT_MONO16 : AL11.AL_FORMAT_STEREO16;
 
         this.chunkSamples = Math.max(1, (int) Math.round(args.sampleRate() * CHUNK_SECOND));
-        this.preRoll = Math.max(1, (int) Math.round(bufferSeconds / CHUNK_SECOND));
+        this.preRoll = Math.max(1, (int) Math.round(PRE_ROLL_SECONDS / CHUNK_SECOND));
         this.chunkNanos = (long) ((double) this.chunkSamples / args.sampleRate() * 1_000_000_000D);
     }
 

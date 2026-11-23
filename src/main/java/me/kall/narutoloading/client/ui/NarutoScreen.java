@@ -67,8 +67,7 @@ public final class NarutoScreen {
      */
     private static final Set<Setting<?>> PLAYBACK_SETTINGS = Set.of(
             NarutoSettings.MAX_VIDEO_WIDTH,
-            NarutoSettings.MAX_VIDEO_HEIGHT,
-            NarutoSettings.BUFFER_SECONDS);
+            NarutoSettings.MAX_VIDEO_HEIGHT);
 
     private static @Nullable NarutoScreen OPEN;
 
