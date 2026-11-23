@@ -6,6 +6,7 @@ import icyllis.modernui.view.View;
 import icyllis.modernui.widget.Button;
 import icyllis.modernui.widget.TextView;
 import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.client.ui.util.Folders;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.core.tool.ToolRegistry;

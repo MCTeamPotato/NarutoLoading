@@ -5,6 +5,7 @@ import me.kall.narutoloading.playback.ClientUiTV;
 import me.kall.narutoloading.playback.early.EarlySessionHandoff;
 import me.kall.narutoloading.playback.early.PlaybackSession;
 import me.kall.narutoloading.playback.produce.util.TimeLine;
+import org.jetbrains.annotations.NotNull;
 
 public final class ClientUiControl {
     private static final double PREWARM_SECONDS = 0.8D;
@@ -12,7 +13,7 @@ public final class ClientUiControl {
     private ClientUiControl() {
     }
 
-    public static ClientUiTV<?> active() {
+    public static @NotNull ClientUiTV<?> active() {
         return NarutoContext.get().clientUi();
     }
 

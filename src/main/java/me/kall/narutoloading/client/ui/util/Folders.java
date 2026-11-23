@@ -1,4 +1,4 @@
-package me.kall.narutoloading.client.ui;
+package me.kall.narutoloading.client.ui.util;
 
 import net.minecraft.Util;
 import org.jetbrains.annotations.NotNull;
@@ -10,10 +10,10 @@ import java.nio.file.Path;
 /**
  * Opens a local folder in the system file browser, creating it first when missing.
  */
-final class Folders {
+public final class Folders {
     private Folders() {}
 
-    static void open(@NotNull Path folder) {
+    public static void open(@NotNull Path folder) {
         try {
             Files.createDirectories(folder);
         } catch (IOException exception) {

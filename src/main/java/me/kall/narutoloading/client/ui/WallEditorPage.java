@@ -1,5 +1,6 @@
 package me.kall.narutoloading.client.ui;
 
+import me.kall.narutoloading.client.ui.util.SaveDebouncer;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.network.NarutoNetwork;

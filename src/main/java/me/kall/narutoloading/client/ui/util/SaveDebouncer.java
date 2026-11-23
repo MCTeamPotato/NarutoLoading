@@ -1,4 +1,4 @@
-package me.kall.narutoloading.client.ui;
+package me.kall.narutoloading.client.ui.util;
 
 import icyllis.modernui.view.View;
 import org.jetbrains.annotations.NotNull;
@@ -8,17 +8,17 @@ import org.jetbrains.annotations.Nullable;
  * Collapses rapid setting changes into one save, posted from the page's content view so the
  * save lands on the UI thread after the user stops dragging.
  */
-final class SaveDebouncer {
+public final class SaveDebouncer {
     private static final long DELAY = 400L;
 
     private @Nullable View anchor;
     private int generation;
 
-    void anchor(@Nullable View view) {
+    public void anchor(@Nullable View view) {
         this.anchor = view;
     }
 
-    void schedule(@NotNull Runnable save) {
+    public void schedule(@NotNull Runnable save) {
         int current = ++this.generation;
 
         View view = this.anchor;
