@@ -15,7 +15,6 @@ import me.kall.narutoui.mui.layout.MuiLayout;
 import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import me.kall.narutoui.mui.theme.MuiTheme;
 import me.kall.narutoui.mui.util.MuiFilePicker;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import org.jetbrains.annotations.Contract;
@@ -23,16 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The shared media library: what the loading screen plays next, the files on disk, how the next
- * entry is picked and the yt-dlp download card.
- */
 final class MediaPage implements SettingsPageBuilder {
     private final NarutoScreen screen;
     private final NarutoContext context;
@@ -172,19 +165,7 @@ final class MediaPage implements SettingsPageBuilder {
     }
 
     private void openFolder() {
-        Path folder = this.folder();
-
-        try {
-            Files.createDirectories(folder);
-        } catch (IOException exception) {
-            System.err.println("[NarutoLoading] Exception creating " + folder + ": " + exception.getMessage());
-        }
-
-        try {
-            Util.getPlatform().openFile(folder.toFile());
-        } catch (Throwable throwable) {
-            System.err.println("[NarutoLoading] Exception opening " + folder + ": " + throwable.getMessage());
-        }
+        Folders.open(this.folder());
     }
 
     private @NotNull Path folder() {

@@ -20,9 +20,7 @@ final class NarutoTheme {
 
     static @NotNull MuiTheme resolve(@Nullable String id, @NotNull Context context) {
         MuiColorScheme scheme = MuiColorSchemes.byId(id);
-        return scheme == null
-                ? MuiTheme.modern(context)
-                : scheme.theme().toTheme(MuiTheme.DEFAULT_CORNER_RADIUS, MuiTheme.DEFAULT_SPACING);
+        return scheme == null ? MuiTheme.modern(context) : scheme.theme().toTheme(MuiTheme.DEFAULT_CORNER_RADIUS, MuiTheme.DEFAULT_SPACING);
     }
 
     static int @NotNull [] ramp(@Nullable String id) {
@@ -39,12 +37,10 @@ final class NarutoTheme {
         List<MuiColorScheme> schemes = MuiColorSchemes.all();
         List<MuiOption<String>> options = new ArrayList<>(schemes.size() + 1);
 
-        options.add(MuiOption.of(AUTO, "narutoloading.general.theme.auto")
-                .preview((context, theme) -> MuiSchemeSwatch.modern(context)));
+        options.add(MuiOption.of(AUTO, "narutoloading.general.theme.auto").preview((context, theme) -> MuiSchemeSwatch.modern(context)));
 
         for (MuiColorScheme scheme : schemes) {
-            options.add(MuiOption.of(scheme.id(), name(scheme))
-                    .preview((context, theme) -> MuiSchemeSwatch.of(context, scheme.theme())));
+            options.add(MuiOption.of(scheme.id(), name(scheme)).preview((context, theme) -> MuiSchemeSwatch.of(context, scheme.theme())));
         }
 
         return options;

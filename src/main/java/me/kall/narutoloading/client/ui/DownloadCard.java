@@ -5,11 +5,10 @@ import icyllis.modernui.mc.MuiModApi;
 import icyllis.modernui.view.View;
 import icyllis.modernui.widget.Button;
 import icyllis.modernui.widget.TextView;
+import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.config.NarutoConfig;
-import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.core.tool.ToolRegistry;
-import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.media.MediaNaming;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.media.download.DownloadService;
@@ -22,7 +21,6 @@ import me.kall.narutoui.mui.screen.MuiSettingsSection;
 import me.kall.narutoui.mui.theme.MuiTheme;
 import me.kall.narutoui.mui.util.MuiFilePicker;
 import me.kall.narutoui.mui.widget.MuiCollapsibleCard;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +36,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
-/**
- * The "add media from a link" card on the media page. It owns the yt-dlp form, its progress log
- * and the tool status, so downloading is never a separate top-level page.
- */
 final class DownloadCard {
     private static final String STATE_KEY = "narutoloading.media.download";
 
@@ -371,18 +365,7 @@ final class DownloadCard {
     }
 
     private void openFolder() {
-        Path outputDirectory = this.outputDirectory();
-        try {
-            Files.createDirectories(outputDirectory);
-        } catch (IOException exception) {
-            System.err.println("[NarutoLoading] Exception creating " + outputDirectory + ": " + exception.getMessage());
-        }
-
-        try {
-            Util.getPlatform().openFile(outputDirectory.toFile());
-        } catch (Throwable throwable) {
-            System.err.println("[NarutoLoading] Exception opening " + outputDirectory + ": " + throwable.getMessage());
-        }
+        Folders.open(this.outputDirectory());
     }
 
     private @NotNull Path outputDirectory() {

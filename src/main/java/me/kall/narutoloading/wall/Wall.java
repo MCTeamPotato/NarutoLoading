@@ -162,19 +162,19 @@ public final class Wall {
     }
 
     public int faceWidth() {
-        return switch (this.axisThickness) {
-            case X -> this.widthZ;
-            case Y -> this.widthX;
-            default -> this.widthX;
-        };
+        if (this.axisThickness == Direction.Axis.X) {
+            return this.widthZ;
+        } else {
+            return this.widthX;
+        }
     }
 
     public int faceHeight() {
-        return switch (this.axisThickness) {
-            case X -> this.widthY;
-            case Y -> this.widthZ;
-            default -> this.widthY;
-        };
+        if (this.axisThickness == Direction.Axis.Y) {
+            return this.widthZ;
+        } else {
+            return this.widthY;
+        }
     }
 
     @Contract(" -> new")

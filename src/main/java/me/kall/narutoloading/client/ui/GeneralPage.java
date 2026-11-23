@@ -25,10 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 
-/**
- * Everything that is not tied to one player: the screen theme, the shimmer effect, the external
- * programs both players depend on, and the advanced/about blocks.
- */
 final class GeneralPage implements SettingsPageBuilder {
     private final NarutoScreen screen;
     private final NarutoContext context;
@@ -50,11 +46,11 @@ final class GeneralPage implements SettingsPageBuilder {
                         .choiceGridBound("narutoloading.general.theme", "narutoloading.general.theme.desc", NarutoTheme.options(), () -> NarutoTheme.normalized(state.get(NarutoSettings.THEME)), value -> this.screen.set(NarutoSettings.THEME, value)))
                 .section("narutoloading.general.section.shimmer", section -> section
                         .toggle("narutoloading.general.shimmer", "narutoloading.general.shimmer.desc", () -> state.get(NarutoSettings.SHIMMER), value -> this.screen.set(NarutoSettings.SHIMMER, value))
-                        .slider("narutoloading.general.shimmerSpeed", "narutoloading.general.shimmerSpeed.desc", 0.2D, 3.0D, 0.1D, () -> state.get(NarutoSettings.SHIMMER_SPEED), value -> this.screen.set(NarutoSettings.SHIMMER_SPEED, value), value -> format(value))
+                        .slider("narutoloading.general.shimmerSpeed", "narutoloading.general.shimmerSpeed.desc", 0.2D, 3.0D, 0.1D, () -> state.get(NarutoSettings.SHIMMER_SPEED), value -> this.screen.set(NarutoSettings.SHIMMER_SPEED, value), GeneralPage::format)
                         .enabledWhen(() -> state.get(NarutoSettings.SHIMMER))
-                        .slider("narutoloading.general.shimmerScale", "narutoloading.general.shimmerScale.desc", 0.2D, 3.0D, 0.1D, () -> state.get(NarutoSettings.SHIMMER_SCALE), value -> this.screen.set(NarutoSettings.SHIMMER_SCALE, value), value -> format(value))
+                        .slider("narutoloading.general.shimmerScale", "narutoloading.general.shimmerScale.desc", 0.2D, 3.0D, 0.1D, () -> state.get(NarutoSettings.SHIMMER_SCALE), value -> this.screen.set(NarutoSettings.SHIMMER_SCALE, value), GeneralPage::format)
                         .enabledWhen(() -> state.get(NarutoSettings.SHIMMER))
-                        .slider("narutoloading.general.shimmerStrength", "narutoloading.general.shimmerStrength.desc", 0.0D, 1.0D, 0.05D, () -> state.get(NarutoSettings.SHIMMER_STRENGTH), value -> this.screen.set(NarutoSettings.SHIMMER_STRENGTH, value), value -> format(value))
+                        .slider("narutoloading.general.shimmerStrength", "narutoloading.general.shimmerStrength.desc", 0.0D, 1.0D, 0.05D, () -> state.get(NarutoSettings.SHIMMER_STRENGTH), value -> this.screen.set(NarutoSettings.SHIMMER_STRENGTH, value), GeneralPage::format)
                         .enabledWhen(() -> state.get(NarutoSettings.SHIMMER))
                         .slider("narutoloading.general.shimmerFps", "narutoloading.general.shimmerFps.desc", 5, 120, () -> state.get(NarutoSettings.SHIMMER_FPS), value -> this.screen.set(NarutoSettings.SHIMMER_FPS, value), Integer::toString)
                         .enabledWhen(() -> state.get(NarutoSettings.SHIMMER)))

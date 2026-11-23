@@ -45,29 +45,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * The single configuration screen of the mod.
- * <p>
- * It has two entry modes. Opening it from the mod list (or with Ctrl+V) shows the four global
- * pages: media, loading screen, world walls and general. Sneak-right-clicking a wall opens the
- * single-page wall editor instead, so per-wall controls never appear next to loading-screen
- * settings.
- * <p>
- * Every control writes its setting as soon as it changes. A bottom status bar reports the save and
- * offers a one-step undo; there is no draft, no apply button and no unsaved-changes dialog.
- */
 public final class NarutoScreen {
     private static final long STATUS_MILLIS = 4500L;
     private static final long SAVE_DELAY_MILLIS = 400L;
     private static final long PLAYBACK_DELAY_MILLIS = 700L;
 
-    /**
-     * Settings that change how the loading-screen player decodes. They are persisted immediately
-     * but the player is only rebuilt after the user stops dragging.
-     */
-    private static final Set<Setting<?>> PLAYBACK_SETTINGS = Set.of(
-            NarutoSettings.MAX_VIDEO_WIDTH,
-            NarutoSettings.MAX_VIDEO_HEIGHT);
+    private static final Set<Setting<?>> PLAYBACK_SETTINGS = Set.of(NarutoSettings.MAX_VIDEO_WIDTH, NarutoSettings.MAX_VIDEO_HEIGHT);
 
     private static @Nullable NarutoScreen OPEN;
 
@@ -119,25 +102,10 @@ public final class NarutoScreen {
         return create(parent, null);
     }
 
-    /**
-     * Opens the global pages. A non-blank link opens the media page with the download card expanded
-     * and the link filled in.
-     *
-     * @param parent previous screen
-     * @param link   clipboard link, or {@code null}
-     * @return the created screen
-     */
     public static @NotNull Screen create(@Nullable Screen parent, @Nullable String link) {
         return new NarutoScreen(link, null, NarutoContext.get()).build(parent);
     }
 
-    /**
-     * Opens the single-page editor for one wall.
-     *
-     * @param parent previous screen
-     * @param wall   wall to edit, or {@code null} for the global pages
-     * @return the created screen
-     */
     public static @NotNull Screen createForWall(@Nullable Screen parent, @Nullable Wall wall) {
         if (wall == null) return create(parent);
         return new NarutoScreen(null, wall, NarutoContext.get()).build(parent);
@@ -219,11 +187,6 @@ public final class NarutoScreen {
         if (audio != null) audio.volume(this.state.get(NarutoSettings.AUDIO_VOLUME));
     }
 
-    /**
-     * Returns the resolved media folder using the value currently shown in the screen.
-     *
-     * @return the absolute media folder
-     */
     @NotNull Path sourcesFolder() {
         try {
             return GamePaths.resolve(Path.of(this.state.get(NarutoSettings.SOURCES_DIR)));
@@ -232,11 +195,6 @@ public final class NarutoScreen {
         }
     }
 
-    /**
-     * The media list is built by a background scan, so the first page can open while it is still
-     * empty. Reload the page once that scan finishes so the count and the entry list appear
-     * without the player having to import something first.
-     */
     private void ensureMediaScanned() {
         if (!this.context.media().all().isEmpty()) return;
 
@@ -246,9 +204,6 @@ public final class NarutoScreen {
         }));
     }
 
-    /**
-     * Rescans the media folder after the user confirms a new path.
-     */
     void reloadSources() {
         Minecraft minecraft = Minecraft.getInstance();
         Runnable task = () -> this.context.media().refresh(() -> minecraft.execute(() -> {
@@ -266,21 +221,13 @@ public final class NarutoScreen {
         }
     }
 
-    /**
-     * Changes one setting, persists it after a short quiet period and reports the result.
-     *
-     * @param setting the setting
-     * @param value   the new value
-     * @param <T>     the value type
-     * @return {@code true} when the value actually changed
-     */
-    <T> boolean set(@NotNull Setting<T> setting, T value) {
-        return this.set(setting, value, true);
+    <T> void set(@NotNull Setting<T> setting, T value) {
+        this.set(setting, value, true);
     }
 
-    private <T> boolean set(@NotNull Setting<T> setting, T value, boolean recordUndo) {
+    private <T> void set(@NotNull Setting<T> setting, T value, boolean recordUndo) {
         T previous = this.state.get(setting);
-        if (Objects.equals(previous, value)) return false;
+        if (Objects.equals(previous, value)) return;
 
         if (recordUndo && !this.bulk && this.undoSetting != setting) {
             this.undoSetting = setting;
@@ -289,12 +236,8 @@ public final class NarutoScreen {
 
         this.state.set(setting, value);
         this.changed(setting);
-        return true;
     }
 
-    /**
-     * Restores every setting to its default and applies the result in one pass.
-     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     void resetDefaults() {
         this.undoAction = null;
@@ -331,11 +274,6 @@ public final class NarutoScreen {
         this.showStatus(I18n.get("narutoloading.status.reset"), false);
     }
 
-    /**
-     * Shows a short status message in the bottom bar.
-     *
-     * @param text the message
-     */
     void status(@NotNull CharSequence text) {
         if (this.destroyed) return;
         this.showStatus(text, false);
@@ -360,11 +298,7 @@ public final class NarutoScreen {
     }
 
     private static boolean isShimmer(@NotNull Setting<?> setting) {
-        return setting == NarutoSettings.SHIMMER
-                || setting == NarutoSettings.SHIMMER_SPEED
-                || setting == NarutoSettings.SHIMMER_SCALE
-                || setting == NarutoSettings.SHIMMER_STRENGTH
-                || setting == NarutoSettings.SHIMMER_FPS;
+        return setting == NarutoSettings.SHIMMER || setting == NarutoSettings.SHIMMER_SPEED || setting == NarutoSettings.SHIMMER_SCALE || setting == NarutoSettings.SHIMMER_STRENGTH || setting == NarutoSettings.SHIMMER_FPS;
     }
 
     private void scheduleSave() {
@@ -478,7 +412,7 @@ public final class NarutoScreen {
         TextView view = this.statusView;
         if (bar == null || view == null) return;
 
-        view.setText(this.statusText);
+        if (this.statusText != null) view.setText(this.statusText);
         bar.setVisibility(View.VISIBLE);
         if (this.undoButton != null) {
             this.undoButton.setVisibility(undoable && this.undoAction != null ? View.VISIBLE : View.GONE);

@@ -64,10 +64,6 @@ public final class ProcessRunner {
         void handle(@NotNull InputStream input) throws IOException, InterruptedException;
     }
 
-    /**
-     * Opens the byte stream that carries the process' stdout. Defaults to the process pipe, but a
-     * producer can hand out another transport instead (see {@link #openInput(Process)}).
-     */
     public interface InputSource {
         @NotNull InputStream open(@NotNull Process process) throws IOException;
     }

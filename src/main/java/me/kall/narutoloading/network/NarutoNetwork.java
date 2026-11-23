@@ -11,7 +11,6 @@ import me.kall.narutoloading.network.message.WallUpdateMessage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-import org.jetbrains.annotations.NotNull;
 
 public final class NarutoNetwork {
     public static final String PROTOCOL_VERSION = "1";

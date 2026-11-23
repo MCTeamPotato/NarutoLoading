@@ -1,7 +1,6 @@
 package me.kall.narutoloading.client.ui;
 
 import icyllis.modernui.mc.MuiModApi;
-import icyllis.modernui.view.View;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.network.NarutoNetwork;
@@ -46,8 +45,7 @@ final class WallsPage implements SettingsPageBuilder {
     private boolean pendingLight;
     private boolean dirty;
 
-    private @Nullable View anchor;
-    private int sendGeneration;
+    private final SaveDebouncer saver = new SaveDebouncer();
 
     WallsPage(@NotNull NarutoScreen screen, @NotNull NarutoContext context) {
         this.screen = screen;
@@ -58,7 +56,7 @@ final class WallsPage implements SettingsPageBuilder {
     public void build(@NotNull MuiSettingsPage page) {
         page.shimmerAll();
 
-        this.anchor = page.context().content();
+        this.saver.anchor(page.context().content());
 
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
@@ -178,17 +176,7 @@ final class WallsPage implements SettingsPageBuilder {
 
     private void markDirty() {
         this.dirty = true;
-
-        int generation = ++this.sendGeneration;
-        View view = this.anchor;
-        if (view == null) {
-            this.send();
-            return;
-        }
-
-        view.postDelayed(() -> {
-            if (generation == this.sendGeneration) this.send();
-        }, 400L);
+        this.saver.schedule(this::send);
     }
 
     private void send() {

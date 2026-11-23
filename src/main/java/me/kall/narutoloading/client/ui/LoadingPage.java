@@ -4,9 +4,6 @@ import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Loading-screen player (ClientUiTV) settings. Nothing in this page affects the in-world walls.
- */
 final class LoadingPage implements SettingsPageBuilder {
     private final NarutoScreen screen;
 

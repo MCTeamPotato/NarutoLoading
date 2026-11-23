@@ -7,13 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Live copy of the client settings used by the screen.
- * <p>
- * Settings are written to disk as soon as they change, so this type only keeps the values that
- * widgets read while the screen is open. It used to work as a draft with a separate saved map;
- * the immediate-save model removed that distinction.
- */
+
 final class NarutoSettingsState {
     private final Map<Setting<?>, Object> values;
 

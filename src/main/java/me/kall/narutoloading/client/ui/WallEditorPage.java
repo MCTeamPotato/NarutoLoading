@@ -1,6 +1,5 @@
 package me.kall.narutoloading.client.ui;
 
-import icyllis.modernui.view.View;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.media.MediaRepository;
 import me.kall.narutoloading.network.NarutoNetwork;
@@ -18,15 +17,10 @@ import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Single-purpose editor opened by sneak-right-clicking a wall. It only contains that wall's
- * controls; global settings and the loading-screen player stay in the main screen.
- */
 final class WallEditorPage implements SettingsPageBuilder {
     private final NarutoScreen screen;
     private final Wall wall;
@@ -36,8 +30,7 @@ final class WallEditorPage implements SettingsPageBuilder {
     private boolean light;
     private boolean dirty;
 
-    private @Nullable View anchor;
-    private int sendGeneration;
+    private final SaveDebouncer saver = new SaveDebouncer();
 
     WallEditorPage(@NotNull NarutoScreen screen, @NotNull Wall wall) {
         this.screen = screen;
@@ -60,7 +53,7 @@ final class WallEditorPage implements SettingsPageBuilder {
     public void build(@NotNull MuiSettingsPage page) {
         page.shimmerAll();
 
-        this.anchor = page.context().content();
+        this.saver.anchor(page.context().content());
 
         List<MuiOption<String>> options = new ArrayList<>();
         options.add(MuiOption.of("", I18n.get("narutoloading.wall.media.follow")));
@@ -100,17 +93,7 @@ final class WallEditorPage implements SettingsPageBuilder {
 
     private void markDirty() {
         this.dirty = true;
-
-        int generation = ++this.sendGeneration;
-        View view = this.anchor;
-        if (view == null) {
-            this.send();
-            return;
-        }
-
-        view.postDelayed(() -> {
-            if (generation == this.sendGeneration) this.send();
-        }, 400L);
+        this.saver.schedule(this::send);
     }
 
     private void send() {
