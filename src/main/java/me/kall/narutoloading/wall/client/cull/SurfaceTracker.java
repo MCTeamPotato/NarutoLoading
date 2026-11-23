@@ -1,5 +1,7 @@
 package me.kall.narutoloading.wall.client.cull;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.wall.geometry.WallGeometry;
 import net.minecraft.client.Minecraft;
@@ -12,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public final class SurfaceTracker {
     private static final double SAME_SURFACE = 0.01D;
     private static final int LIFETIME_FRAMES = 2;
 
-    private static final Map<WallGeometry.Coords, Integer> LIVE = new HashMap<>();
+    private static final Object2IntMap<WallGeometry.Coords> LIVE = new Object2IntOpenHashMap<>();
 
     private static volatile Snapshot snapshot = Snapshot.EMPTY;
 
@@ -34,8 +35,8 @@ public final class SurfaceTracker {
 
         if (!dimension.equals(SurfaceTracker.dimension)) reset(dimension);
 
-        Integer age = LIVE.put(coords, LIFETIME_FRAMES);
-        if (age != null) return;
+        int age = LIVE.put(coords, LIFETIME_FRAMES);
+        if (age != 0) return;
 
         publish();
         refresh(coords);
@@ -78,7 +79,7 @@ public final class SurfaceTracker {
         if (LIVE.isEmpty()) return;
 
         List<WallGeometry.Coords> expired = null;
-        Iterator<Map.Entry<WallGeometry.Coords, Integer>> iterator = LIVE.entrySet().iterator();
+        Iterator<Object2IntMap.Entry<WallGeometry.Coords>> iterator = LIVE.object2IntEntrySet().iterator();
 
         while (iterator.hasNext()) {
             Map.Entry<WallGeometry.Coords, Integer> entry = iterator.next();
