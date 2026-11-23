@@ -13,8 +13,6 @@ import org.jetbrains.annotations.Nullable;
 public final class NarutoProducers {
     private static final long WORLD_MAX_BUFFER_BYTES = 256L * 1024L * 1024L;
 
-    private static final int WORLD_BUFFER_FRAMES = 8;
-
     private NarutoProducers() {}
 
     @Contract("_, _ -> new")
@@ -29,6 +27,6 @@ public final class NarutoProducers {
 
     @Contract("_, _ -> new")
     public static @NotNull BufferFrameProducer buildWorldBuffer(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight(), WORLD_MAX_BUFFER_BYTES, WORLD_BUFFER_FRAMES);
+        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight(), WORLD_MAX_BUFFER_BYTES);
     }
 }

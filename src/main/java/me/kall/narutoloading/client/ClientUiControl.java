@@ -7,6 +7,8 @@ import me.kall.narutoloading.playback.early.PlaybackSession;
 import me.kall.narutoloading.playback.produce.util.TimeLine;
 
 public final class ClientUiControl {
+    private static final double PREWARM_SECONDS = 0.8D;
+
     private ClientUiControl() {
     }
 
@@ -28,6 +30,8 @@ public final class ClientUiControl {
         PlaybackSession session = EarlySessionHandoff.current();
 
         if (session != null) {
+            if (session.durationSec() - session.positionSec() <= PREWARM_SECONDS) active().prewarm(active().newVideoArgs());
+
             session.present(false);
             return;
         }
@@ -40,12 +44,6 @@ public final class ClientUiControl {
         active().synchronize(true, seekTo);
     }
 
-    /**
-     * Returns the playback position of the active session, or {@code 0} when nothing is playing.
-     * Use it to restart the video at the point the player was watching instead of rewinding it.
-     *
-     * @return the current position in seconds
-     */
     public static double positionSec() {
         PlaybackSession session = EarlySessionHandoff.current();
         if (session != null) return session.positionSec();

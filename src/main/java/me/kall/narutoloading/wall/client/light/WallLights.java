@@ -110,7 +110,9 @@ public final class WallLights {
         int budget = MAX_CHECKS_PER_FRAME;
 
         while (budget-- > 0 && !PENDING.isEmpty()) {
-            level.getLightEngine().checkBlock(BlockPos.of(PENDING.poll()));
+            Long next = PENDING.poll();
+            if (next == null) continue;
+            level.getLightEngine().checkBlock(BlockPos.of(next));
         }
     }
 

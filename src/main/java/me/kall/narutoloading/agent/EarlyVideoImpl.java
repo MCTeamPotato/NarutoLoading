@@ -93,6 +93,11 @@ public final class EarlyVideoImpl implements EarlyVideo {
     }
 
     @Override
+    public double durationSec() {
+        return this.video.duration();
+    }
+
+    @Override
     public boolean finished() {
         return this.closed || this.positionSec() >= this.video.duration();
     }

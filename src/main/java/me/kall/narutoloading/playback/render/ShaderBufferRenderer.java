@@ -27,12 +27,14 @@ public final class ShaderBufferRenderer implements FrameRenderer<ByteBuffer> {
 
     @Override
     public void setup(int width, int height, double seekTo, boolean ready) {
+        if (this.shader == null) this.shader = loadShader();
+
+        if (this.planes != null && this.planes.width() == width && this.planes.height() == height) return;
+
         if (this.planes != null) this.planes.close();
         this.planes = new YuvTextures(width, height);
 
         if (!ready) this.planes.upload(this.loading.get(width, height));
-
-        if (this.shader == null) this.shader = loadShader();
     }
 
     @Override

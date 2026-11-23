@@ -12,21 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class BufferFrameProducer extends AbstractFrameProducer<ByteBuffer> {
-    private static final double LOADING_BUFFER_SECONDS = 1D;
-
     private final Queue<ByteBuffer> free = new ConcurrentLinkedQueue<>();
     private final Set<ByteBuffer> all = ConcurrentHashMap.newKeySet();
 
     public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel) {
-        this(ffmpeg, videoArgs, gpuAccel, NarutoConfig.limitWidth(), NarutoConfig.limitHeight(), DEFAULT_MAX_BUFFER_BYTES, loadingFrames(videoArgs));
+        this(ffmpeg, videoArgs, gpuAccel, NarutoConfig.limitWidth(), NarutoConfig.limitHeight(), DEFAULT_MAX_BUFFER_BYTES);
     }
 
-    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, int maxWidth, int maxHeight, long maxBufferBytes, int targetFrames) {
-        super(ffmpeg, videoArgs, gpuAccel, frameSize(videoArgs, maxWidth, maxHeight), maxWidth, maxHeight, maxBufferBytes, targetFrames);
-    }
-
-    private static int loadingFrames(@NotNull VideoArgs args) {
-        return Math.max(1, (int) (args.fps() * LOADING_BUFFER_SECONDS));
+    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, int maxWidth, int maxHeight, long maxBufferBytes) {
+        super(ffmpeg, videoArgs, gpuAccel, frameSize(videoArgs, maxWidth, maxHeight), maxWidth, maxHeight, maxBufferBytes);
     }
 
     private static int frameSize(@NotNull VideoArgs args, int maxWidth, int maxHeight) {

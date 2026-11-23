@@ -6,6 +6,8 @@ public interface EarlyVideo {
 
     double positionSec();
 
+    double durationSec();
+
     boolean finished();
 
     void close();

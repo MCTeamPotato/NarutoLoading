@@ -30,6 +30,8 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     protected static final long DEFAULT_MAX_BUFFER_BYTES = 512L * 1024L * 1024L;
     private static final int WARM_FRAMES = 8;
 
+    private static final double TARGET_BUFFER_SECONDS = 1D;
+
     private static final int FRAME_SOCKET_BUFFER_BYTES = 4 * 1024 * 1024;
     private static final int FRAME_SOCKET_ACCEPT_TIMEOUT_MILLIS = 500;
     private static final long FRAME_SOCKET_ACCEPT_DEADLINE_NANOS = 10_000_000_000L;
@@ -65,7 +67,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     private final AtomicBoolean starved = new AtomicBoolean();
 
-    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, int maxWidth, int maxHeight, long maxBufferBytes, int targetFrames) {
+    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, int maxWidth, int maxHeight, long maxBufferBytes) {
         this.ffmpeg = ffmpeg;
 
         this.args = args;
@@ -75,7 +77,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         this.maxHeight = maxHeight;
 
         this.frameSize = frameSize;
-        this.bufferCapacity = bufferCapacity(targetFrames, frameSize, maxBufferBytes);
+        this.bufferCapacity = bufferCapacity(this.args.fps(), frameSize, maxBufferBytes);
         this.warmFrames = Math.min(this.bufferCapacity, WARM_FRAMES);
         this.frames = new LinkedBlockingQueue<>(this.bufferCapacity);
         this.nextReportNanos = System.nanoTime() + reportIntervalNanos();
@@ -304,8 +306,19 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         return Math.max(1, NarutoConfig.debugTimeCostsInterval()) * NANOS_PER_SECOND;
     }
 
-    private static int bufferCapacity(int targetFrames, int frameSize, long maxBufferBytes) {
-        return Math.min(Math.max(1, targetFrames), Math.max(1, (int) (maxBufferBytes / Math.max(1, frameSize))));
+    /**
+     * Bounds the queue by the target duration and by a native-memory budget. A 4K RGBA frame
+     * is about 25MB, so a two-second buffer would otherwise mean 3GB of live buffers per producer.
+     *
+     * @param fps            video frame rate
+     * @param frameSize      bytes per frame
+     * @param maxBufferBytes native-memory budget for this producer
+     * @return the number of frames to keep
+     */
+    private static int bufferCapacity(double fps, int frameSize, long maxBufferBytes) {
+        int bySeconds = Math.max(1, (int) (fps * TARGET_BUFFER_SECONDS));
+        int byBytes = Math.max(1, (int) (maxBufferBytes / Math.max(1, frameSize)));
+        return Math.min(bySeconds, byBytes);
     }
 
     private void warm() {

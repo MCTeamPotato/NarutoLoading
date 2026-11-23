@@ -72,6 +72,19 @@ public abstract class AbstractTV<T> {
         return video == null ? null : video.withWarmListener(() -> this.startClock(video, null));
     }
 
+    private @Nullable AbstractFrameProducer<T> prewarmVideo(@Nullable VideoArgs videoArgs) {
+        AbstractFrameProducer<T> video = this.buildVideo(videoArgs);
+        if (video != null) video.setup(0D);
+        return video;
+    }
+
+    public void prewarm(@Nullable VideoArgs videoArgs) {
+        if (videoArgs == null) return;
+        if (this.nextVideoTask.get() != null) return;
+
+        this.nextVideoTask.compareAndSet(null, CompletableFuture.supplyAsync(() -> this.prewarmVideo(videoArgs)));
+    }
+
     protected @Nullable AudioProducer buildAudio(@Nullable AudioArgs audioArgs) {
         if (audioArgs == null) return null;
         AudioProducer audio = this.createAudio(audioArgs);
@@ -210,10 +223,13 @@ public abstract class AbstractTV<T> {
             return;
         }
 
-        if (!timeLine.isStarted()) return;
+        if (!timeLine.isStarted()) {
+            if (video != null) this.renderer.render();
+            return;
+        }
 
         if (video != null) {
-            if (timeLine.nearEnd()) this.nextVideoTask.compareAndSet(null, CompletableFuture.supplyAsync(() -> this.buildVideo(video.args)));
+            if (timeLine.nearEnd()) this.prewarm(video.args);
 
             if (timeLine.due()) {
                 AbstractFrameProducer.Frame<T> frame = video.fetch(timeLine.positionSec());
@@ -230,6 +246,15 @@ public abstract class AbstractTV<T> {
     }
 
     public synchronized void shutdown(boolean next) {
+        this.stop(next, true);
+    }
+
+    public synchronized void synchronize(boolean next, double seekTo) {
+        this.stop(next, false);
+        this.setup(seekTo);
+    }
+
+    private void stop(boolean next, boolean releaseRenderer) {
         this.running.set(false);
         this.videoDelayed.set(false);
 
@@ -237,7 +262,7 @@ public abstract class AbstractTV<T> {
         AudioProducer audio = this.audio.getAndSet(null);
 
         this.timeLine.set(null);
-        this.renderer.shutdown();
+        if (releaseRenderer) this.renderer.shutdown();
 
         if (video != null) video.shutdown();
         if (audio != null) audio.shutdown();
@@ -258,10 +283,5 @@ public abstract class AbstractTV<T> {
                 });
             }
         }
-    }
-
-    public synchronized void synchronize(boolean next, double seekTo) {
-        this.shutdown(next);
-        this.setup(seekTo);
     }
 }

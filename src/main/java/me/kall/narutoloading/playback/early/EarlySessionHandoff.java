@@ -60,7 +60,15 @@ public final class EarlySessionHandoff {
                 position = null;
             }
 
-            session = new Borrowed(raw, type.getMethod("present", boolean.class), type.getMethod("finished"), position, type.getMethod("close"));
+            Method duration;
+            try {
+                duration = type.getMethod("durationSec");
+            } catch (NoSuchMethodException ignored) {
+                // Without a duration the client player cannot know when to prewarm; it starts on time.
+                duration = null;
+            }
+
+            session = new Borrowed(raw, type.getMethod("present", boolean.class), type.getMethod("finished"), position, duration, type.getMethod("close"));
         } catch (Throwable throwable) {
             System.err.println("[NarutoLoading] Unusable early video session: " + throwable.getMessage());
             return null;
@@ -93,7 +101,7 @@ public final class EarlySessionHandoff {
         }
     }
 
-    private record Borrowed(Object session, Method presentMethod, Method finishedMethod, @Nullable Method positionMethod, Method closeMethod) implements PlaybackSession {
+    private record Borrowed(Object session, Method presentMethod, Method finishedMethod, @Nullable Method positionMethod, @Nullable Method durationMethod, Method closeMethod) implements PlaybackSession {
         @Override
         public void present(boolean flipY) {
             try {
@@ -122,6 +130,18 @@ public final class EarlySessionHandoff {
                 return ((Number) method.invoke(this.session)).doubleValue();
             } catch (Throwable throwable) {
                 return 0D;
+            }
+        }
+
+        @Override
+        public double durationSec() {
+            Method method = this.durationMethod;
+            if (method == null) return Double.POSITIVE_INFINITY;
+
+            try {
+                return ((Number) method.invoke(this.session)).doubleValue();
+            } catch (Throwable throwable) {
+                return Double.POSITIVE_INFINITY;
             }
         }
 

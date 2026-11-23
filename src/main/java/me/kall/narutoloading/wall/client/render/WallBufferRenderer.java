@@ -60,6 +60,8 @@ public final class WallBufferRenderer implements FrameRenderer<ByteBuffer> {
 
     @Override
     public void setup(int width, int height, double seekTo, boolean ready) {
+        if (this.planes != null && this.width == width && this.height == height) return;
+
         this.width = width;
         this.height = height;
 
@@ -127,9 +129,6 @@ public final class WallBufferRenderer implements FrameRenderer<ByteBuffer> {
         this.release();
     }
 
-    /**
-     * Converts the three YUV planes into the RGBA texture attached to {@link #framebuffer}.
-     */
     private void convert() {
         YuvTextures planes = this.planes;
         ShaderInstance shader = WallShaders.shader();
@@ -166,9 +165,7 @@ public final class WallBufferRenderer implements FrameRenderer<ByteBuffer> {
 
         BufferBuilder builder = new BufferBuilder(256);
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        // The Y planes hold the frame with its first row at v=0, but framebuffer row 0 is the bottom
-        // of the viewport. Sampling this texture again uses v=0 for the top of the wall, so the
-        // frame is flipped here to make the two conventions meet.
+
         builder.vertex(pose, 0F, this.height, 0F).uv(0F, 0F).endVertex();
         builder.vertex(pose, this.width, this.height, 0F).uv(1F, 0F).endVertex();
         builder.vertex(pose, this.width, 0F, 0F).uv(1F, 1F).endVertex();

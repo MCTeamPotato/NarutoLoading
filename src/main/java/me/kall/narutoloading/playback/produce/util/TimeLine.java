@@ -128,7 +128,7 @@ public class TimeLine {
     }
 
     public boolean nearEnd() {
-        return (double) (this.duration - this.elapsed()) / NANO_TO_SEC <= 2.0D;
+        return (double) (this.duration - this.elapsed()) / NANO_TO_SEC <= 0.8D;
     }
 
     public boolean expired() {
