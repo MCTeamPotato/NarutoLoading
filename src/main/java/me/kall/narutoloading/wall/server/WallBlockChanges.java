@@ -1,13 +1,12 @@
 package me.kall.narutoloading.wall.server;
 
 import me.kall.duplicationless.event.BlockChangeEvent;
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallRemoveMessage;
 import me.kall.narutoloading.wall.Wall;
 import me.kall.narutoloading.wall.data.WallStorage;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public final class WallBlockChanges {
@@ -21,6 +20,6 @@ public final class WallBlockChanges {
         if (WallRules.isFrame(event.newState())) return;
 
         storage.remove(wall);
-        NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallRemoveMessage(wall.toLongArray()));
+        PacketDistributor.sendToPlayersInDimension(level, new WallRemoveMessage(wall.toLongArray()));
     }
 }

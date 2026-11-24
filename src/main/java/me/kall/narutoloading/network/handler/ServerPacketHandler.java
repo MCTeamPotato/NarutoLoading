@@ -1,7 +1,6 @@
 package me.kall.narutoloading.network.handler;
 
 import it.unimi.dsi.fastutil.longs.LongSet;
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallPutMessage;
 import me.kall.narutoloading.network.message.WallRemoveMessage;
 import me.kall.narutoloading.wall.server.ServerConfig;
@@ -12,7 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +49,7 @@ public final class ServerPacketHandler {
         wall.light = light;
         storage.update(wall);
 
-        NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallPutMessage(wall.toTag()));
+        PacketDistributor.sendToPlayersInDimension(level, new WallPutMessage(wall.toTag()));
     }
 
     public static void remove(@Nullable ServerPlayer player, long @NotNull [] corners) {
@@ -71,7 +70,7 @@ public final class ServerPacketHandler {
         }
 
         storage.remove(wall);
-        NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallRemoveMessage(wall.toLongArray()));
+        PacketDistributor.sendToPlayersInDimension(level, new WallRemoveMessage(wall.toLongArray()));
     }
 
     public static void clean(@Nullable ServerPlayer player, long @NotNull [] corners) {

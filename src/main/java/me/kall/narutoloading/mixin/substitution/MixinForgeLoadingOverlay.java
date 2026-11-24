@@ -10,9 +10,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.loading.ForgeLoadingOverlay;
-import net.minecraftforge.fml.earlydisplay.DisplayWindow;
-import net.minecraftforge.fml.loading.progress.ProgressMeter;
+import net.neoforged.neoforge.client.loading.NeoForgeLoadingOverlay;
+import net.neoforged.fml.earlydisplay.DisplayWindow;
+import net.neoforged.fml.loading.progress.ProgressMeter;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,13 +25,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-@Mixin(ForgeLoadingOverlay.class)
+@Mixin(NeoForgeLoadingOverlay.class)
 public abstract class MixinForgeLoadingOverlay {
-    @Shadow(remap = false) @Final private Minecraft minecraft;
-    @Shadow(remap = false) @Final private ReloadInstance reload;
-    @Shadow(remap = false) @Final private Consumer<Optional<Throwable>> onFinish;
+    @Shadow @Final private Minecraft minecraft;
+    @Shadow @Final private ReloadInstance reload;
+    @Shadow @Final private Consumer<Optional<Throwable>> onFinish;
     @Shadow(remap = false) @Final private DisplayWindow displayWindow;
-    @Shadow(remap = false) @Final private ProgressMeter progress;
+    @Shadow(remap = false) @Final private ProgressMeter progressMeter;
     @Shadow(remap = false) private long fadeOutStart;
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
@@ -42,7 +42,7 @@ public abstract class MixinForgeLoadingOverlay {
             ci.cancel();
             Minecraft minecraft = this.minecraft;
             ReloadInstance reload = this.reload;
-            ProgressMeter progress = this.progress;
+            ProgressMeter progress = this.progressMeter;
             long fadeOutStart = this.fadeOutStart;
 
             progress.setAbsolute(Mth.clamp((int) (reload.getActualProgress() * 100F), 0, 100));

@@ -2,8 +2,9 @@ package me.kall.narutoloading.playback.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.client.context.Graphics;
@@ -62,13 +63,17 @@ public final class ShaderBufferRenderer implements FrameRenderer<ByteBuffer> {
         float height = graphics.guiHeight();
         Matrix4f pose = graphics.pose().last().pose();
 
-        BufferBuilder builder = Tesselator.getInstance().getBuilder();
-        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        builder.vertex(pose, 0F, height, 0F).uv(0F, 1F).endVertex();
-        builder.vertex(pose, width, height, 0F).uv(1F, 1F).endVertex();
-        builder.vertex(pose, width, 0F, 0F).uv(1F, 0F).endVertex();
-        builder.vertex(pose, 0F, 0F, 0F).uv(0F, 0F).endVertex();
-        CustomShaderDraw.draw(shader, builder.end(), false);
+        try (ByteBufferBuilder byteBuffer = new ByteBufferBuilder(256)) {
+            BufferBuilder builder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            builder.addVertex(pose, 0F, height, 0F).setUv(0F, 1F);
+            builder.addVertex(pose, width, height, 0F).setUv(1F, 1F);
+            builder.addVertex(pose, width, 0F, 0F).setUv(1F, 0F);
+            builder.addVertex(pose, 0F, 0F, 0F).setUv(0F, 0F);
+
+            try (MeshData mesh = builder.build()) {
+                CustomShaderDraw.draw(shader, mesh, false);
+            }
+        }
     }
 
     @Override

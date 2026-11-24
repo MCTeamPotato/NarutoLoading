@@ -2,7 +2,7 @@ import net.darkhax.curseforgegradle.TaskPublishCurseForge
 import net.darkhax.curseforgegradle.UploadArtifact
 
 plugins {
-    id 'dev.architectury.loom' version '1.10-SNAPSHOT'
+    id 'dev.architectury.loom' version '1.17-SNAPSHOT'
     id "com.gradleup.shadow" version "8.3.9"
     id 'net.darkhax.curseforgegradle' version '1.1.+'
 }
@@ -66,7 +66,11 @@ dependencies {
 
     if (versionKeys.narutoui != null) modImplementation files("libs/narutoui/narutoui-${minecraft_version}-${versionKeys.narutoui}.jar")
 
-    if (!isNeo) modImplementation("curse.maven:duplicationless-1380105:8646420")
+    if (isNeo) {
+        modImplementation("curse.maven:duplicationless-1380105:8646414")
+    } else {
+        modImplementation("curse.maven:duplicationless-1380105:8646420")
+    }
 
     if (!isNeo && hasMixin) {
         shadow(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.5"))

@@ -1,8 +1,8 @@
 package me.kall.narutoloading.playback.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.MeshData;
 import net.minecraft.client.renderer.ShaderInstance;
 import org.lwjgl.opengl.GL11C;
 
@@ -30,7 +30,7 @@ public final class CustomShaderDraw {
      * @param buffer     the rendered buffer
      * @param depthWrite whether the draw should write depth (world geometry) or not (GUI)
      */
-    public static void draw(ShaderInstance shader, BufferBuilder.RenderedBuffer buffer, boolean depthWrite) {
+    public static void draw(ShaderInstance shader, MeshData buffer, boolean depthWrite) {
         for (int i = 0; i < 12; i++) shader.setSampler("Sampler" + i, RenderSystem.getShaderTexture(i));
 
         if (shader.MODEL_VIEW_MATRIX != null) shader.MODEL_VIEW_MATRIX.set(RenderSystem.getModelViewMatrix());

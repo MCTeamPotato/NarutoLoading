@@ -7,7 +7,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public final class EarlyFramebufferPatcher {
-    private static final String EARLY_FRAMEBUFFER = "net/minecraftforge/fml/earlydisplay/EarlyFramebuffer";
+    private static final String EARLY_FRAMEBUFFER = "net/neoforged/fml/earlydisplay/EarlyFramebuffer";
 
     private EarlyFramebufferPatcher() {
     }

@@ -82,6 +82,14 @@ public abstract class AbstractProducer {
     }
 
     public void shutdown() {
+        this.shutdown(false);
+    }
+
+    public void shutdownForExit() {
+        this.shutdown(true);
+    }
+
+    private void shutdown(boolean await) {
         this.off.set(true);
 
         synchronized (this.waiter) {
@@ -90,6 +98,7 @@ public abstract class AbstractProducer {
             this.waiter.notify();
         }
 
-        this.runner.stop();
+        if (await) this.runner.stopAndAwait(1500L);
+        else this.runner.stop();
     }
 }

@@ -1,6 +1,5 @@
 package me.kall.narutoloading.wall.server;
 
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.OpenWallConfigMessage;
 import me.kall.narutoloading.network.message.WallSyncMessage;
 import me.kall.narutoloading.wall.Wall;
@@ -10,7 +9,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public final class WallInteractions {
@@ -26,7 +25,7 @@ public final class WallInteractions {
             Wall wall = WallStorage.get(player.serverLevel()).get(pos.asLong());
             if (wall == null) return false;
 
-            NarutoNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new OpenWallConfigMessage(wall.toTag()));
+            PacketDistributor.sendToPlayer(player, new OpenWallConfigMessage(wall.toTag()));
             return true;
         }
 
@@ -42,6 +41,6 @@ public final class WallInteractions {
 
         for (Wall wall : WallStorage.get(level).all()) list.add(wall.toTag());
 
-        NarutoNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new WallSyncMessage(list));
+        PacketDistributor.sendToPlayer(player, new WallSyncMessage(list));
     }
 }

@@ -7,11 +7,13 @@ import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 
 public final class DisplayWindowTransformer implements ClassFileTransformer {
-    private static final String DISPLAY_WINDOW = "net/minecraftforge/fml/earlydisplay/DisplayWindow";
-    private static final String EARLY_FRAMEBUFFER = "net/minecraftforge/fml/earlydisplay/EarlyFramebuffer";
+    private static final String DISPLAY_WINDOW = "net/neoforged/fml/earlydisplay/DisplayWindow";
+    private static final String EARLY_FRAMEBUFFER = "net/neoforged/fml/earlydisplay/EarlyFramebuffer";
+    private static final String RENDER_ELEMENT = "net/neoforged/fml/earlydisplay/RenderElement";
 
     private static volatile Method windowPatcher;
     private static volatile Method framebufferPatcher;
+    private static volatile Method elementPatcher;
 
     @Override
     public byte @Nullable [] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
@@ -21,6 +23,10 @@ public final class DisplayWindowTransformer implements ClassFileTransformer {
 
         if (EARLY_FRAMEBUFFER.equals(className)) {
             return apply(EARLY_FRAMEBUFFER, framebufferPatcher(), classfileBuffer);
+        }
+
+        if (RENDER_ELEMENT.equals(className)) {
+            return apply(RENDER_ELEMENT, elementPatcher(), classfileBuffer);
         }
 
         return null;
@@ -63,6 +69,22 @@ public final class DisplayWindowTransformer implements ClassFileTransformer {
             if (patcher == null) {
                 patcher = load("me.kall.narutoloading.agent.EarlyFramebufferPatcher");
                 framebufferPatcher = patcher;
+            }
+        }
+
+        return patcher;
+    }
+
+    private static @Nullable Method elementPatcher() {
+        Method patcher = elementPatcher;
+        if (patcher != null) return patcher;
+
+        synchronized (DisplayWindowTransformer.class) {
+            patcher = elementPatcher;
+
+            if (patcher == null) {
+                patcher = load("me.kall.narutoloading.agent.RenderElementPatcher");
+                elementPatcher = patcher;
             }
         }
 

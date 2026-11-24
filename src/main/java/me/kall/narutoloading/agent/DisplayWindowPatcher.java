@@ -10,15 +10,15 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public final class DisplayWindowPatcher {
-    private static final String DISPLAY_WINDOW = "net/minecraftforge/fml/earlydisplay/DisplayWindow";
+    private static final String DISPLAY_WINDOW = "net/neoforged/fml/earlydisplay/DisplayWindow";
     private static final String BRIDGE = "me/kall/narutoloading/agent/bootstrap/EarlyBridge";
 
     private static final Long FRAME_PERIOD_MILLIS = 5L;
     private static final long VANILLA_PERIOD_MILLIS = 50L;
 
     private static final String LIST = "Ljava/util/List;";
-    private static final String FONT = "Lnet/minecraftforge/fml/earlydisplay/SimpleFont;";
-    private static final String RENDER_ELEMENT = "Lnet/minecraftforge/fml/earlydisplay/RenderElement;";
+    private static final String FONT = "Lnet/neoforged/fml/earlydisplay/SimpleFont;";
+    private static final String RENDER_ELEMENT = "Lnet/neoforged/fml/earlydisplay/RenderElement;";
 
     private DisplayWindowPatcher() {
     }
@@ -55,7 +55,6 @@ public final class DisplayWindowPatcher {
 
                 if ("initRender".equals(name)) {
                     return new MethodVisitor(Opcodes.ASM9, delegate) {
-                        private boolean width854;
                         private int retargetedPeriods;
 
                         @Override
@@ -71,19 +70,18 @@ public final class DisplayWindowPatcher {
 
                         @Override
                         public void visitIntInsn(int opcode, int operand) {
+                            // The early display hardcodes an 854x480 framebuffer, which NeoForge keeps even
+                            // when the window itself is larger; the video would only cover that corner.
                             if (opcode == Opcodes.SIPUSH && operand == 854) {
-                                this.width854 = true;
-                                super.visitIntInsn(opcode, operand);
+                                emitFramebufferField(delegate, "fbWidth");
                                 return;
                             }
 
-                            if (opcode == Opcodes.SIPUSH && operand == 480 && this.width854) {
-                                this.width854 = false;
-                                emitWindowAspectHeight(delegate);
+                            if (opcode == Opcodes.SIPUSH && operand == 480) {
+                                emitFramebufferField(delegate, "fbHeight");
                                 return;
                             }
 
-                            this.width854 = false;
                             super.visitIntInsn(opcode, operand);
                         }
 
@@ -115,14 +113,9 @@ public final class DisplayWindowPatcher {
         return writer.toByteArray();
     }
 
-    private static void emitWindowAspectHeight(@NotNull MethodVisitor visitor) {
-        visitor.visitIntInsn(Opcodes.SIPUSH, 854);
+    private static void emitFramebufferField(@NotNull MethodVisitor visitor, @NotNull String field) {
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
-        visitor.visitFieldInsn(Opcodes.GETFIELD, DISPLAY_WINDOW, "fbHeight", "I");
-        visitor.visitInsn(Opcodes.IMUL);
-        visitor.visitVarInsn(Opcodes.ALOAD, 0);
-        visitor.visitFieldInsn(Opcodes.GETFIELD, DISPLAY_WINDOW, "fbWidth", "I");
-        visitor.visitInsn(Opcodes.IDIV);
+        visitor.visitFieldInsn(Opcodes.GETFIELD, DISPLAY_WINDOW, field, "I");
     }
 
     private static void emitOnlyProgressBars(@NotNull MethodVisitor visitor) {
@@ -135,7 +128,7 @@ public final class DisplayWindowPatcher {
 
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
         visitor.visitFieldInsn(Opcodes.GETFIELD, DISPLAY_WINDOW, "font", FONT);
-        visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "net/minecraftforge/fml/earlydisplay/RenderElement", "progressBars", "(" + FONT + ")" + RENDER_ELEMENT, false);
+        visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "net/neoforged/fml/earlydisplay/RenderElement", "progressBars", "(" + FONT + ")" + RENDER_ELEMENT, false);
 
         visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/List", "add", "(Ljava/lang/Object;)Z", true);
         visitor.visitInsn(Opcodes.POP);

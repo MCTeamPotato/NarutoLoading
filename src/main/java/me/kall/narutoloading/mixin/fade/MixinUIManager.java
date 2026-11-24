@@ -1,22 +1,29 @@
 package me.kall.narutoloading.mixin.fade;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.systems.RenderSystem;
 import icyllis.modernui.mc.UIManager;
 import me.kall.narutoloading.client.fade.FadeCenter;
+import net.minecraft.client.gui.GuiGraphics;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
 
 @SuppressWarnings("UnstableApiUsage")
-@Mixin(UIManager.class)
+@Mixin(value = UIManager.class, remap = false)
 public abstract class MixinUIManager {
-    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;color(IIII)Lcom/mojang/blaze3d/vertex/VertexConsumer;"))
-    private VertexConsumer fade$color(VertexConsumer consumer, int red, int green, int blue, int alpha, @NotNull Operation<VertexConsumer> original) {
-        if (FadeCenter.isFull()) return original.call(consumer, red, green, blue, alpha);
+    @WrapMethod(method = "render")
+    private void fade$render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, @NotNull Operation<Void> original) {
+        float alpha = FadeCenter.fadeAlpha();
 
-        float fade = FadeCenter.fadeAlpha();
-        return original.call(consumer, Math.round(red * fade), Math.round(green * fade), Math.round(blue * fade), Math.round(alpha * fade));
+        float[] color = RenderSystem.getShaderColor();
+
+        if (alpha < 1.0F) RenderSystem.setShaderColor(color[0] * alpha, color[1] * alpha, color[2] * alpha, color[3] * alpha);
+
+        try {
+            original.call(graphics, mouseX, mouseY, partialTick);
+        } finally {
+            RenderSystem.setShaderColor(color[0], color[1], color[2], color[3]);
+        }
     }
 }

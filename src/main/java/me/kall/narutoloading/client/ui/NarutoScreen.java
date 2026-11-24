@@ -7,13 +7,13 @@ import icyllis.modernui.view.View;
 import icyllis.modernui.widget.Button;
 import icyllis.modernui.widget.LinearLayout;
 import icyllis.modernui.widget.TextView;
+import me.kall.narutoloading.client.ClientUiControl;
+import me.kall.narutoloading.client.fade.FadeCenter;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoloading.config.Setting;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.core.util.GamePaths;
-import me.kall.narutoloading.client.ClientUiControl;
-import me.kall.narutoloading.client.fade.FadeCenter;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
 import me.kall.narutoloading.wall.Wall;
 import me.kall.narutoui.mui.background.MuiBackground;
@@ -32,18 +32,14 @@ import me.kall.narutoui.mui.widget.MuiLogo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public final class NarutoScreen {
     private static final long STATUS_MILLIS = 4500L;
@@ -94,8 +90,8 @@ public final class NarutoScreen {
         context.media().refresh();
     }
 
-    public static void register(@NotNull FMLJavaModLoadingContext context) {
-        context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> create(parent)));
+    public static void register(@NotNull ModContainer context) {
+        context.registerExtensionPoint(IConfigScreenFactory.class, (mc, parent) -> create(parent));
     }
 
     public static @NotNull Screen create(@Nullable Screen parent) {

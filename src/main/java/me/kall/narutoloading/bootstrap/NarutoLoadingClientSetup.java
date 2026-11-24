@@ -4,15 +4,15 @@ import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.client.input.NarutoKeys;
 import me.kall.narutoloading.wall.client.WallReloadListener;
 import me.kall.narutoloading.wall.client.render.WallShaders;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.RegisterShadersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public final class NarutoLoadingClientSetup {
     private NarutoLoadingClientSetup() {}
 

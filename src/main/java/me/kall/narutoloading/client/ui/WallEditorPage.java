@@ -3,7 +3,6 @@ package me.kall.narutoloading.client.ui;
 import me.kall.narutoloading.client.ui.util.SaveDebouncer;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.media.MediaRepository;
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallCleanRequestMessage;
 import me.kall.narutoloading.network.message.WallRemoveRequestMessage;
 import me.kall.narutoloading.network.message.WallUpdateMessage;
@@ -17,6 +16,7 @@ import me.kall.narutoui.mui.screen.MuiScreenHost;
 import me.kall.narutoui.mui.screen.MuiSettingsPage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ final class WallEditorPage implements SettingsPageBuilder {
         updated.light = this.light;
 
         this.dirty = false;
-        NarutoNetwork.CHANNEL.sendToServer(new WallUpdateMessage(updated));
+        PacketDistributor.sendToServer(new WallUpdateMessage(updated));
         this.screen.status(I18n.get("narutoloading.status.wallSaved"));
     }
 
@@ -132,7 +132,7 @@ final class WallEditorPage implements SettingsPageBuilder {
                 I18n.get("narutoloading.wall.clean.title"),
                 I18n.get("narutoloading.wall.clean.message"),
                 I18n.get("narutoloading.wall.confirm"),
-                () -> NarutoNetwork.CHANNEL.sendToServer(new WallCleanRequestMessage(this.wall)),
+                () -> PacketDistributor.sendToServer(new WallCleanRequestMessage(this.wall)),
                 I18n.get("narutoloading.wall.cancel"),
                 () -> {});
     }
@@ -149,7 +149,7 @@ final class WallEditorPage implements SettingsPageBuilder {
                 I18n.get("narutoloading.wall.confirm"),
                 () -> {
                     this.dirty = false;
-                    NarutoNetwork.CHANNEL.sendToServer(new WallRemoveRequestMessage(this.wall));
+                    PacketDistributor.sendToServer(new WallRemoveRequestMessage(this.wall));
                     MuiScreenHost current = this.screen.host();
                     if (current != null) current.close();
                 },

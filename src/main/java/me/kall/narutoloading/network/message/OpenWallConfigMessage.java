@@ -1,32 +1,28 @@
 package me.kall.narutoloading.network.message;
 
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.network.handler.ClientPacketHandler;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+public record OpenWallConfigMessage(@NotNull CompoundTag wall) implements CustomPacketPayload {
+    public static final Type<OpenWallConfigMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "open_wall_config"));
 
-public final class OpenWallConfigMessage {
-    private final @Nullable CompoundTag wall;
+    public static final StreamCodec<RegistryFriendlyByteBuf, OpenWallConfigMessage> STREAM_CODEC =
+            StreamCodec.composite(ByteBufCodecs.COMPOUND_TAG, OpenWallConfigMessage::wall, OpenWallConfigMessage::new);
 
-    public OpenWallConfigMessage(@Nullable CompoundTag wall) {
-        this.wall = wall;
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    public void encode(@NotNull FriendlyByteBuf buffer) {
-        buffer.writeNbt(this.wall);
-    }
-
-    public static @NotNull OpenWallConfigMessage decode(@NotNull FriendlyByteBuf buffer) {
-        return new OpenWallConfigMessage(buffer.readNbt());
-    }
-
-    public static void handle(OpenWallConfigMessage message, @NotNull Supplier<NetworkEvent.Context> supplier) {
-        NetworkEvent.Context context = supplier.get();
-        context.enqueueWork(() -> ClientPacketHandler.openConfig(message.wall));
-        context.setPacketHandled(true);
+    public static void handle(OpenWallConfigMessage message, @NotNull IPayloadContext context) {
+        context.enqueueWork(() -> ClientPacketHandler.openConfig(message.wall()));
     }
 }

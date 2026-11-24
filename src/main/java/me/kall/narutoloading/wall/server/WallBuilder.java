@@ -1,7 +1,6 @@
 package me.kall.narutoloading.wall.server;
 
 import it.unimi.dsi.fastutil.longs.LongList;
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallPutMessage;
 import me.kall.narutoloading.wall.Wall;
 import me.kall.narutoloading.wall.data.WallStorage;
@@ -10,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +54,7 @@ public final class WallBuilder {
         if (wall == null) return null;
 
         WallStorage.get(level).add(wall);
-        NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallPutMessage(wall.toTag()));
+        PacketDistributor.sendToPlayersInDimension(level, new WallPutMessage(wall.toTag()));
         return wall;
     }
 

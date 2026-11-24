@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -57,6 +58,23 @@ public final class ProcessRunner {
             } catch (IOException exception) {
                 System.err.println("[NarutoLoading] Failed to close input stream: " + exception.getMessage());
             }
+        }
+    }
+
+    /**
+     * Stops the worker and waits for it to finish its native cleanup. Used at game shutdown so the
+     * audio thread closes its OpenAL device before the process exits.
+     */
+    public void stopAndAwait(long millis) {
+        ExecutorService executor = this.executor.get();
+        this.stop();
+
+        if (executor == null) return;
+
+        try {
+            executor.awaitTermination(millis, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
         }
     }
 

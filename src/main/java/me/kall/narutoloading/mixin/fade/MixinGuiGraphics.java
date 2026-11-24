@@ -2,7 +2,6 @@ package me.kall.narutoloading.mixin.fade;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import me.kall.narutoloading.client.fade.FadeCenter;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
@@ -22,10 +21,10 @@ public abstract class MixinGuiGraphics {
         original.call(renderType, minX, minY, maxX, maxY, z, FadeCenter.modifyAlpha(color));
     }
 
-    @WrapMethod(method = "fillGradient(Lcom/mojang/blaze3d/vertex/VertexConsumer;IIIIIII)V")
-    private void fade$fillGradient(VertexConsumer consumer, int x1, int y1, int x2, int y2, int z, int colorFrom, int colorTo, @NotNull Operation<Void> original) {
+    @WrapMethod(method = "fillGradient(Lnet/minecraft/client/renderer/RenderType;IIIIIII)V")
+    private void fade$fillGradient(RenderType renderType, int x1, int y1, int x2, int y2, int z, int colorFrom, int colorTo, @NotNull Operation<Void> original) {
         if (FadeCenter.isHidden()) return;
-        original.call(consumer, x1, y1, x2, y2, z, FadeCenter.modifyAlpha(colorFrom), FadeCenter.modifyAlpha(colorTo));
+        original.call(renderType, x1, y1, x2, y2, z, FadeCenter.modifyAlpha(colorFrom), FadeCenter.modifyAlpha(colorTo));
     }
 
     @WrapMethod(method = "innerBlit(Lnet/minecraft/resources/ResourceLocation;IIIIIFFFF)V")

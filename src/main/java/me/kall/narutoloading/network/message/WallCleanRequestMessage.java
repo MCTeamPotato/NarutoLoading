@@ -1,35 +1,37 @@
 package me.kall.narutoloading.network.message;
 
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.network.handler.ServerPacketHandler;
 import me.kall.narutoloading.wall.Wall;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
+public record WallCleanRequestMessage(long[] corners) implements CustomPacketPayload {
+    public static final Type<WallCleanRequestMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "wall_clean_request"));
 
-public final class WallCleanRequestMessage {
-    private final long[] corners;
+    public static final StreamCodec<RegistryFriendlyByteBuf, WallCleanRequestMessage> STREAM_CODEC =
+            StreamCodec.of((buffer, message) -> buffer.writeLongArray(message.corners()), buffer -> new WallCleanRequestMessage(buffer.readLongArray()));
 
     public WallCleanRequestMessage(@NotNull Wall wall) {
-        this.corners = wall.toLongArray();
+        this(wall.toLongArray());
     }
 
-    private WallCleanRequestMessage(long[] corners) {
-        this.corners = corners;
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    public void encode(@NotNull FriendlyByteBuf buffer) {
-        buffer.writeLongArray(this.corners);
-    }
-
-    public static @NotNull WallCleanRequestMessage decode(@NotNull FriendlyByteBuf buffer) {
-        return new WallCleanRequestMessage(buffer.readLongArray());
-    }
-
-    public static void handle(WallCleanRequestMessage message, @NotNull Supplier<NetworkEvent.Context> supplier) {
-        NetworkEvent.Context context = supplier.get();
-        context.enqueueWork(() -> ServerPacketHandler.clean(context.getSender(), message.corners));
-        context.setPacketHandled(true);
+    public static void handle(WallCleanRequestMessage message, @NotNull IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer player) {
+                ServerPacketHandler.clean(player, message.corners());
+            }
+        });
     }
 }

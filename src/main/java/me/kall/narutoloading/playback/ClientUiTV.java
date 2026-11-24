@@ -13,7 +13,7 @@ import me.kall.narutoloading.playback.produce.NarutoProducers;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
 import me.kall.narutoloading.playback.produce.video.AbstractFrameProducer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
+import net.minecraft.client.gui.screens.GenericMessageScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.WinScreen;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ public abstract class ClientUiTV<T> extends AbstractTV<T> {
         if (this.ffmpeg.ffmpeg.get() == null) return false;
         Minecraft minecraft = Minecraft.getInstance();
         Screen screen = minecraft.screen;
-        if (screen instanceof WinScreen || screen instanceof GenericDirtMessageScreen) return true;
+        if (screen instanceof WinScreen || screen instanceof GenericMessageScreen) return true;
         if (LevelStatus.notFound()) {
             return minecraft.isRunning();
         } else {

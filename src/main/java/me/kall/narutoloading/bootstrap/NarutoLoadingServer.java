@@ -7,15 +7,15 @@ import me.kall.narutoloading.wall.server.WallInteractions;
 import me.kall.narutoloading.wall.server.WallValidation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
-@Mod.EventBusSubscriber(modid = NarutoLoading.MOD_ID)
+@EventBusSubscriber(modid = NarutoLoading.MOD_ID)
 public final class NarutoLoadingServer {
     private NarutoLoadingServer() {}
 
@@ -49,8 +49,7 @@ public final class NarutoLoadingServer {
     }
 
     @SubscribeEvent
-    public static void serverTick(TickEvent.@NotNull ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
+    public static void serverTick(ServerTickEvent.@NotNull Post event) {
         WallValidation.tick(event.getServer());
     }
 

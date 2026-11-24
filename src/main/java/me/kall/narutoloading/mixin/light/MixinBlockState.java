@@ -4,13 +4,14 @@ import me.kall.narutoloading.wall.client.light.WallLights;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.extensions.IForgeBlockState;
+import net.neoforged.neoforge.common.extensions.IBlockStateExtension;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(BlockState.class)
-public abstract class MixinBlockState implements IForgeBlockState {
+public abstract class MixinBlockState implements IBlockStateExtension {
     @Override
-    public int getLightEmission(BlockGetter level, BlockPos pos) {
+    public int getLightEmission(@NotNull BlockGetter level, @NotNull BlockPos pos) {
         BlockState state = (BlockState) (Object) this;
         return Math.max(WallLights.emissionAt(level, pos), state.getBlock().getLightEmission(state, level, pos));
     }

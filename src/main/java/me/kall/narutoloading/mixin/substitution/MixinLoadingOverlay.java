@@ -30,7 +30,10 @@ public abstract class MixinLoadingOverlay {
     @Shadow private float currentProgress;
     @Shadow private long fadeInStart;
 
-    @Shadow protected abstract void drawProgressBar(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick);
+    @Shadow
+    private void drawProgressBar(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, float partialTick) {
+        throw new AssertionError();
+    }
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {

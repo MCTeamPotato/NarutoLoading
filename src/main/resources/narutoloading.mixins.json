@@ -2,7 +2,7 @@
   "required": true,
   "package": "me.kall.narutoloading.mixin",
   "plugin": "me.kall.narutoloading.mixin.NarutoMixinPlugin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "injectors": {
     "defaultRequire": 1
@@ -17,7 +17,6 @@
     "cull.MixinBlockOcclusionCache",
     "fade.MixinFont",
     "fade.MixinGuiGraphics",
-    "fade.MixinStringRenderOutput",
     "fade.MixinUIManager",
     "light.MixinBlockState",
     "substitution.MixinAbstractSelectionList",
@@ -27,8 +26,6 @@
     "substitution.MixinPanoramaRenderer",
     "substitution.MixinScreen",
     "substitution.MixinScrollPanel",
-    "substitution.MixinTitleScreen",
-    "substitution.MixinWinScreen",
     "substitution.mui.MixinBlurHandler",
     "substitution.nui.MixinMuiConfigFragment",
     "unlock.MixinMinecraft",

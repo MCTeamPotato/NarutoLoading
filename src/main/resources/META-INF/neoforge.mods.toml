@@ -15,22 +15,28 @@ description = '''
 '''
 #logoFile = ""
 
-[[accessTransformers]]
-file = "META-INF/accesstransformer.cfg"
-
 [[mixins]]
 config = "narutoloading.mixins.json"
 
 [[dependencies.narutoloading]]
 modId = "modernui"
-mandatory = false
-versionRange = "[3.12.0,)"
+mandatory = true
+versionRange = "[3.13.0,)"
 ordering = "AFTER"
 side = "CLIENT"
 
 [[dependencies.narutoloading]]
 modId = "narutoui"
-mandatory = false
-versionRange = "[1.20.1-1.10.0,)"
+mandatory = true
+versionRange = "[1.21.1-1.11.0,)"
 ordering = "AFTER"
 side = "CLIENT"
+
+# Used for the immediate "a frame block was broken" event; without it the
+# low-frequency border scan still removes invalid walls.
+[[dependencies.narutoloading]]
+modId = "duplicationless"
+mandatory = false
+versionRange = "[1.21.1-1.2.1,)"
+ordering = "AFTER"
+side = "BOTH"

@@ -2,6 +2,7 @@ package me.kall.narutoloading.wall.data;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.kall.narutoloading.wall.Wall;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -32,8 +33,7 @@ public final class WallStorage extends SavedData {
         ResourceLocation dimension = level.dimension().location();
 
         return level.getDataStorage().computeIfAbsent(
-                tag -> load(dimension, tag),
-                () -> new WallStorage(dimension),
+                new SavedData.Factory<>(() -> new WallStorage(dimension), (tag, provider) -> load(dimension, tag)),
                 DATA_NAME
         );
     }
@@ -87,7 +87,7 @@ public final class WallStorage extends SavedData {
     }
 
     @Override
-    public @NotNull CompoundTag save(@NotNull CompoundTag tag) {
+    public @NotNull CompoundTag save(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         for (Wall wall : this.walls.values()) list.add(wall.toTag());
 

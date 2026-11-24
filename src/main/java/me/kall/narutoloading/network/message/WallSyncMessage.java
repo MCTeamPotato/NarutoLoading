@@ -1,38 +1,42 @@
 package me.kall.narutoloading.network.message;
 
+import me.kall.narutoloading.NarutoLoading;
 import me.kall.narutoloading.network.handler.ClientPacketHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
-
-public final class WallSyncMessage {
+public record WallSyncMessage(@NotNull ListTag walls) implements CustomPacketPayload {
     private static final String WALLS_KEY = "Walls";
 
-    private final ListTag walls;
+    public static final Type<WallSyncMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(NarutoLoading.MOD_ID, "wall_sync"));
 
-    public WallSyncMessage(@NotNull ListTag walls) {
-        this.walls = walls;
+    public static final StreamCodec<RegistryFriendlyByteBuf, WallSyncMessage> STREAM_CODEC =
+            StreamCodec.composite(ByteBufCodecs.COMPOUND_TAG, WallSyncMessage::toTag, WallSyncMessage::fromTag);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    public void encode(@NotNull FriendlyByteBuf buffer) {
+    public static void handle(WallSyncMessage message, @NotNull IPayloadContext context) {
+        context.enqueueWork(() -> ClientPacketHandler.sync(message.walls()));
+    }
+
+    private CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.put(WALLS_KEY, this.walls);
-        buffer.writeNbt(tag);
+        return tag;
     }
 
-    public static @NotNull WallSyncMessage decode(@NotNull FriendlyByteBuf buffer) {
-        CompoundTag tag = buffer.readNbt();
-        return new WallSyncMessage(tag == null ? new ListTag() : tag.getList(WALLS_KEY, Tag.TAG_COMPOUND));
-    }
-
-    public static void handle(WallSyncMessage message, @NotNull Supplier<NetworkEvent.Context> supplier) {
-        NetworkEvent.Context context = supplier.get();
-        context.enqueueWork(() -> ClientPacketHandler.sync(message.walls));
-        context.setPacketHandled(true);
+    private static WallSyncMessage fromTag(CompoundTag tag) {
+        return new WallSyncMessage(tag.getList(WALLS_KEY, Tag.TAG_COMPOUND));
     }
 }

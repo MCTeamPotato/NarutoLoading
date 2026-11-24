@@ -249,12 +249,20 @@ public abstract class AbstractTV<T> {
         this.stop(next, true);
     }
 
+    public synchronized void shutdownForExit() {
+        this.stop(true, true, true);
+    }
+
     public synchronized void synchronize(boolean next, double seekTo) {
         this.stop(next, false);
         this.setup(seekTo);
     }
 
     private void stop(boolean next, boolean releaseRenderer) {
+        this.stop(next, releaseRenderer, false);
+    }
+
+    private void stop(boolean next, boolean releaseRenderer, boolean await) {
         this.running.set(false);
         this.videoDelayed.set(false);
 
@@ -264,8 +272,15 @@ public abstract class AbstractTV<T> {
         this.timeLine.set(null);
         if (releaseRenderer) this.renderer.shutdown();
 
-        if (video != null) video.shutdown();
-        if (audio != null) audio.shutdown();
+        if (video != null) {
+            if (await) video.shutdownForExit();
+            else video.shutdown();
+        }
+
+        if (audio != null) {
+            if (await) audio.shutdownForExit();
+            else audio.shutdown();
+        }
 
         if (next) {
             CompletableFuture<@Nullable AbstractFrameProducer<T>> nextVideoTask = this.nextVideoTask.getAndSet(null);

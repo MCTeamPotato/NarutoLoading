@@ -2,7 +2,9 @@ package me.kall.narutoloading.wall.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -27,8 +29,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 
 import java.nio.ByteBuffer;
 
@@ -108,18 +110,17 @@ public final class WallBufferRenderer implements FrameRenderer<ByteBuffer> {
 
         if (location == null || poseStack == null || camera == null || bufferSource == null) return;
 
-        Matrix4f pose = poseStack.last().pose();
-        Matrix3f normal = poseStack.last().normal();
+        PoseStack.Pose pose = poseStack.last();
         RenderType renderType = RenderType.entityTranslucent(location);
         VertexConsumer consumer = bufferSource.getBuffer(renderType);
 
         WallGeometry.Coords coords = WallGeometry.computeCoords(this.wall, camera);
         SurfaceTracker.track(this.wall.dimension, coords);
 
-        vertex(consumer, pose, normal, coords.bottomFromX(), coords.bottomFromY(), coords.bottomFromZ(), coords.u0(), coords.v0(), coords.normalX(), coords.normalY(), coords.normalZ());
-        vertex(consumer, pose, normal, coords.bottomToX(), coords.bottomToY(), coords.bottomToZ(), coords.u1(), coords.v1(), coords.normalX(), coords.normalY(), coords.normalZ());
-        vertex(consumer, pose, normal, coords.topToX(), coords.topToY(), coords.topToZ(), coords.u2(), coords.v2(), coords.normalX(), coords.normalY(), coords.normalZ());
-        vertex(consumer, pose, normal, coords.topFromX(), coords.topFromY(), coords.topFromZ(), coords.u3(), coords.v3(), coords.normalX(), coords.normalY(), coords.normalZ());
+        vertex(consumer, pose, coords.bottomFromX(), coords.bottomFromY(), coords.bottomFromZ(), coords.u0(), coords.v0(), coords.normalX(), coords.normalY(), coords.normalZ());
+        vertex(consumer, pose, coords.bottomToX(), coords.bottomToY(), coords.bottomToZ(), coords.u1(), coords.v1(), coords.normalX(), coords.normalY(), coords.normalZ());
+        vertex(consumer, pose, coords.topToX(), coords.topToY(), coords.topToZ(), coords.u2(), coords.v2(), coords.normalX(), coords.normalY(), coords.normalZ());
+        vertex(consumer, pose, coords.topFromX(), coords.topFromY(), coords.topFromZ(), coords.u3(), coords.v3(), coords.normalX(), coords.normalY(), coords.normalZ());
 
         bufferSource.endBatch(renderType);
     }
@@ -156,23 +157,27 @@ public final class WallBufferRenderer implements FrameRenderer<ByteBuffer> {
         RenderSystem.backupProjectionMatrix();
         RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(0F, this.width, this.height, 0F, -1F, 1F), VertexSorting.ORTHOGRAPHIC_Z);
 
-        PoseStack modelView = RenderSystem.getModelViewStack();
-        modelView.pushPose();
-        modelView.setIdentity();
+        Matrix4fStack modelView = RenderSystem.getModelViewStack();
+        modelView.pushMatrix();
+        modelView.identity();
         RenderSystem.applyModelViewMatrix();
 
         Matrix4f pose = new Matrix4f();
 
-        BufferBuilder builder = new BufferBuilder(256);
-        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        try (ByteBufferBuilder byteBuffer = new ByteBufferBuilder(256)) {
+            BufferBuilder builder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        builder.vertex(pose, 0F, this.height, 0F).uv(0F, 0F).endVertex();
-        builder.vertex(pose, this.width, this.height, 0F).uv(1F, 0F).endVertex();
-        builder.vertex(pose, this.width, 0F, 0F).uv(1F, 1F).endVertex();
-        builder.vertex(pose, 0F, 0F, 0F).uv(0F, 1F).endVertex();
-        CustomShaderDraw.draw(shader, builder.end(), false);
+            builder.addVertex(pose, 0F, this.height, 0F).setUv(0F, 0F);
+            builder.addVertex(pose, this.width, this.height, 0F).setUv(1F, 0F);
+            builder.addVertex(pose, this.width, 0F, 0F).setUv(1F, 1F);
+            builder.addVertex(pose, 0F, 0F, 0F).setUv(0F, 1F);
 
-        modelView.popPose();
+            try (MeshData mesh = builder.build()) {
+                CustomShaderDraw.draw(shader, mesh, false);
+            }
+        }
+
+        modelView.popMatrix();
         RenderSystem.applyModelViewMatrix();
         RenderSystem.restoreProjectionMatrix();
 
@@ -206,13 +211,12 @@ public final class WallBufferRenderer implements FrameRenderer<ByteBuffer> {
         }
     }
 
-    private static void vertex(@NotNull VertexConsumer consumer, Matrix4f pose, Matrix3f normal, double x, double y, double z, float u, float v, double normalX, double normalY, double normalZ) {
-        consumer.vertex(pose, (float) x, (float) y, (float) z)
-                .color(255, 255, 255, 255)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normal, (float) normalX, (float) normalY, (float) normalZ)
-                .endVertex();
+    private static void vertex(@NotNull VertexConsumer consumer, PoseStack.Pose pose, double x, double y, double z, float u, float v, double normalX, double normalY, double normalZ) {
+        consumer.addVertex(pose, (float) x, (float) y, (float) z)
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(pose, (float) normalX, (float) normalY, (float) normalZ);
     }
 }

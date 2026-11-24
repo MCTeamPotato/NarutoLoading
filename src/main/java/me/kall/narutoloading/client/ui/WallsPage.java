@@ -4,9 +4,9 @@ import icyllis.modernui.mc.MuiModApi;
 import me.kall.narutoloading.client.ui.util.SaveDebouncer;
 import me.kall.narutoloading.core.NarutoContext;
 import me.kall.narutoloading.media.MediaRepository;
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallCleanRequestMessage;
 import me.kall.narutoloading.network.message.WallRemoveRequestMessage;
+import me.kall.narutoloading.network.message.WallSyncMessage;
 import me.kall.narutoloading.network.message.WallUpdateMessage;
 import me.kall.narutoloading.config.NarutoSettings;
 import me.kall.narutoloading.wall.Wall;
@@ -24,6 +24,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +64,7 @@ final class WallsPage implements SettingsPageBuilder {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
 
-        if (level == null || minecraft.getConnection() == null || !NarutoNetwork.CHANNEL.isRemotePresent(minecraft.getConnection().getConnection())) {
+        if (level == null || minecraft.getConnection() == null || !NetworkRegistry.hasChannel(minecraft.getConnection(), WallSyncMessage.TYPE.id())) {
             page.section("narutoloading.walls.section.selected", section -> section
                     .note("narutoloading.walls.unavailable", "narutoloading.walls.unavailable.desc")
                     .note("narutoloading.walls.build", "narutoloading.walls.build.desc"));
@@ -195,7 +197,7 @@ final class WallsPage implements SettingsPageBuilder {
         updated.light = this.pendingLight;
 
         this.dirty = false;
-        NarutoNetwork.CHANNEL.sendToServer(new WallUpdateMessage(updated));
+        PacketDistributor.sendToServer(new WallUpdateMessage(updated));
         this.screen.status(I18n.get("narutoloading.status.wallSaved"));
     }
 
@@ -224,7 +226,7 @@ final class WallsPage implements SettingsPageBuilder {
                 I18n.get("narutoloading.walls.clean.title"),
                 I18n.get("narutoloading.walls.clean.message"),
                 I18n.get("narutoloading.walls.confirm"),
-                () -> NarutoNetwork.CHANNEL.sendToServer(new WallCleanRequestMessage(wall)),
+                () -> PacketDistributor.sendToServer(new WallCleanRequestMessage(wall)),
                 I18n.get("narutoloading.walls.cancel"),
                 () -> {});
     }
@@ -245,7 +247,7 @@ final class WallsPage implements SettingsPageBuilder {
                 () -> {
                     this.selected = null;
                     this.dirty = false;
-                    NarutoNetwork.CHANNEL.sendToServer(new WallRemoveRequestMessage(wall));
+                    PacketDistributor.sendToServer(new WallRemoveRequestMessage(wall));
                 },
                 I18n.get("narutoloading.walls.cancel"),
                 () -> {});
@@ -284,7 +286,7 @@ final class WallsPage implements SettingsPageBuilder {
         LocalPlayer player = minecraft.player;
         if (player == null) return null;
 
-        float partialTick = minecraft.getPartialTick();
+        float partialTick = minecraft.getTimer().getGameTimeDeltaPartialTick(false);
         Vec3 eye = player.getEyePosition(partialTick);
         Vec3 view = player.getViewVector(partialTick);
 

@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallRemoveMessage;
 import me.kall.narutoloading.network.message.WallSyncMessage;
 import me.kall.narutoloading.wall.Wall;
@@ -16,7 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,7 +110,7 @@ public final class WallCommands {
         ServerLevel level = context.getSource().getLevel();
         WallStorage.get(level).remove(wall);
 
-        NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallRemoveMessage(wall.toLongArray()));
+        PacketDistributor.sendToPlayersInDimension(level, new WallRemoveMessage(wall.toLongArray()));
         context.getSource().sendSuccess(() -> Component.translatable("narutoloading.message.wall.removed"), true);
         return 1;
     }
@@ -123,7 +122,7 @@ public final class WallCommands {
         List<Wall> walls = storage.all();
         for (Wall wall : walls) storage.remove(wall);
 
-        NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallSyncMessage(new ListTag()));
+        PacketDistributor.sendToPlayersInDimension(level, new WallSyncMessage(new ListTag()));
 
         int count = walls.size();
         context.getSource().sendSuccess(() -> Component.translatable("narutoloading.message.wall.cleared", count), true);

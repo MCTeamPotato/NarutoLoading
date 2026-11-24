@@ -1,6 +1,5 @@
 package me.kall.narutoloading.wall.server;
 
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallRemoveMessage;
 import me.kall.narutoloading.wall.Wall;
 import me.kall.narutoloading.wall.data.WallStorage;
@@ -8,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -78,7 +77,7 @@ public final class WallValidation {
                 if (WallRules.isFrame(level.getBlockState(pos))) continue;
 
                 storage.remove(border.wall());
-                NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallRemoveMessage(border.wall().toLongArray()));
+                PacketDistributor.sendToPlayersInDimension(level, new WallRemoveMessage(border.wall().toLongArray()));
             }
 
             if (this.cursor >= this.borders.size()) this.cursor = 0;

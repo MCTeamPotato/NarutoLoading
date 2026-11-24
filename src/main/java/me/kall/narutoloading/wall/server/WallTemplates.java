@@ -1,6 +1,5 @@
 package me.kall.narutoloading.wall.server;
 
-import me.kall.narutoloading.network.NarutoNetwork;
 import me.kall.narutoloading.network.message.WallPutMessage;
 import me.kall.narutoloading.wall.Wall;
 import me.kall.narutoloading.wall.data.WallStorage;
@@ -8,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +50,7 @@ public final class WallTemplates {
             if (storage.get(wall.toLongArray()) == null) storage.add(wall);
             else storage.update(wall);
 
-            NarutoNetwork.CHANNEL.send(PacketDistributor.DIMENSION.with(level::dimension), new WallPutMessage(wall.toTag()));
+            PacketDistributor.sendToPlayersInDimension(level, new WallPutMessage(wall.toTag()));
         }
     }
 

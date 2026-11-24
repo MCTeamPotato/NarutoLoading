@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import me.kall.narutoloading.NarutoLoading;
+import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.client.input.NarutoKeys;
 import me.kall.narutoloading.client.overlay.Substitution;
 import me.kall.narutoloading.client.fade.FadeCenter;
@@ -17,20 +18,22 @@ import me.kall.narutoloading.wall.client.light.WallLights;
 import me.kall.narutoloading.wall.client.WallManager;
 import me.kall.narutoloading.wall.client.render.WallRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterClientCommandsEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
+import net.neoforged.neoforge.event.GameShuttingDownEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID)
+@EventBusSubscriber(value = Dist.CLIENT, modid = NarutoLoading.MOD_ID)
 public class NarutoLoadingClient {
     private static final long KEY_THROTTLE_NANOS = 1_500_000_000L;
     private static final long KEY_MAP_CLEAR_NANOS = 3_000_000_000L;
@@ -39,23 +42,19 @@ public class NarutoLoadingClient {
     private static final AtomicLong MAP_LAST_CHANGED = new AtomicLong(System.nanoTime());
 
     @SubscribeEvent
-    public static void tickRender(TickEvent.@NotNull RenderTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-
+    public static void tickRender(RenderFrameEvent.@NotNull Pre event) {
         Substitution.tick();
         SurfaceTracker.tick();
         WallLights.tick();
     }
 
     @SubscribeEvent
-    public static void tickClientStart(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) FadeCenter.tick();
+    public static void tickClientStart(ClientTickEvent.@NotNull Pre event) {
+        FadeCenter.tick();
     }
 
     @SubscribeEvent
-    public static void tickClientEnd(TickEvent.@NotNull ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-
+    public static void tickClientEnd(ClientTickEvent.@NotNull Post event) {
         PasteListener.tick();
         WallManager.tick();
 
@@ -84,17 +83,36 @@ public class NarutoLoadingClient {
     }
 
     @SubscribeEvent
-    public static void anyInput(@NotNull InputEvent event) {
+    public static void shuttingDown(GameShuttingDownEvent event) {
+        EarlySessionHandoff.stop();
+        ClientUiControl.active().shutdownForExit();
+        WallManager.clear();
+    }
+
+    @SubscribeEvent
+    public static void anyMouseButton(InputEvent.MouseButton.@NotNull Pre event) {
         FadeCenter.reset();
     }
 
     @SubscribeEvent
-    public static void mouseInput(InputEvent.MouseButton.@NotNull Pre event) {
+    public static void anyMouseButtonReleased(InputEvent.MouseButton.@NotNull Post event) {
+        FadeCenter.reset();
+    }
+
+    @SubscribeEvent
+    public static void anyScroll(InputEvent.@NotNull MouseScrollingEvent event) {
+        FadeCenter.reset();
+    }
+
+    @SubscribeEvent
+    public static void anyInteraction(InputEvent.@NotNull InteractionKeyMappingTriggered event) {
         FadeCenter.reset();
     }
 
     @SubscribeEvent
     public static void handleKeys(InputEvent.@NotNull Key event) {
+        FadeCenter.reset();
+
         if (event.getAction() != GLFW.GLFW_PRESS) return;
 
         InputConstants.@NotNull Key key = InputConstants.getKey(event.getKey(), event.getScanCode());
