@@ -16,7 +16,7 @@ public final class ProcessRunner {
     private final AtomicReference<Process> process = new AtomicReference<>();
     private final AtomicReference<InputStream> input = new AtomicReference<>();
 
-    public void start(String @NotNull [] command, @Nullable File errorLog, @NotNull InputSource source, @NotNull InputHandler handler, @NotNull Consumer<Throwable> onFailure) {
+    public void start(String @NotNull [] command, @Nullable File errorLog, @NotNull InputHandler handler, @NotNull Consumer<Throwable> onFailure) {
         ExecutorService executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "NarutoProducer_" + System.nanoTime());
             thread.setDaemon(true);
@@ -28,12 +28,12 @@ public final class ProcessRunner {
         executor.submit(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder(command);
-                if (errorLog != null) builder.redirectError(errorLog);
+                if (errorLog != null) builder.redirectError(ProcessBuilder.Redirect.appendTo(errorLog));
 
                 Process process = builder.start();
                 this.process.set(process);
 
-                InputStream input = source.open(process);
+                InputStream input = process.getInputStream();
                 this.input.set(input);
 
                 handler.handle(input);
@@ -62,9 +62,5 @@ public final class ProcessRunner {
 
     public interface InputHandler {
         void handle(@NotNull InputStream input) throws IOException, InterruptedException;
-    }
-
-    public interface InputSource {
-        @NotNull InputStream open(@NotNull Process process) throws IOException;
     }
 }
