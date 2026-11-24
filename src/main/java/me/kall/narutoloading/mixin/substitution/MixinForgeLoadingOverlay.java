@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Window;
 import me.kall.narutoloading.client.ClientUiControl;
 import me.kall.narutoloading.client.overlay.OverlayFinish;
 import me.kall.narutoloading.client.overlay.Substitution;
+import me.kall.narutoloading.playback.early.EarlySessionHandoff;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -37,6 +38,11 @@ public abstract class MixinForgeLoadingOverlay {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void substitute(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if (this.fadeOutStart == -1L && this.reload.isDone()) ClientUiControl.detachEarly();
+
+        // Without an early video there is no session to hand over. Starting the client-side
+        // player here runs it while the resource reload is still going, and the display window
+        // would cover it; let the vanilla overlay finish and start the player on the title screen.
+        if (EarlySessionHandoff.current() == null) return;
 
         if (Substitution.checkAndRun()) {
             ci.cancel();
