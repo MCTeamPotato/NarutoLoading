@@ -41,6 +41,8 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     public final VideoArgs args;
 
+    private final boolean gpuAccel;
+
     private final int maxWidth, maxHeight;
 
     private final TimeCosts onBuiltCosts;
@@ -65,10 +67,11 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     private final AtomicBoolean starved = new AtomicBoolean();
 
-    public AbstractFrameProducer(String ffmpeg, VideoArgs args, int frameSize, int maxWidth, int maxHeight, long maxBufferBytes) {
+    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, int maxWidth, int maxHeight, long maxBufferBytes) {
         this.ffmpeg = ffmpeg;
 
         this.args = args;
+        this.gpuAccel = gpuAccel;
 
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
@@ -146,6 +149,11 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         command.add(this.ffmpeg);
         command.add("-nostdin");
 
+        if (this.gpuAccel) {
+            command.add("-hwaccel");
+            command.add("auto");
+        }
+
         command.add("-threads");
         command.add("0");
 
@@ -202,7 +210,7 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
                 return socket.getInputStream();
             } catch (SocketTimeoutException timeout) {
-                if (!process.isAlive()) throw new IOException("ffmpeg exited before connecting to the frame socket, exit code " + process.exitValue(), timeout);
+                if (!process.isAlive()) throw new IOException("ffmpeg exited before connecting to the frame socket", timeout);
                 if (System.nanoTime() - deadline >= 0L) throw new IOException("Timed out waiting for ffmpeg to connect to the frame socket", timeout);
             }
         }

@@ -2,6 +2,7 @@ package me.kall.narutoloading.playback.produce;
 
 import me.kall.narutoloading.media.ffmpeg.data.AudioArgs;
 import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
+import me.kall.narutoloading.client.context.LevelStatus;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.playback.produce.audio.AudioProducer;
 import me.kall.narutoloading.playback.produce.video.BufferFrameProducer;
@@ -21,11 +22,11 @@ public final class NarutoProducers {
 
     @Contract("_, _ -> new")
     public static @NotNull BufferFrameProducer buildBuffer(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new BufferFrameProducer(ffmpeg, videoArgs);
+        return new BufferFrameProducer(ffmpeg, videoArgs, LevelStatus.notFound());
     }
 
     @Contract("_, _ -> new")
     public static @NotNull BufferFrameProducer buildWorldBuffer(@Nullable String ffmpeg, VideoArgs videoArgs) {
-        return new BufferFrameProducer(ffmpeg, videoArgs, NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight(), WORLD_MAX_BUFFER_BYTES);
+        return new BufferFrameProducer(ffmpeg, videoArgs, false, NarutoConfig.worldLimitWidth(), NarutoConfig.worldLimitHeight(), WORLD_MAX_BUFFER_BYTES);
     }
 }
