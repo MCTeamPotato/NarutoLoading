@@ -30,8 +30,6 @@ versionRange = "[1.20.1-1.10.0,)"
 ordering = "AFTER"
 side = "CLIENT"
 
-# Used for the immediate "a frame block was broken" event; without it the
-# low-frequency border scan still removes invalid walls.
 [[dependencies.narutoloading]]
 modId = "duplicationless"
 mandatory = false
