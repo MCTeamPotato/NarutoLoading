@@ -28,7 +28,7 @@ public final class ProcessRunner {
         executor.submit(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder(command);
-                if (errorLog != null) builder.redirectError(errorLog);
+                if (errorLog != null) builder.redirectError(ProcessBuilder.Redirect.appendTo(errorLog));
 
                 Process process = builder.start();
                 this.process.set(process);

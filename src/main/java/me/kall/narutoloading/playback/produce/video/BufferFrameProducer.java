@@ -15,12 +15,12 @@ public final class BufferFrameProducer extends AbstractFrameProducer<ByteBuffer>
     private final Queue<ByteBuffer> free = new ConcurrentLinkedQueue<>();
     private final Set<ByteBuffer> all = ConcurrentHashMap.newKeySet();
 
-    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel) {
-        this(ffmpeg, videoArgs, gpuAccel, NarutoConfig.limitWidth(), NarutoConfig.limitHeight(), DEFAULT_MAX_BUFFER_BYTES);
+    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs) {
+        this(ffmpeg, videoArgs, NarutoConfig.limitWidth(), NarutoConfig.limitHeight(), DEFAULT_MAX_BUFFER_BYTES);
     }
 
-    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, boolean gpuAccel, int maxWidth, int maxHeight, long maxBufferBytes) {
-        super(ffmpeg, videoArgs, gpuAccel, frameSize(videoArgs, maxWidth, maxHeight), maxWidth, maxHeight, maxBufferBytes);
+    public BufferFrameProducer(String ffmpeg, VideoArgs videoArgs, int maxWidth, int maxHeight, long maxBufferBytes) {
+        super(ffmpeg, videoArgs, frameSize(videoArgs, maxWidth, maxHeight), maxWidth, maxHeight, maxBufferBytes);
     }
 
     private static int frameSize(@NotNull VideoArgs args, int maxWidth, int maxHeight) {
