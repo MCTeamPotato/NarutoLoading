@@ -8,6 +8,16 @@ import java.util.Base64;
 import java.util.Objects;
 
 public record AudioArgs(String absPath, int channels, int sampleRate, double startSec, double duration) {
+    public AudioArgs(String absPath, int channels, int sampleRate, double startSec, double duration) {
+        this.absPath = absPath;
+        this.channels = channels;
+        this.sampleRate = sampleRate;
+        this.startSec = startSec;
+        this.duration = duration;
+
+        System.out.println("[NarutoLoading] AudioArgs created. Path: " + this.absPath + ". Channels: " + this.channels + ". Sample Rate: " + this.sampleRate + ". Duration: " + this.duration + " seconds. Start Offset: " + this.startSec + " seconds.");
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

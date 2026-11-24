@@ -169,6 +169,7 @@ public final class Wall {
         }
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     public int faceHeight() {
         if (this.axisThickness == Direction.Axis.Y) {
             return this.widthZ;

@@ -8,6 +8,17 @@ import java.util.Base64;
 import java.util.Objects;
 
 public record VideoArgs(String absPath, double fps, int width, int height, double duration, double startSec) {
+    public VideoArgs(String absPath, double fps, int width, int height, double duration, double startSec) {
+        this.absPath = absPath;
+        this.fps = fps;
+        this.width = width;
+        this.height = height;
+        this.duration = duration;
+        this.startSec = startSec;
+
+        System.out.println("[NarutoLoading] VideoArgs created. Path: " + this.absPath + ". Fps: " + this.fps + ". Width: " + this.width + ". Height: " + this.height + ". Duration: " + this.duration + " seconds. Start Offset: " + this.startSec + " seconds.");
+    }
+
     public int scaledWidth(int maxWidth, int maxHeight) {
         return this.scale(this.width, maxWidth, maxHeight);
     }

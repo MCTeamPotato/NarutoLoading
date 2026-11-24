@@ -7,6 +7,6 @@ public final class ClientSetup {
     private ClientSetup() {}
 
     public static void register(FMLJavaModLoadingContext context) {
-        if (Integration.NARUTO_UI) NarutoScreen.register(context);
+        NarutoScreen.register(context);
     }
 }

@@ -1,7 +1,6 @@
 package me.kall.narutoloading.client.input;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import me.kall.narutoloading.bootstrap.Integration;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +12,6 @@ public final class NarutoKeys {
     private NarutoKeys() {}
 
     public static void register(@NotNull RegisterKeyMappingsEvent event) {
-        if (Integration.NARUTO_UI) event.register(OPEN_SCREEN);
+        event.register(OPEN_SCREEN);
     }
 }

@@ -152,6 +152,9 @@ tasks.register("publishCurseForge", TaskPublishCurseForge) {
         mainFile.addModLoader(isNeo ? "NeoForge" : "Forge")
         mainFile.addJavaVersion("Java ${versionKeys.java}")
         mainFile.addGameVersion(minecraft_version)
+        mainFile.addRequirement("narutoui")
+        mainFile.addRequirement("modern-ui")
+        mainFile.addOptional("duplicationless")
 
         UploadArtifact sourceFile = mainFile.withAdditionalFile(sourcesJar)
         sourceFile.changelog = changelog

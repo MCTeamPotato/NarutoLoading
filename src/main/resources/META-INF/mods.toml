@@ -18,14 +18,14 @@ description = '''
 
 [[dependencies.narutoloading]]
 modId = "modernui"
-mandatory = false
+mandatory = true
 versionRange = "[3.12.0,)"
 ordering = "AFTER"
 side = "CLIENT"
 
 [[dependencies.narutoloading]]
 modId = "narutoui"
-mandatory = false
+mandatory = true
 versionRange = "[1.20.1-1.10.0,)"
 ordering = "AFTER"
 side = "CLIENT"

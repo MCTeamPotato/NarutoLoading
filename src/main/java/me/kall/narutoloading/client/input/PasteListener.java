@@ -1,6 +1,5 @@
 package me.kall.narutoloading.client.input;
 
-import me.kall.narutoloading.bootstrap.Integration;
 import me.kall.narutoloading.client.ui.NarutoScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
@@ -27,8 +26,6 @@ public final class PasteListener {
         boolean pressed = (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS) && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS;
 
         if (!pressed) return;
-
-        if (!Integration.NARUTO_UI) return;
 
         Screen current = minecraft.screen;
         if (hasTextInput(current)) return;

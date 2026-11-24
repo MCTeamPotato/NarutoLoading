@@ -5,8 +5,6 @@ import net.minecraftforge.fml.loading.LoadingModList;
 import org.jetbrains.annotations.NotNull;
 
 public final class Integration {
-    public static final boolean MODERN_UI = modLoaded("modernui");
-    public static final boolean NARUTO_UI = modLoaded("narutoui");
     public static final boolean EMBEDDIUM = modLoaded("embeddium");
     public static final boolean DUPLICATIONLESS = modLoaded("duplicationless");
 

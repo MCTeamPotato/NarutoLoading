@@ -102,7 +102,7 @@ public class NarutoLoadingClient {
 
         if (KEY_LAST_PRESS.containsKey(key) && now - KEY_LAST_PRESS.getLong(key) < KEY_THROTTLE_NANOS) return;
 
-        if (NarutoKeys.OPEN_SCREEN.isActiveAndMatches(key) && Integration.NARUTO_UI) {
+        if (NarutoKeys.OPEN_SCREEN.isActiveAndMatches(key)) {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.setScreen(NarutoScreen.create(minecraft.screen));
 
