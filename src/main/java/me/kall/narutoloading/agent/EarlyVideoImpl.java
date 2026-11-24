@@ -42,7 +42,7 @@ public final class EarlyVideoImpl implements EarlyVideo {
 
         this.audio = created;
 
-        this.producer = new BufferFrameProducer(ffmpeg, video);
+        this.producer = new BufferFrameProducer(ffmpeg, video, false);
         this.producer.withWarmListener(this::onWarm);
         this.producer.setup(0D);
         this.producer.eager();

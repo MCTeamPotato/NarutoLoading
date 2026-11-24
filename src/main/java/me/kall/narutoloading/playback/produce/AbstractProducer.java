@@ -1,6 +1,5 @@
 package me.kall.narutoloading.playback.produce;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -26,15 +25,6 @@ public abstract class AbstractProducer {
 
     protected abstract void forInput(InputStream input) throws IOException, InterruptedException;
 
-    /**
-     * Where the process' stdout is read from. The default is the process pipe; producers whose
-     * throughput outgrows it (a 4K frame is 12 MB, and a Windows pipe hands out a few KB per read)
-     * override this with a stream backed by a larger transport.
-     */
-    protected @NotNull InputStream openInput(@NotNull Process process) throws IOException {
-        return process.getInputStream();
-    }
-
     public void setup(double seekTo) {
         String[] command = this.setCommand(seekTo);
         if (command == null || command[0] == null) return;
@@ -42,7 +32,7 @@ public abstract class AbstractProducer {
         this.off.set(false);
         this.onSetup(seekTo);
 
-        this.runner.start(command, PRODUCER_ERROR_LOG, this::openInput, this::forInput, throwable -> {
+        this.runner.start(command, PRODUCER_ERROR_LOG, this::forInput, throwable -> {
             if (this.off.get()) return;
             System.err.println("[NarutoLoading] Exception during " + Arrays.toString(command) + " execution: " + throwable.getMessage());
         });

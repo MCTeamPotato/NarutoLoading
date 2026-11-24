@@ -4,16 +4,10 @@ import me.kall.narutoloading.media.ffmpeg.data.VideoArgs;
 import me.kall.narutoloading.config.NarutoConfig;
 import me.kall.narutoloading.playback.produce.AbstractProducer;
 import me.kall.narutoloading.playback.produce.util.TimeCosts;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,14 +26,13 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     private static final double TARGET_BUFFER_SECONDS = 1D;
 
-    private static final int FRAME_SOCKET_BUFFER_BYTES = 4 * 1024 * 1024;
-    private static final int FRAME_SOCKET_ACCEPT_TIMEOUT_MILLIS = 500;
-    private static final long FRAME_SOCKET_ACCEPT_DEADLINE_NANOS = 10_000_000_000L;
     private static final int READ_BUFFER_BYTES = 256 * 1024;
 
     private final String ffmpeg;
 
     public final VideoArgs args;
+
+    private final boolean gpuAccel;
 
     private final int maxWidth, maxHeight;
 
@@ -47,10 +40,6 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     private final TimeCosts loopCosts;
 
     private long nextReportNanos;
-
-    private @Nullable ServerSocket frameListener;
-    private @Nullable Socket frameSocket;
-    private int framePort;
 
     protected final int frameSize, bufferCapacity;
     protected final int warmFrames;
@@ -65,10 +54,11 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
 
     private final AtomicBoolean starved = new AtomicBoolean();
 
-    public AbstractFrameProducer(String ffmpeg, VideoArgs args, int frameSize, int maxWidth, int maxHeight, long maxBufferBytes) {
+    public AbstractFrameProducer(String ffmpeg, VideoArgs args, boolean gpuAccel, int frameSize, int maxWidth, int maxHeight, long maxBufferBytes) {
         this.ffmpeg = ffmpeg;
 
         this.args = args;
+        this.gpuAccel = gpuAccel;
 
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
@@ -146,6 +136,11 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         command.add(this.ffmpeg);
         command.add("-nostdin");
 
+        if (this.gpuAccel) {
+            command.add("-hwaccel");
+            command.add("auto");
+        }
+
         command.add("-threads");
         command.add("0");
 
@@ -173,82 +168,12 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
         command.add("-loglevel");
         command.add("error");
 
-        command.add("tcp://127.0.0.1:" + this.framePort);
+        command.add("pipe:1");
 
         return command.toArray(String[]::new);
     }
 
     protected abstract String frameType();
-
-    @Override
-    public void setup(double seekTo) {
-        if (this.ffmpeg == null) return;
-        if (!this.openFrameListener()) return;
-
-        super.setup(seekTo);
-    }
-
-    @Override
-    protected @NotNull InputStream openInput(@NotNull Process process) throws IOException {
-        ServerSocket listener = this.frameListener;
-        if (listener == null) throw new IOException("Frame listener is not open");
-
-        long deadline = System.nanoTime() + FRAME_SOCKET_ACCEPT_DEADLINE_NANOS;
-
-        while (true) {
-            try {
-                Socket socket = listener.accept();
-                this.frameSocket = socket;
-
-                return socket.getInputStream();
-            } catch (SocketTimeoutException timeout) {
-                if (!process.isAlive()) throw new IOException("ffmpeg exited before connecting to the frame socket, exit code " + process.exitValue(), timeout);
-                if (System.nanoTime() - deadline >= 0L) throw new IOException("Timed out waiting for ffmpeg to connect to the frame socket", timeout);
-            }
-        }
-    }
-
-    private boolean openFrameListener() {
-        this.closeFrameTransport();
-
-        try {
-            ServerSocket listener = new ServerSocket();
-
-            listener.setReceiveBufferSize(FRAME_SOCKET_BUFFER_BYTES);
-            listener.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 1);
-            listener.setSoTimeout(FRAME_SOCKET_ACCEPT_TIMEOUT_MILLIS);
-
-            this.frameListener = listener;
-            this.framePort = listener.getLocalPort();
-
-            return true;
-        } catch (IOException exception) {
-            System.err.println("[NarutoLoading] Could not open the frame socket: " + exception.getMessage());
-            return false;
-        }
-    }
-
-    private void closeFrameTransport() {
-        Socket socket = this.frameSocket;
-        this.frameSocket = null;
-
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException ignored) {
-            }
-        }
-
-        ServerSocket listener = this.frameListener;
-        this.frameListener = null;
-
-        if (listener != null) {
-            try {
-                listener.close();
-            } catch (IOException ignored) {
-            }
-        }
-    }
 
     @Override
     protected void forInput(InputStream input) throws IOException, InterruptedException {
@@ -353,8 +278,6 @@ public abstract class AbstractFrameProducer<T> extends AbstractProducer {
     @Override
     public void shutdown() {
         super.shutdown();
-
-        this.closeFrameTransport();
 
         ExecutorService waitExecutor = this.waitExecutor.getAndSet(null);
         if (waitExecutor != null) waitExecutor.shutdown();
